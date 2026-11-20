@@ -38,7 +38,27 @@ Seção obrigatória (sala limpa). Para cada comportamento do original que a fat
 | Comportamento | Fonte na central | Base |
 |---|---|---|
 
-Lacunas encontradas (perguntas levadas à central): ...
+## Suficiência das descrições
+
+Seção obrigatória (sala limpa). Para cada comportamento da tabela acima, confira se a descrição diz tudo o que o código e os testes vão precisar. Um item que a descrição não diz vira uma pergunta para a central, e a spec só vai para a aprovação do dono sem perguntas abertas. Se a fatia não reproduz nenhum comportamento do original, escreva "não se aplica".
+
+### Comportamento: nome
+
+| O que a descrição precisa dizer | O que ela diz | Fonte |
+|---|---|---|
+| Entradas e saídas | ... | ... |
+| Ordem dos passos | ... | ... |
+| Tempos (por tick, por quadro ou relógio de parede) | ... | ... |
+| Limites e casos de erro | ... | ... |
+| Números (tamanhos, offsets, tempos, códigos) | ... | ... |
+
+Exemplos esperados, escritos só a partir da descrição (viram testes no `/implementar`):
+
+| Entrada | Resultado esperado | De onde veio |
+|---|---|---|
+| ... | ... | calculado pela descrição, ou fornecido pela central |
+
+Perguntas abertas para a central: nenhuma
 
 ## Riscos
 

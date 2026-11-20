@@ -17,17 +17,24 @@ Transforma o próximo item do roadmap numa spec e num plano aprovados. **Não im
 1. **Contexto.** Leia `docs/ROADMAP.md`, `docs/STATUS.md`, as propostas abertas em `docs/PROPOSALS.md`, `docs/TECH_DEBT.md`, o report da última fatia e as seções de `docs/ARCHITECTURE.md` que a fatia toca. Leia também, na cópia da spec em `docs/referencia/`, a seção do marco na Parte VI, os subsistemas da Parte IV que ele toca e as lacunas da Parte VIII.
 2. **Escolha da fatia.** É a próxima de "Próximas" no ROADMAP, a menos que a última retrospectiva tenha decidido outra. Um marco grande pode virar várias fatias: proponha um pedaço que termine em algo que roda e se mede. Se ela depender de algo que ainda não existe, proponha antes uma fatia de fundação e pergunte ao dono.
 3. **Investigar antes (sala limpa).** Para cada comportamento do original que a fatia vai reproduzir, e para cada item da coluna "Investigar antes" do marco, use `/consultar-central`.
-   - Se tudo estiver descrito nas specs e nos achados da central, siga.
-   - Se faltar algo, **pare**: entregue ao dono as perguntas prontas para a central, registre-as em "Bloqueios" no `docs/STATUS.md` e não escreva a spec ainda. O código nunca nasce sem a descrição.
+   - **Confira se a descrição basta**, sem confiar na impressão de que ela parece completa. Para cada comportamento, preencha a checklist da seção "Suficiência das descrições" de `templates/plan.md`:
+     - entradas e saídas;
+     - ordem dos passos;
+     - tempos (por tick, por quadro ou relógio de parede);
+     - limites e casos de erro;
+     - números com fonte.
+   - **Escreva 2 ou 3 exemplos de entrada e resultado esperado** usando só a descrição. Se não conseguir chegar ao valor, a descrição não basta. Nos casos delicados (fórmulas, bytes de pacote, visual), peça os exemplos à central.
+   - Se tudo estiver descrito, siga.
+   - Se faltar algo, **pare**: entregue ao dono as perguntas prontas para a central, registre-as em "Bloqueios" no `docs/STATUS.md` e não escreva a spec ainda. O código nunca nasce sem a descrição. A checagem `docs` recusa um plano aprovado que ainda tenha "Perguntas abertas para a central".
 4. **Branch.** Rode `git switch main`. Se houver remoto (`git remote`), rode `git pull --ff-only`. Depois, `git switch -c fatia/NNNN-nome`. A fatia N usa o número N com quatro dígitos; o nome é curto, em kebab-case.
 5. **Spec.** Crie `specs/NNNN-nome/spec.md` a partir de `templates/spec.md`, com `status: rascunho` e o `marco`. Os critérios de aceitação são verificáveis: cada um é provado por um teste automático ou por uma verificação manual descrita. Preencha "Paridade" (o nível P0 a P3 que a fatia toca, ou "não se aplica"). Escreva "Como o dono testa" com passos que ele consiga seguir sozinho. Se a fatia mudar o que aparece na tela, leia `docs/VISUAL.md` e preencha a seção "Prova visual"; se não mudar, escreva "não se aplica".
-6. **Plano.** Crie `plan.md` a partir de `templates/plan.md`. Preencha com cuidado a "Visão de destino" e as "Simplificações provisórias" (ver "interface pensa no destino, implementação no agora" em `docs/CONVENTIONS.md`). Liste bibliotecas novas, ADRs necessários e mudanças nos formatos da engine ou no contrato de rede. **Preencha "Fontes da central usadas"** com cada spec, achado e documento do OpenMU, e a base de commits; a checagem `docs` exige essa seção.
+6. **Plano.** Crie `plan.md` a partir de `templates/plan.md`. Preencha com cuidado a "Visão de destino" e as "Simplificações provisórias" (ver "interface pensa no destino, implementação no agora" em `docs/CONVENTIONS.md`). Liste bibliotecas novas, ADRs necessários e mudanças nos formatos da engine ou no contrato de rede. **Preencha "Fontes da central usadas"** com cada spec, achado e documento do OpenMU, e a base de commits, e **"Suficiência das descrições"** com a checklist e os exemplos do passo 3; a checagem `docs` exige as duas seções.
 7. **Checagem.** Rode `py scripts/checks/run.py docs terms`.
 8. **Apresente ao dono**, em português simples:
    - o que a fatia entrega e como testar;
    - os critérios de aceitação em linguagem simples;
    - o que fica de fora;
-   - as fontes da central que sustentam a fatia;
+   - as fontes da central que sustentam a fatia, e se cada descrição passou na checklist de suficiência;
    - o que precisa da decisão do dono (bibliotecas novas, ADRs, formatos da engine, contrato de rede);
    - que, ao aprovar, a fatia passa para "Agora" no ROADMAP.
 

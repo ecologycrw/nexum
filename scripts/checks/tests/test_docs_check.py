@@ -7,7 +7,14 @@ from nexum_checks import docs_check
 STATUS = "---\nfase: preparacao\nspec-atual:\n---\n\n# Status\n"
 ADR = "---\nid: {id}\ntitulo: A decision\nstatus: {status}\nsubstituida-por: {by}\n---\n\n# ADR\n"
 VISUAL_PROOF = "\n## Prova visual\n\nNão se aplica.\n"
-CENTRAL_SOURCES = "# Plan\n\n## Fontes da central usadas\n\nNenhuma: a fatia não implementa comportamento do MU.\n"
+CENTRAL_SOURCES = "## Fontes da central usadas\n\nNenhuma: a fatia não implementa comportamento do MU.\n"
+SUFFICIENCY = "\n## Suficiência das descrições\n\nNão se aplica.\n"
+PLAN = f"# Plan\n\n{CENTRAL_SOURCES}{SUFFICIENCY}"
+CHECKED_PLAN = (
+    "# Plan\n\n## Fontes da central usadas\n\n| Andar | spec, seção I.13.8 | b53c704c6 |\n"
+    "\n## Suficiência das descrições\n\n### Andar\n\n| Item | O que a descrição diz |\n|---|---|\n"
+    "| Ordem dos passos | um passo por vez |\n\n{questions}\n\n## Riscos\n\nNenhum.\n"
+)
 CLEAN_ROOM = "\n## Sala limpa\n\nNão se aplica.\n"
 
 
@@ -17,7 +24,7 @@ class DocsCheckTests(TempRepositoryTest):
         self.write("docs/STATUS.md", STATUS)
 
     def spec(self, status: str, criteria: str = "- CA-01: Something works.\n", extra: tuple[str, ...] = (),
-             visual_proof: str = VISUAL_PROOF, plan: str = CENTRAL_SOURCES) -> None:
+             visual_proof: str = VISUAL_PROOF, plan: str = PLAN) -> None:
         self.write("specs/0001-first/spec.md",
                    f"---\nid: 0001\ntitulo: First\nstatus: {status}\n---\n\n{criteria}{visual_proof}")
         self.write("specs/0001-first/plan.md", plan)
@@ -152,6 +159,8 @@ class DocsCheckTests(TempRepositoryTest):
     def test_a_draft_spec_can_leave_the_visual_proof_and_the_sources_for_later(self) -> None:
         self.spec("rascunho", visual_proof="", plan="# Plan\n")
         self.assertEqual(self.run_check(), [])
+        self.spec("rascunho", plan=f"# Plan\n\n{CENTRAL_SOURCES}")
+        self.assertEqual(self.run_check(), [])
 
     def test_an_approved_spec_needs_the_visual_proof_section(self) -> None:
         for status in ("aprovada", "em-andamento", "concluida"):
@@ -163,15 +172,52 @@ class DocsCheckTests(TempRepositoryTest):
         self.spec("aprovada", visual_proof="\n## Prova visual\n\n## Como o dono testa\n\nPassos.\n")
         self.assert_refused(self.run_check(), "needs a '## Prova visual' section")
 
+    def test_a_section_may_be_split_into_subsections(self) -> None:
+        self.spec("aprovada", visual_proof="\n## Prova visual\n\n### Cena\n\nO chão vazio.\n\n## Como o dono testa\n\nPassos.\n")
+        self.assertEqual(self.run_check(), [])
+
+    def test_a_section_with_only_empty_subsections_is_refused(self) -> None:
+        self.spec("aprovada", visual_proof="\n## Prova visual\n\n### Cena\n\n## Como o dono testa\n\nPassos.\n")
+        self.assert_refused(self.run_check(), "needs a '## Prova visual' section")
+
     def test_a_visual_proof_section_inside_a_code_block_does_not_count(self) -> None:
         self.spec("aprovada", visual_proof="\n```text\n## Prova visual\n\nNão se aplica.\n```\n")
         self.assert_refused(self.run_check(), "needs a '## Prova visual' section")
 
     def test_an_approved_plan_needs_the_sources_of_the_knowledge_center(self) -> None:
-        for plan in ("# Plan\n", "# Plan\n\n## Fontes da central usadas\n\n## Riscos\n\nNone.\n"):
+        for plan in (f"# Plan\n{SUFFICIENCY}", f"# Plan\n\n## Fontes da central usadas\n{SUFFICIENCY}"):
             with self.subTest(plan=plan):
                 self.spec("aprovada", plan=plan)
                 self.assert_refused(self.run_check(), "plan.md: needs a '## Fontes da central usadas' section")
+
+    def test_an_approved_plan_needs_the_check_of_the_descriptions(self) -> None:
+        for plan in (f"# Plan\n\n{CENTRAL_SOURCES}",
+                     f"# Plan\n\n{CENTRAL_SOURCES}\n## Suficiência das descrições\n\n## Riscos\n\nNone.\n"):
+            with self.subTest(plan=plan):
+                self.spec("aprovada", plan=plan)
+                self.assert_refused(self.run_check(), "plan.md: needs a '## Suficiência das descrições' section")
+
+    def test_an_approved_plan_cannot_keep_open_questions_for_the_knowledge_center(self) -> None:
+        for questions in ("Perguntas abertas para a central: em que ordem os passes são desenhados?",
+                          "Perguntas abertas para a central:\n\n- em que ordem os passes são desenhados?"):
+            with self.subTest(questions=questions):
+                self.spec("aprovada", plan=CHECKED_PLAN.format(questions=questions))
+                self.assert_refused(self.run_check(), "still has open questions for the knowledge center")
+
+    def test_a_plan_without_open_questions_is_accepted(self) -> None:
+        for answer in ("nenhuma", "Nenhuma.", "nenhuma"):
+            with self.subTest(answer=answer):
+                self.spec("aprovada", plan=CHECKED_PLAN.format(questions=f"Perguntas abertas para a central: {answer}"))
+                self.assertEqual(self.run_check(), [])
+
+    def test_a_draft_plan_can_keep_open_questions(self) -> None:
+        self.spec("rascunho", plan=CHECKED_PLAN.format(questions="Perguntas abertas para a central: qual a ordem?"))
+        self.assertEqual(self.run_check(), [])
+
+    def test_open_questions_inside_a_code_block_are_only_an_example(self) -> None:
+        questions = "Perguntas abertas para a central: nenhuma\n\n```text\nPerguntas abertas para a central: x?\n```"
+        self.spec("aprovada", plan=CHECKED_PLAN.format(questions=questions))
+        self.assertEqual(self.run_check(), [])
 
     def test_a_finished_report_needs_the_visual_proof_section(self) -> None:
         self.spec("concluida", extra=("tasks.md",))

@@ -46,7 +46,7 @@ Cada fatia tem uma pasta `specs/NNNN-nome/`. A fatia N fica na pasta de número 
 | Arquivo | Responde | Aprovação | Muda? |
 |---|---|---|---|
 | `spec.md` | O quê e por quê; critérios de aceitação `CA-xx`; o nível de paridade tocado | dono | quase nunca depois de aprovada |
-| `plan.md` | Como; a visão de destino; as simplificações provisórias; **as fontes da central usadas** | dono, pelo resumo | pouco |
+| `plan.md` | Como; a visão de destino; as simplificações provisórias; **as fontes da central usadas e a suficiência de cada descrição** | dono, pelo resumo | pouco |
 | `tasks.md` | Em que passos; é a memória entre sessões | — | o tempo todo |
 | `report.md` | O que aconteceu; a prova de cada CA; **a checklist de sala limpa**; o que o dono deve testar | dono, junto com o PR | não, depois de concluída |
 
@@ -72,6 +72,9 @@ flowchart LR
 1. O conhecimento sobre o original fica nas specs e nos achados da central, com texto, tabelas e pseudo-código próprios.
 2. O código do Nexum é escrito **a partir dessas descrições**, sem o código do MuMain aberto ao lado. Um hook bloqueia a leitura dele.
 3. Quando a descrição não basta, a fatia para naquele ponto: a pergunta vai para a central, que investiga e atualiza a spec. Só então se implementa.
+   - Para saber se ela basta, o `/planejar` não confia na impressão. Para cada comportamento, ele preenche no `plan.md` uma checklist: entradas e saídas, ordem dos passos, tempos (por tick ou por quadro), limites e casos de erro, números com fonte.
+   - Ele também escreve exemplos de entrada e resultado esperado só a partir da descrição; esses exemplos viram testes.
+   - A spec só vai para a aprovação do dono sem perguntas abertas para a central, e a checagem `docs` confere isso.
 4. O código e os documentos do **OpenMU** (MIT) podem ser lidos e reaproveitados, sempre com o aviso da licença.
 
 **Checklist de sala limpa** (Apêndice E da spec). Vale para cada tarefa que implementa comportamento do MU e fica registrada no `report.md`:

@@ -64,7 +64,7 @@ O `scripts/checks` confere o que o compilador não confere:
 
 | Checagem | O que recusa |
 |---|---|
-| `docs` | links quebrados, specs incompletas, critério de aceitação sem prova, seções "Prova visual", "Fontes da central usadas" e "Sala limpa" ausentes, ADRs fora de sequência, item provisório sem destino |
+| `docs` | links quebrados, specs incompletas, critério de aceitação sem prova, seções "Prova visual", "Fontes da central usadas", "Suficiência das descrições" e "Sala limpa" ausentes, plano aprovado com perguntas abertas para a central, ADRs fora de sequência, item provisório sem destino |
 | `structure` | arquivos obrigatórios faltando, módulos fora do padrão, nomes de arquivo errados, biblioteca sem licença registrada, arquivos originais do jogo no repositório |
 | `architecture` | dependência proibida entre camadas, e bibliotecas externas ou o sistema operacional fora do módulo dono |
 | `cpp-rules` | `new` e `delete` soltos, funções perigosas de C, `rand`, relógios fora de Platform e Time, `reinterpret_cast`, `throw` no runtime |

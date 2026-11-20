@@ -34,7 +34,16 @@ _CENTRAL_SOURCES_MISSING = (
     "needs a '## Fontes da central usadas' section: list the specs and findings used, or write that the slice "
     "implements no behavior of the original (INV-16)"
 )
+_SUFFICIENCY = "Suficiência das descrições"
+_SUFFICIENCY_MISSING = (
+    "needs a '## Suficiência das descrições' section: check that each description of the knowledge center says "
+    "everything the code and the tests need, or write that it does not apply (INV-16)"
+)
+_OPEN_QUESTIONS = re.compile(r"^\s*Perguntas abertas para a central:\s*(?P<answer>.*?)\s*$")
+_NO_OPEN_QUESTIONS = re.compile(r"^nenhuma\.?$", re.IGNORECASE)
 _CLEAN_ROOM = "Sala limpa"
+_SECTION_END = re.compile(r"^\s{0,3}#{1,2}\s")
+_ANY_HEADING = re.compile(r"^\s{0,3}#{1,6}\s")
 _CLEAN_ROOM_MISSING = (
     "needs a '## Sala limpa' section with the clean-room checklist, or write that it does not apply (INV-16)"
 )
@@ -152,8 +161,8 @@ def _check_spec_folder(root: Path, folder: Path, findings: list[Finding]) -> Non
         findings.append(Finding(NAME, spec_where, _VISUAL_PROOF_MISSING))
 
     plan = folder / "plan.md"
-    if status != "rascunho" and plan.is_file() and not has_section(read_text(plan), _CENTRAL_SOURCES):
-        findings.append(Finding(NAME, f"{where}/plan.md", _CENTRAL_SOURCES_MISSING))
+    if status != "rascunho" and plan.is_file():
+        _check_plan(f"{where}/plan.md", read_text(plan), findings)
 
     report = folder / "report.md"
     if status == "concluida" and report.is_file():
@@ -165,6 +174,22 @@ def _check_spec_folder(root: Path, folder: Path, findings: list[Finding]) -> Non
             findings.append(Finding(NAME, f"{where}/report.md", _CLEAN_ROOM_MISSING))
 
 
+def _check_plan(where: str, text: str, findings: list[Finding]) -> None:
+    """The clean room of an approved plan: the sources, the check of each description, and no open question."""
+    if not has_section(text, _CENTRAL_SOURCES):
+        findings.append(Finding(NAME, where, _CENTRAL_SOURCES_MISSING))
+    if not has_section(text, _SUFFICIENCY):
+        findings.append(Finding(NAME, where, _SUFFICIENCY_MISSING))
+    for number, line in enumerate(markdown.prose_lines(text), start=1):
+        match = _OPEN_QUESTIONS.match(line)
+        if match and not _NO_OPEN_QUESTIONS.match(match.group("answer")):
+            findings.append(Finding(
+                NAME, where,
+                f"line {number}: an approved plan still has open questions for the knowledge center: ask them "
+                "before the approval, or write 'Perguntas abertas para a central: nenhuma'",
+            ))
+
+
 def has_section(text: str, title: str) -> bool:
     """The '## title' section must exist and say something, even if only that it does not apply."""
     heading = re.compile(rf"^##\s+{re.escape(title)}\s*$")
@@ -172,8 +197,9 @@ def has_section(text: str, title: str) -> bool:
     start = next((index for index, line in enumerate(lines) if heading.match(line)), None)
     if start is None:
         return False
-    body = itertools.takewhile(lambda line: not line.lstrip().startswith("#"), lines[start + 1:])
-    return any(line.strip() for line in body)
+    # The section ends at the next heading of the same level or above; its subsections are part of it.
+    body = itertools.takewhile(lambda line: not _SECTION_END.match(line), lines[start + 1:])
+    return any(line.strip() and not _ANY_HEADING.match(line) for line in body)
 
 
 def _check_criteria_proof(

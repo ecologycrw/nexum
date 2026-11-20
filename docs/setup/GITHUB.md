@@ -149,7 +149,7 @@ A regra exige na `main`:
 
 A IA envia a branch `preparacao/ambiente`, abre o PR #1 e confere:
 
-- a CI rodando nos três sistemas, e o que ela acusar de Linux e macOS, que nunca foram testados aqui ([TD-0002](../TECH_DEBT.md));
+- a CI rodando nos três sistemas, e o que ela acusar de Linux e macOS, que só a CI testa;
 - o PR bloqueado até a sua aprovação.
 
 ## 11. Revisar e fazer o merge (dono, navegador)
