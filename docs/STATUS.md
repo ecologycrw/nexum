@@ -1,5 +1,5 @@
 ---
-fase: planejada
+fase: em-andamento
 spec-atual: 0000
 branch: fatia/0000-fundacao
 atualizado-em: 2026-11-20
@@ -9,11 +9,11 @@ atualizado-em: 2026-11-20
 
 ## Agora
 
-**Fatia 0 (Fundação, marco M0) aprovada; a implementação ainda não começou.** A [spec](../specs/0000-fundacao/spec.md) e o [plano](../specs/0000-fundacao/plan.md) estão na branch `fatia/0000-fundacao`. O dono aprovou também o Tracy, as mudanças nas travas listadas no plano e a lista de requisitos do SDL GPU na VISÃO. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
+**Fatia 0 (Fundação, marco M0) em andamento.** A [spec](../specs/0000-fundacao/spec.md), o [plano](../specs/0000-fundacao/plan.md) e a [lista de tarefas](../specs/0000-fundacao/tasks.md) estão na branch `fatia/0000-fundacao`. O dono aprovou também o Tracy, as mudanças nas travas listadas no plano e a lista de requisitos do SDL GPU na VISÃO. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. `/implementar` da fatia 0, começando pela sondagem: provar que as máquinas da CI usam a placa de vídeo nos 3 sistemas. Se um sistema falhar, a fatia para e as opções vão para o dono.
+1. `/implementar` da fatia 0, seguindo o [tasks.md](../specs/0000-fundacao/tasks.md). Ele começa pela sondagem: provar que as máquinas da CI usam a placa de vídeo nos 3 sistemas. Se um sistema falhar, a fatia para e as opções vão para o dono.
 2. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
 ## Bloqueios
