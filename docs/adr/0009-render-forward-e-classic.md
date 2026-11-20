@@ -1,10 +1,10 @@
 ---
 id: 0009
 titulo: Render forward com passes fixos e Classic em espaço gama
-status: aceita
+status: substituida
 data: 2026-11-20
 substitui:
-substituida-por:
+substituida-por: 0030
 ---
 
 # ADR 0009: Render forward com passes fixos e Classic em espaço gama
