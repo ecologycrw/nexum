@@ -1,7 +1,7 @@
 ---
-fase: entre-fatias
-spec-atual:
-branch:
+fase: planejada
+spec-atual: 0000
+branch: fatia/0000-fundacao
 atualizado-em: 2026-11-20
 ---
 
@@ -9,13 +9,12 @@ atualizado-em: 2026-11-20
 
 ## Agora
 
-**Preparação concluída e na `main`.** O repositório `ecologycrw/nexum` está público, com a `main` protegida, e a CI do PR #2 passou nos 10 checks em Windows, Linux (Clang e GCC) e macOS. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)). Nenhuma fatia está em andamento.
+**Fatia 0 (Fundação, marco M0) aprovada; a implementação ainda não começou.** A [spec](../specs/0000-fundacao/spec.md) e o [plano](../specs/0000-fundacao/plan.md) estão na branch `fatia/0000-fundacao`. O dono aprovou também o Tracy, as mudanças nas travas listadas no plano e a lista de requisitos do SDL GPU na VISÃO. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. O dono revisa e faz o merge do PR da atualização da spec (o Enhanced reescrito). Ele muda o que o M0 confere antes: o defeito do D3D12 e o Vulkan como padrão no Windows.
-2. Numa sessão nova, aberta só no Nexum: `/planejar` da fatia 0 (o resto do M0).
-3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
+1. `/implementar` da fatia 0, começando pela sondagem: provar que as máquinas da CI usam a placa de vídeo nos 3 sistemas. Se um sistema falhar, a fatia para e as opções vão para o dono.
+2. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
 ## Bloqueios
 
@@ -35,3 +34,5 @@ Nenhum.
 | 2026-11-20 | CI do PR #2 verde nos 10 checks, pela primeira vez em Linux (Clang e GCC) e macOS; o dono aprovou e fez o squash merge na `main` |
 | 2026-11-20 | Propostas P-0001 (separar os jogos em repositórios próprios) e P-0002 (conferir se a descrição da central basta) registradas a pedido do dono; a P-0002 foi adotada logo em seguida |
 | 2026-11-20 | A central reescreveu o Enhanced da spec a partir da doc oficial do MuMain. A pedido do dono, a cópia em `docs/referencia/` foi trocada inteira, os ADRs 0029 a 0031 substituíram os 0004, 0009 e 0012, e o VISUAL, a VISÃO, o ROADMAP, o glossário e o TD-0005 foram atualizados |
+| 2026-11-20 | O dono fez o merge do PR #3 (proposta P-0002) e do PR #4 (a spec com o Enhanced reescrito) |
+| 2026-11-20 | Spec da fatia 0 (Fundação) aprovada pelo dono, com o Tracy, as mudanças nas travas e a lista de requisitos do SDL GPU na VISÃO. O SDL 3.4.20 ainda tem o defeito do D3D12 (SDL #16369, correção prevista para o 3.6.0), e o Vulkan segue como padrão no Windows |
