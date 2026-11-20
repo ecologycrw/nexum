@@ -56,4 +56,5 @@ Achados do revisor e o que foi feito com cada um. Preenchido pelo `/revisar`.
 ## Notas para a próxima sessão
 
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.
+- No commit `29fb789` (T03), o `git add -A` levou junto uma mudança do dono no `.claude/settings.json`, que é uma trava. A IA não tinha visto a mudança. Daqui em diante, cada commit adiciona só os caminhos da tarefa, nunca `-A`. Esta é a primeira ocorrência, para o report.
 - O `guard-bash` recusa um comando que cita um arquivo de trava, como `scripts/dev.py`, e também grava um arquivo (`Out-File`, `>`). Para resumir a saída do `verify`, filtre com `Select-String`, sem gravar arquivo.
