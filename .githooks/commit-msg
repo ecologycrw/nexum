@@ -1,0 +1,15 @@
+#!/bin/sh
+# Enforces the commit message format from docs/CONVENTIONS.md: tipo(escopo): descrição
+set -eu
+
+first_line=$(head -n 1 "$1")
+
+case "$first_line" in
+  Merge\ * | Revert\ * | fixup!\ * | squash!\ *) exit 0 ;;
+esac
+
+if ! printf '%s\n' "$first_line" | grep -Eq '^(feat|fix|docs|test|refactor|perf|build|ci|chore)\([a-z0-9-]+\): .+'; then
+  echo "[commit-msg] BLOCKED: the first line must look like 'feat(0000): T03 add the tick clock'."
+  echo "             Types: feat, fix, docs, test, refactor, perf, build, ci, chore. See docs/CONVENTIONS.md."
+  exit 1
+fi
