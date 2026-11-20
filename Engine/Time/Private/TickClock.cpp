@@ -1,7 +1,8 @@
 #include "Nexum/Time/TickClock.hpp"
 
 #include <algorithm>
-#include <cmath>
+
+#include "UsableDuration.hpp"
 
 namespace nexum::time {
 
@@ -11,12 +12,6 @@ namespace {
 // frame is always below one tick, so a frame never has more than kMaxTicksPerFrame ticks to run.
 constexpr Seconds kMaxFrameTime = kTickDuration * kMaxTicksPerFrame;
 
-// Negative, not-a-number and infinite frame times count as zero (INV-12).
-Seconds UsableFrameTime(Seconds frameTime) noexcept {
-    const double seconds = frameTime.count();
-    return std::isfinite(seconds) && seconds > 0.0 ? frameTime : Seconds{0.0};
-}
-
 } // namespace
 
 FrameTicks TickClock::AdvanceFrame(Seconds frameTime) noexcept {
@@ -24,7 +19,7 @@ FrameTicks TickClock::AdvanceFrame(Seconds frameTime) noexcept {
         return RunRequestedSteps();
     }
 
-    const Seconds elapsed = UsableFrameTime(frameTime);
+    const Seconds elapsed = UsableDuration(frameTime);
     const Seconds added = std::min(elapsed, kMaxFrameTime);
     // Rounded, never cut: 0.007817 s, for example, is stored as a double a little below 7'817'000 ns, and
     // cutting would lose one nanosecond on every such frame.
