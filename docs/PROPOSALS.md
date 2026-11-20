@@ -22,6 +22,8 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
 
+## Processadas
+
 ### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
 - Origem: feedback do dono na fatia 0, depois da T03
 - Tipo: trava
@@ -32,9 +34,12 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 
   Fica de fora uma checagem da fase do STATUS contra o status da spec: ela não teria pegado este caso, porque o erro estava numa frase. Muda travas: o hook `session-start`, os testes dos hooks e a skill `/situacao`
 - Prioridade sugerida: média (aplicar antes de muitas sessões novas na fatia 0)
-- Status: aberta
-
-## Processadas
+- Status: aceita
+- Destino: trava, regra e skill, aplicadas na branch `consolidacao/proposta-p-0003` a pedido do dono ("Bom, quero que você adiante assim como foi com a P-0002"). A branch sai da `fatia/0000-fundacao`, e o PR dela entra nessa branch, para as sessões da fatia 0 já terem o resumo novo. Mudaram:
+  - o hook `session-start`, que conta as tarefas e mostra a próxima;
+  - os testes dos hooks (`tests/hooks/session-start.tests.ps1`);
+  - a skill `/situacao` (o andamento vem do `tasks.md`; o PR em rascunho e o aviso automático por sessão);
+  - o `docs/WORKFLOW.md` (a regra) e o STATUS, que deixou de repetir números de tarefa.
 
 ### P-0002: conferir se a descrição da central basta antes de aprovar a spec
 - Origem: feedback do dono, depois do merge da preparação
