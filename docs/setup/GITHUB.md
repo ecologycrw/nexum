@@ -112,13 +112,23 @@ Em **Settings**:
 
 ## 8. Enviar a main pela primeira vez (dono, terminal)
 
+> **A ordem importa: envie a `main` antes de importar a regra do passo 9.** Com a regra ativa, o GitHub recusa este envio (erro `GH013`): ela exige a CI, que ainda não rodou, e exige commits assinados, e o commit inicial foi feito antes da chave. Se a regra já tiver sido importada, desligue-a por um instante (**Settings → Rules → Rulesets → Proteger a main → Enforcement status: Disabled**), envie a `main` e ligue a regra de novo (**Active**). Foi o que aconteceu na publicação do Nexum.
+
 A IA adiciona o endereço do repositório (`git remote add origin ...`). Depois, você envia a `main`, uma única vez:
+
+```bash
+git switch main
+```
 
 ```bash
 git push -u origin main
 ```
 
-Depois disso, ninguém envia nada direto para a `main`: tudo entra por PR.
+```bash
+git switch preparacao/ambiente
+```
+
+O último comando volta a pasta para a branch da preparação. Depois disso, ninguém envia nada direto para a `main`: tudo entra por PR.
 
 ## 9. Proteger a main (dono, navegador)
 

@@ -11,4 +11,3 @@ Tudo o que foi simplificado de propósito, ou que ainda precisa de uma decisão 
 | TD-0005 | Os requisitos exatos do SDL GPU e o piso de hardware não foram conferidos | a spec pede a conferência na documentação do SDL na época do M0 ([VISION](VISION.md#piso-de-hardware)) | M0 | preparação |
 | TD-0006 | A prova visual ainda não tem a ferramenta de comparação de imagens | ainda não existe nenhuma tela; a ferramenta entra com a primeira janela ([ADR 0028](adr/0028-prova-visual-e-paridade.md)) | M0 | preparação |
 | TD-0007 | O build de jogador é conferido só pelo `MuClient --version`, sem a checagem de símbolos | o modo de autoria ainda não existe; a checagem de símbolos entra com ele | M1 | preparação |
-| TD-0008 | Sem as proteções do GitHub: sem conta de máquina, sem commits assinados, sem regra na `main` | o dono escolheu começar com o Git só local; os commits da preparação usam a identidade global deste PC | M0 | preparação |
