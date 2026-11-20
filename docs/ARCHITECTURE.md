@@ -146,7 +146,7 @@ Interfaces conceituais. Os nomes finais nascem nas fatias.
 | Rede | só bytes. O módulo MU implementa a transformação (tamanho da mensagem, abrir, fechar) | [ADR 0010](adr/0010-rede-adaptador-em-camadas.md) |
 | Recursos | só formatos da engine, pelo VFS; carga assíncrona com handles | [ADR 0008](adr/0008-conversao-offline-de-assets.md) |
 | Kit | regras injetadas: "andável", "zona segura", tamanho do inventário, tipos de texto flutuante | [ADR 0002](adr/0002-tres-camadas.md) |
-| Desenho | o jogo descreve (malha, pilha de passes, pose, transformação, luz); o render decide | [ADR 0009](adr/0009-render-forward-e-classic.md) |
+| Desenho | o jogo descreve (malha, pilha de passes, pose, transformação, luz); o render decide | [ADR 0030](adr/0030-render-forward-classic-e-enhanced.md) |
 
 ## Modos de operação
 

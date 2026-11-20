@@ -173,7 +173,7 @@ paridade mensuráveis**. Cada nível tem um teste que diz se foi atingido (Parte
 | **P0** | Protocolo | Cada pacote enviado é idêntico, byte a byte, ao que o OpenMU espera, e cada pacote recebido é entendido | Vetores de teste gerados pelo próprio OpenMU; sessão real de 30 min sem queda nem aviso de violação |
 | **P1** | Comportamento | Tempos e regras visíveis iguais: ritmo do andar, velocidade das animações, alcance dos cliques, ordem dos eventos | Replays de sessões gravadas; comparação de tempos com o servidor |
 | **P2** | Visual clássico | No modo **Classic**, a imagem fica próxima do MuMain na mesma cena e câmera | Comparação de imagens com tolerância (Parte V.2) |
-| **P3** | Visual aprimorado | Modo **Enhanced**: sombras do sol, AO, bloom, LUT, áudio 3D. Melhorias opcionais **sem** compromisso de paridade | Revisão visual |
+| **P3** | Aprimorado | Modo **Enhanced**, o pacote visual criado pelo MuMain (filtragem de textura, iluminação aprimorada, luzes dinâmicas, luz do sol, light mood, pós-processamento com AO, antialiasing; IV.9.7), e, à parte, o **áudio 3D**, uma proposta do Nexum. Melhorias opcionais **sem** compromisso de paridade | Revisão visual e de áudio |
 
 **Compatível** quer dizer P0 e P1 contra o OpenMU sem modificações. **Fiel** quer dizer P0 a P2.
 
@@ -211,7 +211,7 @@ Resumo das mudanças grandes. A tabela completa, item a item, está no Apêndice
 | Rede | Portas, códigos e formato de item errados; anti-speedhack descrito errado | Contrato completo e conferido: dialeto 106.3, item estendido, ping, aviso de pronto, ordem, época | Auditoria (Parte I.13) |
 | Editor | Qt 6 com plugins em DLL, desde o início | Modo de autoria em ImGui dentro da engine; Qt e plugins adiados | O MuMain prova que ImGui basta; DLL C++ tem ABI frágil |
 | Render | GBuffer ou forward indefinido; render graph | Forward, pipeline fixa de passes, Classic em espaço gama | O conteúdo é aditivo e transparente; a paridade exige espaço gama |
-| Áudio | 3D logarítmico com 4 barramentos | Paridade primeiro (2D, 2 volumes); 3D só no Enhanced | O original é 2D |
+| Áudio | 3D logarítmico com 4 barramentos | Paridade primeiro (2D, 2 volumes); 3D numa opção à parte, proposta do Nexum | O original é 2D |
 | UI | Base 1920×1080 | Base 640×480, com o mesmo ajuste do MuMain | Paridade de layout |
 | Fidelidade | "100%" | Níveis P0–P3 com teste | Mensurável |
 | Roteiro | 48 semanas; rede no marco 4 | Fatias verticais por tamanho; rede sem gráficos no marco 2 | A rede concentra os erros mais caros |
@@ -382,7 +382,8 @@ contra a regra do servidor e avisa quando uma célula será lida de forma difere
 - **Fato:** a luz estática do chão vem de `TerrainLight.jpg`. Crywolf e o Battle Castle têm as
   variantes 1 e 2 (`C/World/MapInfra/MapManager.cpp:1060-1090`).
 - **Fato:** essa imagem é multiplicada por `clamp(N·Sol + 0,5)` e pelo fator do "light mood" (o perfil
-  de luz do mapa), virando a luz de base de cada vértice (`ZzzLodTerrain.cpp:623-660`).
+  de luz do mapa), virando a luz de base de cada vértice (`ZzzLodTerrain.cpp:623-660`). O light mood só
+  age no **Enhanced**: no Classic ele fica desligado, e a luz do mapa é a original (`CD/light-mood.md:1-6`).
 - **Fato:** no modo Classic, a cada frame, a luz estática é copiada **só na região do frustum**
   (`ZzzLodTerrain.cpp:2922-2931`). As luzes dinâmicas (magias, tochas) são somadas com queda linear
   `(alcance − d) / alcance`, medida em células e aplicada só quando positiva. Cada soma termina com um
@@ -605,7 +606,8 @@ nosso, guiado por specs (IV.11). Os limites do original servem de orçamento ini
   textura da camada 1 do chão, **não o atributo** da célula (`Client/src/bin/Data/Audio/SoundEvents.json:5-14`,
   `ZzzCharacter.cpp:5339-5356`).
 
-**Consequência:** D-12. A paridade começa 2D; o áudio 3D fica para o modo Enhanced.
+**Consequência:** D-12. A paridade começa 2D; o áudio 3D fica para uma opção à parte. O Enhanced do
+MuMain é só visual (IV.9.7) e não mexe no som.
 
 ## I.13 Rede: o contrato com o OpenMU
 
@@ -953,7 +955,7 @@ não se apaga.
 | D-09 | Render | Forward, lista fixa de passes, Classic em espaço gama, materiais como pilhas de passes |
 | D-10 | Rede | Adaptador em camadas, codec gerado dos XML do OpenMU, dialeto 106.3, ordem e época |
 | D-11 | Interface | RmlUi com base 640×480; cursor nativo; texto e IME pelo SDL |
-| D-12 | Áudio | miniaudio; paridade 2D primeiro; 3D no Enhanced |
+| D-12 | Áudio | miniaudio; paridade 2D primeiro; áudio 3D numa opção à parte |
 | D-13 | Ferramentas | Modo de autoria em ImGui dentro da engine; Qt e plugins adiados |
 | D-14 | Qualidade | Testes, fuzzing, CI em 3 sistemas, paridade medida, gravação e replay de sessões |
 | D-15 | Aleatoriedade | Gerador próprio, determinístico, com fluxos separados para simulação e desenho |
@@ -1103,6 +1105,12 @@ sem mesh shaders, sem bindless irrestrito, sincronização automática), e essa 
   conferir na documentação do SDL na época do M0.
 - **Celular:** Android (Vulkan) e iOS (Metal) são possíveis em tese, mas exigem UI de toque e outro
   orçamento de desempenho. Ficam fora do escopo até o fim da Fase 1.
+- **Defeito conhecido no D3D12:**
+  - **Fato:** o MuMain documenta que, com o Enhanced ligado, um frame pode precisar de mais
+    descritores de sampler do que um heap do backend D3D12 do SDL comporta (2048). A troca de heap no
+    meio do frame tem defeito, e o cliente pode fechar ou o Windows pode reiniciar a GPU. O Vulkan não é
+    afetado (`CD/enhanced-look.md:355-358`).
+  - **Consequência:** Parte VII, risco 8, e a decisão de IV.9.7.2 (Vulkan como padrão onde funcionar).
 
 **Alternativas.** Uma RHI própria sobre Vulkan e D3D12 diretamente: meses de trabalho de baixo nível,
 sem ganho para este jogo. O bgfx: maduro, mas com o próprio modelo de shaders e menos alinhado com o
@@ -1267,14 +1275,17 @@ indefinido e propunha um render graph.
 - **Dois modos de aparência:**
   - **Classic:** espaço gama, iluminação por vértice e grade de luz, materiais clássicos. É o modo da
     paridade P2;
-  - **Enhanced:** acrescenta sombra do sol, AO, bloom e LUT de cor, sem compromisso de paridade (P3).
+  - **Enhanced:** o pacote de 7 recursos que o MuMain criou (filtragem de textura, iluminação
+    aprimorada, luzes dinâmicas, luz do sol, light mood, pós-processamento com AO e antialiasing),
+    descrito em IV.9.7, sem compromisso de paridade (P3).
 - **Materiais** = **pilhas de passes**. A engine oferece o mecanismo (IV.9.3); o módulo MU decide qual
   pilha cada item ou nível usa (I.7.3).
 - **Ordem de desenho:** opacos agrupados por pipeline e textura; transparentes **na ordem em que foram
   enviados**, como no MuMain (I.7.4).
 - **Skinning na GPU**, com uma paleta de ossos por personagem compartilhada por todas as partes.
 - **Instancing** para objetos estáticos repetidos (árvores, pedras).
-- **MSAA** de 2, 4 ou 8 amostras.
+- **MSAA** de 2, 4 ou 8 amostras no Enhanced. No Classic, desligado por padrão, como no MuMain
+  (`CD/enhanced-look.md:37-40`), e o jogador pode ligar. As cenas de paridade usam o Classic sem MSAA.
 - **A regra do desenho:** o desenho **só lê** o estado do mundo e escreve apenas em estruturas próprias
   do frame (listas de draw, buffers temporários). Uma checagem em builds de desenvolvimento acusa
   qualquer escrita (IV.9.8).
@@ -1353,7 +1364,9 @@ para o jogo: não serve para UI temática. UI própria: trabalho demais.
   - 2 volumes, música e efeitos;
   - sons de objetos do mapa com queda linear (1,0 até 300 unidades, 0,25 a partir de 1500);
   - passos só do herói, escolhidos pelo mundo e pela textura da camada 1 do chão (I.12).
-- **Modo Enhanced:** som posicional 3D e barramentos extras (ambiente, UI), configuráveis.
+- **Opção "Áudio 3D"** (proposta do Nexum; **não existe no MuMain**, cujo Enhanced é só visual):
+  som posicional 3D e barramentos extras (ambiente, UI), configuráveis. Fica **separada** do Enhanced
+  visual, para o jogador escolher uma coisa sem a outra.
 - **Eventos de som em dados** (qual som toca em qual momento), como já faz o MuMain.
 
 **Alternativa.** O áudio 3D com 4 barramentos já na base, como na versão original. Ele muda a
@@ -1978,15 +1991,15 @@ Dois recursos genéricos do kit, que o módulo MU liga onde precisar (I.8):
 
 | # | Passe | Classic | Enhanced | Observação |
 |---|---|---|---|---|
-| 1 | Sombra do sol | — | sim | Mapa de sombra |
-| 2 | Opacos: terreno | sim | sim | Camadas de tile, luz em grade |
-| 3 | Opacos: objetos e personagens | sim | sim | Agrupados por pipeline e textura; skinning na GPU |
-| 4 | Sombras clássicas | sim | opcional | Planar achatada ou a versão na GPU que segue o relevo |
+| 1 | Sombra do sol | — | sim | Mapa de sombra; precisa das luzes dinâmicas. Nuvens e tom do céu vêm junto (IV.9.7) |
+| 2 | Opacos: terreno | sim | sim | Camadas de tile, luz em grade. No Enhanced: luzes dinâmicas por pixel, light mood e filtragem de textura |
+| 3 | Opacos: objetos e personagens | sim | sim | Agrupados por pipeline e textura; skinning na GPU. No Enhanced: luz por pixel, contorno de luz e especular |
+| 4 | Sombras clássicas | sim | sem sol | Planar achatada ou a versão na GPU que segue o relevo. No Enhanced, só quando a luz do sol está desligada |
 | 5 | Água especial | sim | sim | Superfície ondulante (Hellas/Kalima) |
 | 6 | Transparentes e aditivos | sim | sim | **Na ordem de envio**; pilhas de passes dos itens |
 | 7 | VFX | sim | sim | Partículas, sprites, rastros, raios; agrupamento por textura só onde a ordem não importa |
 | 8 | Contorno de seleção | sim | sim | Modelo inflado ×1,2, aditivo, 2 vezes |
-| 9 | Pós-processamento | — | sim | AO, bloom só nos aditivos, LUT de cor por mapa (opcional) |
+| 9 | Pós-processamento | — | sim | AO (precisa da profundidade da cena), bloom só nos aditivos, LUT de cor por mapa (opcional); cada um com a sua chave |
 | 10 | Texto do mundo | sim | sim | Nomes, números de dano (em lote) |
 | 11 | UI (RmlUi) | sim | sim | — |
 | 12 | Cursor | sim | sim | Nativo, sempre por último |
@@ -2048,15 +2061,62 @@ GPU por passe e memória de GPU.
 
 ### IV.9.7 Enhanced Look
 
-Opcional e depois da paridade (marco 14). Itens:
+Opcional e depois da paridade (marco M14).
 
-- sombra do sol com mapa de sombra;
-- AO em espaço de tela;
-- bloom só nos draws aditivos;
-- LUT de cor 1024×32 (um cubo 32³) por mapa, opcional;
-- luz dinâmica por pixel a partir do histórico de luzes.
+- **Fato:** o "Enhanced Look" é uma criação do **MuMain**. Não existe no cliente original, e o OpenMU,
+  que é só servidor, não desenha nada.
+- **Fato:** no MuMain, o **Classic** é o padrão. O **Enhanced** é um pacote de recursos que se liga de
+  uma vez; o jogador pode desligar cada recurso separadamente, pela janela de opções, pelo comando
+  `$look` no chat ou pelo `config.ini` (`CD/enhanced-look.md:1-10`, `:21-40`).
 
-Todos existem no MuMain, o que prova a viabilidade (I.5, I.7.4, `CD/post-processing.md:13-16`).
+#### IV.9.7.1 O que o Enhanced do MuMain faz (referência)
+
+| # | Recurso | O que faz | Chave no `config.ini` | Fonte |
+|---|---|---|---|---|
+| 1 | **Filtragem de textura** | Mipmaps e filtro anisotrópico (até 8×, limitado pela GPU) nas texturas do mundo | `Anisotropy` | `CD/enhanced-look.md:14`, `:33`, `:43-46` |
+| 2 | **Iluminação aprimorada** | Luz por pixel nos modelos, contorno de luz (*rim light*) e brilho especular nas armaduras de metal. Quais armaduras brilham vem dos dados do modelo do item (`material.specular`) | `EnhancedLighting` | `:15`, `:162-172` |
+| 3 | **Luzes dinâmicas** | Velas, fogo e magias iluminam por pixel personagens, monstros, NPCs e objetos. No chão, viram poças de luz suaves em vez de manchas entre os vértices. As sombras dos personagens ficam translúcidas e se fundem onde se sobrepõem | `DynamicLights` | `:16` |
+| 4 | **Luz do sol** | Mapa de sombra: terreno, prédios, árvores e personagens projetam sombra em encostas, paredes e outros personagens; partes translúcidas (asas, capas, auras) dão sombra mais clara. Acrescenta nuvens procedurais que escurecem o chão ao passar, sombra puxada para o azul do céu e contorno de luz do lado do sol. **Precisa das luzes dinâmicas** | `Sunlight` | `:22-26`, `:273-283`, `:307-321` |
+| 5 | **Light mood** | Escurece a luz "assada" de cada mapa, para que tochas, fogueiras e magias se destaquem. Fica **desligado no Classic** e nas cenas de login e seleção de personagem | `LightMood` | `CD/light-mood.md:1-12`; `enhanced-look.md:48-49` |
+| 6 | **Pós-processamento** | **Bloom** só nos efeitos aditivos (personagens e itens nunca brilham), misturado em modo *screen*; **correção de cor** por mapa com LUT, opcional, que nunca clareia; **AO** (oclusão de ambiente) em espaço de tela, que escurece cantos, bases de parede e o chão sob os objetos. O AO está preso a esta mesma chave | `PostProcessing` | `CD/post-processing.md:1-20`; `enhanced-look.md:103-104`, `:271-272`, `:353` |
+| 7 | **Antialiasing** | MSAA de 0, 2, 4 ou 8 amostras (padrão 4) e *alpha-to-coverage* em folhagem e cercas. **O Classic desenha sem antialiasing**, seja qual for o valor | `Antialiasing` | `:17`, `:32`, `:37-42` |
+
+Como o pacote se organiza no MuMain:
+
+- **Ajuste por dados:** nada do visual Enhanced está fixo no código. Os valores ficam em
+  `Data/Render/Look.json`, para o jogo inteiro e por mapa, e o jogador ajusta a intensidade de cada
+  recurso por cima disso, na janela de opções (`CD/enhanced-look.md:52-60`, `:162-181`).
+- **Ambientes por mapa:** cada mapa escolhe um ambiente (externo, externo denso, céu, subaquático,
+  fechado, fixo), que muda o sol, as sombras e a luz assada. Nos mapas fechados, por exemplo, não há sol,
+  e as sombras dos personagens vêm de duas luzes pontuais (`:284-305`).
+- **Volta automática:** quando um passe opcional não pode ser desenhado, o jogo cai para uma versão
+  mais simples sem perder geometria. Sem mapa de sombra, volta a sombra achatada; sem os alvos do
+  pós-processamento, o frame sai sem bloom e sem AO (`:331-337`).
+- **Telas e interface:** o login e a seleção de personagem também usam o Enhanced, menos o light mood.
+  A interface é igual nos dois modos (`:48-49`).
+- **Limites que o próprio MuMain declara** (`:339-358`):
+  - a iluminação é em espaço gama; a cena em HDR é só folga para efeitos muito fortes, não luz linear;
+  - a sombra das luzes pontuais é achatada no chão: não cai em paredes nem em outros personagens;
+  - o AO escurece também a luz direta, não só a ambiente;
+  - o AO está preso à chave do bloom;
+  - no D3D12, o Enhanced pode **travar a GPU** por um defeito do SDL (Parte VII, risco 8).
+
+#### IV.9.7.2 O que o Nexum faz
+
+- **Decisão:** o modo Enhanced do Nexum tem como **referência os 7 recursos** da tabela acima,
+  reimplementados em sala limpa a partir desta descrição. As fórmulas e os valores de `Look.json`
+  entram numa spec de render própria antes do marco M14 (Parte VIII).
+- **Decisão:** os valores ficam em dados, por mapa e por ambiente, com a preferência do jogador por
+  cima, a mesma ideia do MuMain.
+- **Decisão:** **cada recurso tem a sua própria chave**, inclusive o AO separado do bloom. O próprio
+  MuMain lista essa separação como pendente.
+- **Decisão:** volta automática por passe, como no MuMain.
+- **Decisão:** no Windows, o padrão é Vulkan onde funcionar, até confirmar que o defeito do D3D12 foi
+  corrigido na versão do SDL adotada; o build Dev conta os samplers usados por frame (risco 8).
+- **Decisão:** no Classic, o MSAA vem **desligado por padrão**, como no MuMain, e o jogador pode ligá-lo.
+  As cenas de paridade (V.2) usam o Classic sem MSAA (D-09).
+- **Recomendação (proposta do Nexum, não existe no MuMain):** o **áudio 3D** (IV.13) é uma opção
+  **separada** do Enhanced, chamada "Áudio 3D", para não misturar visual com som.
 
 ### IV.9.8 A regra do desenho, vigiada
 
@@ -2148,7 +2208,8 @@ costuras visíveis.
 
 - miniaudio, com vozes por handle, limite de vozes simultâneas por som e streaming para a música.
 - **Classic (paridade):** I.12.
-- **Enhanced:** posição 3D, barramentos extras e efeitos (reverberação por mapa, se fizer sentido).
+- **Opção "Áudio 3D"** (proposta do Nexum, separada do Enhanced visual): posição 3D, barramentos extras
+  e efeitos (reverberação por mapa, se fizer sentido).
 - **Eventos de som** em dados: um evento tem lista de arquivos, volume, variação e regra de escolha.
 
 ## IV.14 Rede (Engine/Net + Games/MuOnline/Protocol, Session, Translate)
@@ -2365,7 +2426,7 @@ D-18. Arquivo JSON na pasta do usuário, com estas seções:
 | Seção | Conteúdo |
 |---|---|
 | `video` | Resolução, modo da janela, VSync, limite de FPS, MSAA, modo Classic ou Enhanced |
-| `audio` | Volume de música e de efeitos (e os barramentos extras no Enhanced) |
+| `audio` | Volume de música e de efeitos; opção "Áudio 3D" e os barramentos extras dela |
 | `ui` | Escala de 75 a 150%, tema, idioma |
 | `controls` | Mapeamento de teclas |
 | `network` | Servidor e porta do Connect Server, reconexão automática |
@@ -2430,7 +2491,7 @@ Com `schema_version` e migrações. As **credenciais nunca** vão para esse arqu
 
 ### V.2.3 Imagens de referência
 
-- **Cenas fixas**, por exemplo:
+- **Cenas fixas**, sempre no modo **Classic** e sem MSAA (nos dois programas), por exemplo:
   - Lorencia, numa posição e câmera conhecidas, ao meio-dia, sem efeitos aleatórios;
   - um personagem de cada classe parado, com equipamento +0, +9, +13 e +15;
   - Atlans com a água;
@@ -2686,7 +2747,7 @@ Antes da Fase 2, responder por escrito, num ADR novo:
 | **M11** | Eventos e minigames: Blood Castle, Devil Square, Chaos Castle, Kalima, Kanturu, Crywolf, Castle Siege e os demais do S6, com a mudança de atributos do terreno e as cinemáticas | GG | `gameplay` + `protocolo` + `render` |
 | **M12** | Social e economia: party, guild (com o brasão), amigos, servidor de chat, troca, loja pessoal, baú, NPCs de loja, mix (Chaos Machine) | GG | `interface` + `protocolo` |
 | **M13** | MU Helper (no cliente), Master Skill Tree, quests | G | `gameplay` + `interface` |
-| **M14** | Enhanced Look: sombra do sol, AO, bloom, LUT, luz por pixel, áudio 3D | G | `render` |
+| **M14** | Enhanced Look: os 7 recursos de IV.9.7 (filtragem de textura, iluminação aprimorada, luzes dinâmicas, luz do sol com nuvens, light mood, pós com bloom, LUT e AO, antialiasing), ambientes por mapa e ajustes do jogador. À parte, a opção "Áudio 3D" (proposta do Nexum) | G | `render` + `interface` |
 | **M15** | Autoria completa: editor de mapa e de dados; mods com glTF | G | `arquiteto` |
 
 ---
@@ -2702,7 +2763,7 @@ Antes da Fase 2, responder por escrito, num ADR novo:
 | 5 | **Mudanças no OpenMU** (o dialeto Extended é dele e pode mudar) | Média | Alto | Fixar a versão do OpenMU nos testes; `/atualizar` acompanha; os vetores são regenerados a cada nova versão |
 | 6 | **Lacunas de formato** (eixos, lateralidade, script de textura, tabelas) | Média | Médio | Investigar antes do M1; cenas de teste com orientação conhecida |
 | 7 | **Excesso de engenharia** (ECS genérico, render graph, plugins, thread de simulação) | Média | Alto | Princípio 7; D-06, D-09 e D-13 com gatilhos medidos para mudar |
-| 8 | **Limites ou bugs do SDL GPU** | Baixa | Médio | Fixar a versão; o módulo Render é a única porta de entrada; o MuMain prova que funciona nos 3 sistemas |
+| 8 | **Limites ou bugs do SDL GPU.** Um já é conhecido: com o Enhanced ligado, o backend D3D12 pode travar a GPU quando um frame passa de 2048 descritores de sampler (D-04) | Média | Alto | Fixar a versão; o módulo Render é a única porta de entrada; Vulkan como padrão no Windows onde funcionar; contar os samplers por frame no build Dev; conferir no M0 e no M14 se o defeito foi corrigido na versão adotada; o MuMain prova que o resto funciona nos 3 sistemas |
 | 9 | **Desempenho em eventos lotados** (muitos personagens e efeitos) | Média | Médio | Pools com orçamento; poses em paralelo; métricas sempre ligadas no Dev; cenas de estresse no benchmark |
 | 10 | **Divergências entre os dados do cliente e do servidor** (`.att`, itens) | Alta | Médio | O importador avisa; o editor exporta o `.att` do servidor; conferência com as definições do OpenMU |
 | 11 | **A central de conhecimento ficar desatualizada** | Média | Médio | `knowledge/BASE.md` e `/atualizar`; specs com fontes e commit |
@@ -2742,6 +2803,8 @@ Perguntas que precisam de resposta antes do marco indicado. As que já estão no
 | Cinemáticas (Kanturu) | render | M11 |
 | Formato do brasão de guild | interface | M12 |
 | Requisitos exatos do SDL GPU e o estado do backend para navegador | externo | M0 |
+| Estado do defeito de samplers do D3D12 no SDL, na versão adotada | externo | M0 e M14 |
+| Fórmulas e valores do Enhanced: curva da luz dos modelos, contorno e especular, luzes dinâmicas por pixel, sol, nuvens, tom do céu, AO, light mood por mapa (`Look.json` e código) | render | M14 |
 
 ---
 
@@ -2800,6 +2863,7 @@ Perguntas que precisam de resposta antes do marco indicado. As que já estão no
 | 4.8.6 | Minimapa de canto, 256², com party | Tela cheia, 1024², girado 45°, sem party | I.11 |
 | 4.8.8 | Registro do Windows "exige privilégio"; Linux em `~/.config` | O HKCU não exige privilégio; o MuMain já usa a pasta do SDL; no Linux é `~/.local/share` | I.14, D-18 |
 | 5 | 48 semanas, rede no marco 4 | Tamanhos relativos; rede sem gráficos no M2; ponto de decisão | Parte VI |
+| 5 (Marco 8) | Enhanced = sombra do sol, AO, bloom e LUT | O pacote do MuMain tem 7 recursos (com filtragem de textura, iluminação aprimorada, luzes dinâmicas, light mood e antialiasing), ambientes por mapa e um defeito conhecido no D3D12. O áudio 3D é uma proposta à parte, do Nexum | IV.9.7, `CD/enhanced-look.md` |
 | 6 | 3 riscos | 14 riscos com mitigação | Parte VII |
 | — | Sem sala limpa, testes, orçamentos, convenções, lacunas | Seções próprias | D-01, Parte V, D-19, Parte VIII |
 

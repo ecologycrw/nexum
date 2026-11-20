@@ -1,10 +1,10 @@
 ---
 id: 0012
 titulo: Áudio com paridade primeiro
-status: aceita
+status: substituida
 data: 2026-11-20
 substitui:
-substituida-por:
+substituida-por: 0031
 ---
 
 # ADR 0012: Áudio com paridade primeiro

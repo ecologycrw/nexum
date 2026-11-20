@@ -1,10 +1,10 @@
 ---
 id: 0004
 titulo: Plataforma e GPU com SDL3 e SDL GPU
-status: aceita
+status: substituida
 data: 2026-11-20
 substitui:
-substituida-por:
+substituida-por: 0029
 ---
 
 # ADR 0004: Plataforma e GPU com SDL3 e SDL GPU
