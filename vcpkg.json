@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "nexum",
+  "version-string": "0.0.0",
+  "description": "Clean-room C++20 engine for a game client compatible with the unmodified OpenMU server.",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "sdl3",
+      "default-features": false,
+      "features": ["vulkan"]
+    },
+    "tl-expected",
+    "doctest"
+  ]
+}

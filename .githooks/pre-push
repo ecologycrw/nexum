@@ -1,0 +1,18 @@
+#!/bin/sh
+# Blocks pushes that update main or master (docs/adr/0024-fluxo-git.md): main only changes through approved PRs.
+# Creating the remote main for the very first time is allowed (the remote sha is all zeros);
+# after that, the GitHub ruleset protects main as well.
+set -eu
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main | refs/heads/master)
+      if ! printf '%s\n' "$remote_sha" | grep -Eq '^0+$'; then
+        echo "[pre-push] BLOCKED: nobody pushes to $remote_ref. Open a pull request instead."
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+exit 0

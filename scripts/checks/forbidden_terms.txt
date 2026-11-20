@@ -1,0 +1,93 @@
+# The red line (docs/ARCHITECTURE.md, INV-03 and INV-08). This file is a protected "trava".
+#
+# Format: "term" or "term ; forbidden: folder, folder".
+# Without "forbidden:", the term is forbidden in Engine/*, Kit/* and tests/architecture/*.
+# Matching ignores letter case and needs whole words: "mu" matches "mu::" and "MU", not "mutex".
+
+# The game, its makers and the projects studied by the knowledge center
+mu
+muonline
+mu online
+openmu
+mumain
+webzen
+20404
+
+# Maps and events
+lorencia
+devias
+noria
+dungeon of lorencia
+lost tower
+atlans
+tarkan
+icarus
+aida
+kanturu
+crywolf
+elbeland
+raklion
+kalima
+blood castle
+devil square
+chaos castle
+illusion temple
+castle siege
+vulcanus
+karutan
+
+# Character classes
+dark knight
+dark wizard
+fairy elf
+magic gladiator
+dark lord
+summoner
+rage fighter
+blade knight
+soul master
+muse elf
+grand master
+blade master
+high elf
+duel master
+lord emperor
+dimension master
+fist master
+
+# Items, pets and money
+zen
+jewel of bless
+jewel of soul
+jewel of chaos
+chaos machine
+dinorant
+fenrir
+dark horse
+dark raven
+
+# Protocol: packet types, ciphers and the version of the client
+0xc1
+0xc2
+0xc3
+0xc4
+simplemodulus
+simple modulus
+xor32
+xor3
+
+# Cell attributes of the original maps
+tw_safezone
+tw_character
+tw_nomove
+tw_noground
+tw_water
+
+# The original file formats: only Tools/ (the importer) knows them (INV-08)
+bmd ; forbidden: Engine/*, Kit/*, Games/*, tests/architecture/*
+ozj ; forbidden: Engine/*, Kit/*, Games/*, tests/architecture/*
+ozt ; forbidden: Engine/*, Kit/*, Games/*, tests/architecture/*
+ozb ; forbidden: Engine/*, Kit/*, Games/*, tests/architecture/*
+encterrain ; forbidden: Engine/*, Kit/*, Games/*, tests/architecture/*
+mapfiledecrypt ; forbidden: Engine/*, Kit/*, Games/*, tests/architecture/*
+buxconvert ; forbidden: Engine/*, Kit/*, Games/*, tests/architecture/*
