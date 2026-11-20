@@ -15,7 +15,7 @@ description: Implementa a fatia aprovada do Nexum, uma tarefa por vez, com teste
 1. **Lista de tarefas.** Se `tasks.md` não existe, crie a partir de `templates/tasks.md`. Divida o plano em tarefas pequenas (T01, T02...), cada uma com o critério que atende e como verificar. Mude a spec para `em-andamento`. Commit `docs(NNNN): add task list`.
 2. **Uma tarefa por vez,** sempre a próxima pendente:
    1. Marque `[~]` no `tasks.md`.
-   2. Escreva o teste primeiro, quando possível. O teste que prova um critério leva a etiqueta no começo do nome: `TEST_CASE("[NNNN-CA-xx] ...")`.
+   2. Escreva o teste primeiro, quando possível. O teste que prova um critério leva a etiqueta no começo do nome: `TEST_CASE("[NNNN-CA-xx] ...")`. Os exemplos esperados da seção "Suficiência das descrições" do `plan.md` viram testes.
    3. Implemente seguindo `docs/CONVENTIONS.md` e o código de referência citado lá. Respeite as invariantes de `docs/ARCHITECTURE.md`.
    4. **Sala limpa.** Se a tarefa reproduz um comportamento do original, escreva a partir da spec ou do achado listado em "Fontes da central usadas" do `plan.md`, nunca de memória e nunca do código do MuMain. Toda constante (tamanho, offset, tempo, código de pacote) vem de uma spec que cita a origem. Confira a checklist de `docs/WORKFLOW.md` (seção "Sala limpa"). Se a descrição não bastar, pare: use `/consultar-central`, marque a tarefa `[!]` e espere a central.
    5. Rode as verificações da skill `/verificar`.

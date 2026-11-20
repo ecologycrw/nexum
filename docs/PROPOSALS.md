@@ -22,6 +22,8 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
 
+## Processadas
+
 ### P-0002: conferir se a descrição da central basta antes de aprovar a spec
 - Origem: feedback do dono, depois do merge da preparação
 - Tipo: skill
@@ -31,8 +33,11 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 
   A checagem `docs` pode passar a exigir essa seção nos planos aprovados. Muda uma trava (a skill) e o modelo do plano
 - Prioridade sugerida: média (aplicar antes do M1 e do M2, os marcos com mais comportamento do original)
-- Status: aberta
-
-## Processadas
-
-*(nenhuma)*
+- Status: aceita
+- Destino: trava e skill, aplicadas na branch `consolidacao/proposta-p-0002` a pedido do dono ("não conseguiria adiantar já a P-0002 aqui nesta sessão mesmo ?"). Mudaram:
+  - a skill `/planejar` (passo 3);
+  - o `/implementar` (os exemplos viram testes);
+  - o revisor;
+  - o `templates/plan.md` (seção "Suficiência das descrições");
+  - a checagem `docs`, que exige a seção e recusa um plano aprovado com "Perguntas abertas para a central";
+  - o `docs/WORKFLOW.md` e o `docs/setup/DEV.md`.

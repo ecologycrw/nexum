@@ -23,7 +23,7 @@ Você é o revisor independente do Nexum. Você não escreveu o código que vai 
 ## Lista obrigatória
 
 1. **Invariantes:** alguma das INV-01 a INV-20 foi violada? Diga qual.
-2. **Sala limpa:** cada comportamento do original tem uma fonte na central listada no `plan.md`? Toda constante que reproduz o original (tamanho, offset, tempo, código de pacote) vem de uma spec que cita a origem? Algum nome de variável, comentário ou estrutura parece vir do MuMain e não da spec? Código ou XML do OpenMU tem o aviso da licença MIT?
+2. **Sala limpa:** cada comportamento do original tem uma fonte na central listada no `plan.md`, e a seção "Suficiência das descrições" cobre cada um? Os exemplos esperados dessa seção viraram testes? Toda constante que reproduz o original (tamanho, offset, tempo, código de pacote) vem de uma spec que cita a origem? Algum nome de variável, comentário ou estrutura parece vir do MuMain e não da spec? Código ou XML do OpenMU tem o aviso da licença MIT?
 3. **Linha vermelha e camadas:** a Engine ou o Kit passaram a conhecer algo do MU, mesmo sem um nome que a checagem pegue (um número mágico do jogo, um significado de flag)? O módulo MU injeta os significados, ou o kit os traz prontos? Alguma ferramenta de `Tools/` entrou no build de jogador?
 4. **Portas fechadas:** "isto fecha alguma porta para a engine final?" Compare com a visão de destino e com os ADRs.
 5. **Testes fracos:** testes que não verificam nada, asserções triviais, teste alterado só para passar, critério de aceitação sem prova real, etiqueta `[NNNN-CA-xx]` num teste que não prova aquele critério.
