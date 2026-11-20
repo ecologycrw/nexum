@@ -56,7 +56,7 @@ Achados do revisor e o que foi feito com cada um. Preenchido pelo `/revisar`.
 
 ## Notas para a próxima sessão
 
-- A próxima tarefa é a T04. O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
+- O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
 - O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.
 - No commit `29fb789` (T03), o `git add -A` levou junto uma mudança do dono no `.claude/settings.json`, que é uma trava. A IA não tinha visto a mudança. Daqui em diante, cada commit adiciona só os caminhos da tarefa, nunca `-A`. Esta é a primeira ocorrência, para o report.
