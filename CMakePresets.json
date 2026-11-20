@@ -1,0 +1,122 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/vcpkg_installed",
+        "NEXUM_AUTHORING": "ON"
+      }
+    },
+    {
+      "name": "player",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "NEXUM_AUTHORING": "OFF"
+      }
+    },
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+      }
+    },
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "VCPKG_TARGET_TRIPLET": "arm64-osx"
+      }
+    },
+    { "name": "windows-dev", "displayName": "Windows (MSVC)", "inherits": "windows-base" },
+    {
+      "name": "windows-asan",
+      "displayName": "Windows (MSVC) with sanitizers",
+      "inherits": "windows-base",
+      "cacheVariables": { "NEXUM_SANITIZE": "ON" }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows (MSVC), player build",
+      "inherits": ["player", "windows-base"]
+    },
+    { "name": "linux-dev", "displayName": "Linux (Clang)", "inherits": "linux-base" },
+    {
+      "name": "linux-gcc-dev",
+      "displayName": "Linux (GCC)",
+      "inherits": "linux-base",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "g++" }
+    },
+    {
+      "name": "linux-asan",
+      "displayName": "Linux (Clang) with sanitizers",
+      "inherits": "linux-base",
+      "cacheVariables": { "NEXUM_SANITIZE": "ON" }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux (Clang), player build",
+      "inherits": ["player", "linux-base"]
+    },
+    { "name": "macos-dev", "displayName": "macOS (Clang)", "inherits": "macos-base" },
+    {
+      "name": "macos-release",
+      "displayName": "macOS (Clang), player build",
+      "inherits": ["player", "macos-base"]
+    }
+  ],
+  "buildPresets": [
+    { "name": "windows-dev", "configurePreset": "windows-dev" },
+    { "name": "windows-asan", "configurePreset": "windows-asan" },
+    { "name": "windows-release", "configurePreset": "windows-release" },
+    { "name": "linux-dev", "configurePreset": "linux-dev" },
+    { "name": "linux-gcc-dev", "configurePreset": "linux-gcc-dev" },
+    { "name": "linux-asan", "configurePreset": "linux-asan" },
+    { "name": "linux-release", "configurePreset": "linux-release" },
+    { "name": "macos-dev", "configurePreset": "macos-dev" },
+    { "name": "macos-release", "configurePreset": "macos-release" }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error" },
+      "filter": { "exclude": { "label": "gpu" } }
+    },
+    { "name": "windows-dev", "inherits": "base", "configurePreset": "windows-dev" },
+    { "name": "windows-asan", "inherits": "base", "configurePreset": "windows-asan" },
+    { "name": "windows-release", "inherits": "base", "configurePreset": "windows-release" },
+    { "name": "linux-dev", "inherits": "base", "configurePreset": "linux-dev" },
+    { "name": "linux-gcc-dev", "inherits": "base", "configurePreset": "linux-gcc-dev" },
+    { "name": "linux-asan", "inherits": "base", "configurePreset": "linux-asan" },
+    { "name": "linux-release", "inherits": "base", "configurePreset": "linux-release" },
+    { "name": "macos-dev", "inherits": "base", "configurePreset": "macos-dev" },
+    { "name": "macos-release", "inherits": "base", "configurePreset": "macos-release" }
+  ]
+}

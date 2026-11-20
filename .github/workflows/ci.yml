@@ -1,0 +1,100 @@
+# Runs every check again, outside the development machine (docs/WORKFLOW.md, "Proteções em camadas").
+# The job names are required status checks in the main branch ruleset (docs/setup/ruleset-main.json).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: build-test (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-msvc
+            os: windows-latest
+            compiler: default
+          - name: linux-clang
+            os: ubuntu-24.04
+            compiler: default
+          - name: linux-gcc
+            os: ubuntu-24.04
+            compiler: gcc
+          - name: macos-clang
+            os: macos-latest
+            compiler: default
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-build
+      - name: Build, tests, sanitizers and checks
+        run: python scripts/dev.py --compiler ${{ matrix.compiler }} verify --no-static
+
+  # The player build: Release, without the authoring mode (INV-19).
+  release:
+    name: release (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+          - name: linux
+            os: ubuntu-24.04
+          - name: macos
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-build
+      - name: Player build and tests
+        run: python scripts/dev.py release
+
+  static-analysis:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-build
+      - name: Install the pinned formatter and analyzer
+        run: python -m pip install clang-format==22.1.3 clang-tidy==22.1.8
+      - name: Formatting
+        run: python scripts/dev.py format
+      - name: Static analysis
+        run: python scripts/dev.py tidy
+
+  mermaid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install mermaid-cli
+        run: npm install --global @mermaid-js/mermaid-cli@12.2.0
+      - name: Render every diagram
+        run: node .github/scripts/check-mermaid.mjs
+
+  pr-summary:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Safety summary
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python scripts/checks/run.py pr-summary --base "origin/$BASE_REF"
