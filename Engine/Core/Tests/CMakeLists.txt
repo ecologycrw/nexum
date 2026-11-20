@@ -1,7 +1,9 @@
 nexum_add_tests(nexum_core_tests
     SOURCES
         AssertTest.cpp
+        FrameArenaTest.cpp
         HandlePoolTest.cpp
+        ImageTest.cpp
         ResultTest.cpp
         VersionTest.cpp
     DEPS Nexum::Core)

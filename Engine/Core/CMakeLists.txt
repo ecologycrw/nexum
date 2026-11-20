@@ -2,6 +2,8 @@ nexum_add_library(nexum_core
     ALIAS Nexum::Core
     SOURCES
         Private/Assert.cpp
+        Private/FrameArena.cpp
+        Private/Image.cpp
         Private/Version.cpp
     PUBLIC_DEPS tl::expected)
 
