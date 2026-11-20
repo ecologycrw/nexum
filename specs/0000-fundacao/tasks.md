@@ -19,7 +19,10 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
 
 ## Peças sem tela
 
-- [ ] T04: `Engine/Time`: o `TickClock`, com os 4 exemplos do plano como testes (CA-01, CA-02). Verificação: `verify`.
+- [x] T04: `Engine/Time`: o `TickClock`, com os 4 exemplos do plano como testes (CA-01, CA-02). Verificação: `verify`.
+  - Resultado: `verify` verde, com os sanitizers e o build de jogador; o `nexum_time_tests` tem 10 casos e 91 conferências. O módulo novo `nexum_time` guarda o tempo em nanossegundos inteiros, então os 4 exemplos do plano dão os valores exatos de α, e os 10 minutos simulados dão exatamente 15.000 ticks, a posição 45.000 e α 0. Os quadros desse teste vão de 5 a 200 ms, quase todos com frações de milissegundo, numa ordem irregular e fixa, sem sorteio do sistema.
+  - Também testados: a pausa (nenhum tick, α parado e o tempo pausado descartado, sem contar como atraso), o avanço tick a tick (um tick por pedido, no máximo 5 por quadro), um pedido de avanço sem pausa (não muda nada), a volta da pausa (esquece os pedidos que não rodaram) e um tempo de quadro negativo (conta como zero).
+  - O `ARCHITECTURE` ainda lista o `Engine/Time` e o `Engine/Render` entre as pastas que não existem. A correção fica na T16, que atualiza a documentação viva.
 - [ ] T05: Os temporizadores de parede e de tick e o diagnóstico do laço: ticks por segundo, ticks descartados, maior quadro e histograma do tick (CA-03). Verificação: `verify`.
 - [ ] T06: O `NEXUM_ASSERT`, ligado no build de desenvolvimento e desligado no de jogador, com um teste do CTest que espera a falha e a mensagem (CA-04). Verificação: `verify`.
 - [ ] T07: O `Handle` geracional e o `HandlePool` de capacidade fixa (CA-04). Verificação: `verify`.
