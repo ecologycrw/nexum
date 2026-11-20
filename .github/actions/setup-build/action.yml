@@ -1,0 +1,37 @@
+name: Set up the build
+description: Installs Python, the build tools and the vcpkg version pinned by this repository, with a cache of the compiled libraries.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.13'
+    - name: Install the Linux packages
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build clang g++ libvulkan1 mesa-vulkan-drivers
+    - name: Install the macOS packages
+      if: runner.os == 'macOS'
+      shell: bash
+      run: brew install ninja
+    - name: Install vcpkg
+      shell: bash
+      run: |
+        vcpkg_root="$RUNNER_TEMP/vcpkg"
+        git clone --quiet https://github.com/microsoft/vcpkg "$vcpkg_root"
+        git -C "$vcpkg_root" checkout --quiet "$(python scripts/dev.py vcpkg-baseline)"
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          "$vcpkg_root/bootstrap-vcpkg.bat" -disableMetrics
+        else
+          "$vcpkg_root/bootstrap-vcpkg.sh" -disableMetrics
+        fi
+        mkdir -p "$RUNNER_TEMP/vcpkg-cache"
+        echo "VCPKG_ROOT=$vcpkg_root" >> "$GITHUB_ENV"
+        echo "VCPKG_BINARY_SOURCES=clear;files,$RUNNER_TEMP/vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+    - uses: actions/cache@v6
+      with:
+        path: ${{ runner.temp }}/vcpkg-cache
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}

@@ -1,0 +1,26 @@
+# The owner reviews every change (docs/adr/0024-fluxo-git.md).
+# The protected paths ("travas") are also listed one by one so they stand out:
+# changing them needs the owner's explicit approval (docs/WORKFLOW.md).
+*                            @ecologycrw
+
+/.claude/                    @ecologycrw
+/.githooks/                  @ecologycrw
+/.github/                    @ecologycrw
+/cmake/                      @ecologycrw
+/AGENTS.md                   @ecologycrw
+/CLAUDE.md                   @ecologycrw
+/CMakePresets.json           @ecologycrw
+/vcpkg.json                  @ecologycrw
+/vcpkg-configuration.json    @ecologycrw
+/.clang-format               @ecologycrw
+/.clang-tidy                 @ecologycrw
+/.editorconfig               @ecologycrw
+/scripts/dev.py              @ecologycrw
+/scripts/checks/             @ecologycrw
+/tests/architecture/         @ecologycrw
+/tests/hooks/                @ecologycrw
+/tests/visual/approved/      @ecologycrw
+/docs/referencia/            @ecologycrw
+/docs/VISION.md              @ecologycrw
+/docs/ROADMAP.md             @ecologycrw
+/docs/VISUAL.md              @ecologycrw

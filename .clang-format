@@ -1,0 +1,19 @@
+# C++ formatting rules. This file is a protected "trava" (see docs/WORKFLOW.md).
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+ColumnLimit: 110
+IndentWidth: 4
+AccessModifierOffset: -4
+NamespaceIndentation: None
+PointerAlignment: Left
+ReferenceAlignment: Left
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakTemplateDeclarations: Yes
+FixNamespaceComments: true
+InsertNewlineAtEOF: true
+LineEnding: LF
+SortIncludes: CaseSensitive
+IncludeBlocks: Preserve
