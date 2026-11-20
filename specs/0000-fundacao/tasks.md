@@ -14,6 +14,7 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
   - O PR em rascunho é o [#5](https://github.com/ecologycrw/nexum/pull/5), aberto com o "sim" do dono. A execução [44814029499](https://github.com/ecologycrw/nexum/actions/runs/44814029499), do commit `8e5e226`, ficou verde nos 10 checks.
   - O `nexum_platform_tests` e o `nexum_render_tests` passaram em todos os jobs: Windows (MSVC), Linux (Clang e GCC) e macOS, nos builds de desenvolvimento e de jogador e com os sanitizers do Windows e do Linux. Nenhuma supressão de vazamento foi necessária.
   - No Linux, o SDL foi compilado com X11 e Wayland, e os testes rodaram dentro do Xvfb. O TD-0003 saiu dos itens provisórios. O que sobrou dele, o Wayland sem teste, virou o TD-0010, com destino M7.
+  - **Falha intermitente no sanitizer do Linux:** a terceira execução ([44816192673](https://github.com/ecologycrw/nexum/actions/runs/44816192673)), do commit `d307a73`, que não mexeu em código, acusou 18 vazamentos de 128 bytes. Todos vêm de dentro do driver Vulkan, chamado pelo SDL ao procurar a placa (`VULKAN_INTERNAL_DeterminePhysicalDevice`). As duas primeiras execuções passaram com o mesmo código. A correção é a lista de exceções que o plano previa: `cmake/LeakSuppressions.txt`, com uma linha, passada aos testes pelo `cmake/NexumSanitizers.cmake` (CMake 3.29 ou mais novo). Ela vai para o report. O Windows não muda: lá, o sanitizer não procura vazamentos.
   - **O que os logs não mostram:** o nome da placa e, no Windows, qual backend começou. O CTest só imprime a saída de um teste quando ele falha. No Linux, a ordem só tem o Vulkan, e o único driver Vulkan que funciona sem placa é o lavapipe. No macOS, a ordem só tem o Metal. No Windows, pode ter sido o Vulkan ou o Direct3D 12: os dois passaram neste computador, e o teste exige que pelo menos um comece.
 
 ## Peças sem tela
@@ -55,6 +56,8 @@ Achados do revisor e o que foi feito com cada um. Preenchido pelo `/revisar`.
 
 ## Notas para a próxima sessão
 
+- A próxima tarefa é a T04. O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
+- O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.
 - No commit `29fb789` (T03), o `git add -A` levou junto uma mudança do dono no `.claude/settings.json`, que é uma trava. A IA não tinha visto a mudança. Daqui em diante, cada commit adiciona só os caminhos da tarefa, nunca `-A`. Esta é a primeira ocorrência, para o report.
 - O `guard-bash` recusa um comando que cita um arquivo de trava, como `scripts/dev.py`, e também grava um arquivo (`Out-File`, `>`). Para resumir a saída do `verify`, filtre com `Select-String`, sem gravar arquivo.

@@ -13,5 +13,12 @@ if(NEXUM_SANITIZE)
     else()
         add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
         add_link_options(-fsanitize=address,undefined)
+        # Every test runs with the list of leaks inside the system's libraries that LeakSanitizer ignores.
+        if(CMAKE_VERSION VERSION_LESS 3.29)
+            message(FATAL_ERROR "The sanitizer build needs CMake 3.29 or newer to give the tests "
+                                "the leak exceptions of cmake/LeakSuppressions.txt.")
+        endif()
+        set(CMAKE_TEST_LAUNCHER "${CMAKE_COMMAND}" -E env
+            "LSAN_OPTIONS=suppressions='${CMAKE_CURRENT_LIST_DIR}/LeakSuppressions.txt'")
     endif()
 endif()

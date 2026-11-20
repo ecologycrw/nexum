@@ -9,12 +9,13 @@ atualizado-em: 2026-11-20
 
 ## Agora
 
-**Fatia 0 (Fundação, marco M0) em andamento.** A [spec](../specs/0000-fundacao/spec.md), o [plano](../specs/0000-fundacao/plan.md) e a [lista de tarefas](../specs/0000-fundacao/tasks.md) estão na branch `fatia/0000-fundacao`. O dono aprovou também o Tracy, as mudanças nas travas listadas no plano e a lista de requisitos do SDL GPU na VISÃO. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
+**Fatia 0 (Fundação, marco M0) em andamento: 3 de 17 tarefas feitas.** A sondagem (T01 a T03) provou que a placa de vídeo e a janela funcionam no computador do dono e na CI dos 3 sistemas. A [spec](../specs/0000-fundacao/spec.md), o [plano](../specs/0000-fundacao/plan.md) e a [lista de tarefas](../specs/0000-fundacao/tasks.md) estão na branch `fatia/0000-fundacao`. O [PR #5](https://github.com/ecologycrw/nexum/pull/5) está aberto só para a CI rodar a cada envio: ele ainda não está pronto para revisão nem para merge. O dono aprovou também o Tracy, as mudanças nas travas listadas no plano e a lista de requisitos do SDL GPU na VISÃO. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. `/implementar` da fatia 0, seguindo o [tasks.md](../specs/0000-fundacao/tasks.md). Ele começa pela sondagem: provar que as máquinas da CI usam a placa de vídeo nos 3 sistemas. Se um sistema falhar, a fatia para e as opções vão para o dono.
-2. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
+1. `/implementar` da fatia 0, a partir da T04 (o relógio de ticks), seguindo o [tasks.md](../specs/0000-fundacao/tasks.md).
+2. Numa sessão nova, ligar de novo o aviso automático da CI no PR #5, porque ele vale só para a sessão que o ligou.
+3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
 ## Bloqueios
 
