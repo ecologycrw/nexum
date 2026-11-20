@@ -3,6 +3,8 @@
 #include <chrono>
 #include <cstdint>
 
+#include "Nexum/Time/Seconds.hpp"
+
 namespace nexum::time {
 
 // The length of one simulation tick: the logic runs at 25 ticks per second, the pace of the original client
@@ -18,7 +20,7 @@ struct FrameTicks {
     std::uint32_t count = 0;
     // The part of the frame time above kMaxTicksPerFrame ticks. It never becomes ticks: the simulation time
     // slips, and commands are never repeated to make up for it (D-05).
-    std::chrono::nanoseconds droppedTime{0};
+    Seconds droppedTime{0.0};
 };
 
 // The fixed-step clock of the simulation (docs/adr/0005-tick-fixo-de-25-hz.md).
@@ -26,8 +28,10 @@ struct FrameTicks {
 // test can simulate minutes in milliseconds.
 class TickClock {
 public:
-    // Adds the time of one frame and says how many ticks to run. A negative frame time counts as zero.
-    [[nodiscard]] FrameTicks AdvanceFrame(std::chrono::nanoseconds frameTime) noexcept;
+    // Adds the time of one frame and says how many ticks to run. The time is rounded to the nearest
+    // nanosecond, never cut, and the clock adds whole nanoseconds, so the sums stay exact. A negative,
+    // not-a-number or infinite frame time counts as zero.
+    [[nodiscard]] FrameTicks AdvanceFrame(Seconds frameTime) noexcept;
 
     // How far the drawing is from the last tick to the next one: 0 at a tick, always below 1.
     [[nodiscard]] float Alpha() const noexcept;
@@ -51,7 +55,7 @@ public:
 private:
     [[nodiscard]] FrameTicks RunRequestedSteps() noexcept;
 
-    // The frame time not yet turned into ticks: always below one tick.
+    // The frame time not yet turned into ticks, in whole nanoseconds: always below one tick.
     std::chrono::nanoseconds m_accumulator{0};
     std::uint64_t m_elapsedTicks = 0;
     std::uint32_t m_requestedSteps = 0;
