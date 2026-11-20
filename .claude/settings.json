@@ -53,7 +53,8 @@
       "PowerShell(gh pr checks:*)",
       "PowerShell(gh pr list:*)",
       "PowerShell(gh run list:*)",
-      "PowerShell(gh run view:*)"
+      "PowerShell(gh run view:*)",
+      "mcp_ccd_pr_set_monitor"
     ],
     "ask": [
       "Bash(git merge:*)",

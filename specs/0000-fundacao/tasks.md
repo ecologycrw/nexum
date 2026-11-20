@@ -10,7 +10,11 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
   - Resultado: `verify` verde, com os sanitizers e o build de jogador. Neste computador, a sondagem usou `vulkan` na NVIDIA GeForce GTX 1060 6GB (driver 582.78), e o vídeo do SDL é o `windows`.
 - [x] T02: Sondagem com janela. A `Window` mínima em `Engine/Platform` e um teste que abre a janela, limpa e apresenta alguns quadros. No Linux, o SDL com X11 e Wayland (`vcpkg.json`, TD-0003), os pacotes e o Xvfb no `setup-build`, e os testes dentro do Xvfb no `ci.yml` (CA-10). Verificação: `verify` aqui.
   - Resultado: `verify` verde. A janela mostrou os 5 quadros pelo Vulkan, e um teste novo limpa e lê de volta em cada backend que o sistema oferece: aqui, o Vulkan e o Direct3D 12 passaram na mesma placa. As três travas mudaram como o plano aprovou, e o `DEV.md` ganhou os pacotes do Linux. O Linux só é provado na T03.
-- [ ] T03: A sondagem na CI dos 3 sistemas, por um PR em rascunho, porque a CI só roda em PR. Verificação: todos os checks verdes, com o lavapipe no Linux, o WARP no Windows e o Metal no macOS. Se um sistema falhar, a fatia para e as opções vão para o dono.
+- [x] T03: A sondagem na CI dos 3 sistemas, por um PR em rascunho, porque a CI só roda em PR. Verificação: todos os checks verdes, com o lavapipe no Linux, o WARP no Windows e o Metal no macOS. Se um sistema falhar, a fatia para e as opções vão para o dono.
+  - O PR em rascunho é o [#5](https://github.com/ecologycrw/nexum/pull/5), aberto com o "sim" do dono. A execução [44814029499](https://github.com/ecologycrw/nexum/actions/runs/44814029499), do commit `8e5e226`, ficou verde nos 10 checks.
+  - O `nexum_platform_tests` e o `nexum_render_tests` passaram em todos os jobs: Windows (MSVC), Linux (Clang e GCC) e macOS, nos builds de desenvolvimento e de jogador e com os sanitizers do Windows e do Linux. Nenhuma supressão de vazamento foi necessária.
+  - No Linux, o SDL foi compilado com X11 e Wayland, e os testes rodaram dentro do Xvfb. O TD-0003 saiu dos itens provisórios. O que sobrou dele, o Wayland sem teste, virou o TD-0010, com destino M7.
+  - **O que os logs não mostram:** o nome da placa e, no Windows, qual backend começou. O CTest só imprime a saída de um teste quando ele falha. No Linux, a ordem só tem o Vulkan, e o único driver Vulkan que funciona sem placa é o lavapipe. No macOS, a ordem só tem o Metal. No Windows, pode ter sido o Vulkan ou o Direct3D 12: os dois passaram neste computador, e o teste exige que pelo menos um comece.
 
 ## Peças sem tela
 
@@ -32,7 +36,7 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
 
 ## Fechamento
 
-- [ ] T16: O `other_game` passa a usar o relógio de ticks. A documentação viva fica em dia: VISÃO, VISUAL, ARCHITECTURE, CONVENTIONS, THIRD_PARTY, DEV.md e os itens provisórios TD-0003, TD-0005 e TD-0006 (CA-12, CA-13). Verificação: `verify` e a checagem `docs`.
+- [ ] T16: O `other_game` passa a usar o relógio de ticks. A documentação viva fica em dia: VISÃO, VISUAL, ARCHITECTURE, CONVENTIONS, THIRD_PARTY, DEV.md e os itens provisórios TD-0005 e TD-0006 (CA-12, CA-13). Verificação: `verify` e a checagem `docs`.
 - [ ] T17: A CI completa verde nos 3 sistemas (CA-10, CA-12). Verificação: os checks do PR.
 
 O CA-11 é a verificação manual do dono, registrada no report.
