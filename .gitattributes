@@ -1,0 +1,29 @@
+# LF line endings by default, on every platform
+* text=auto eol=lf
+
+# Windows-only scripts
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.dds binary
+*.ktx2 binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.glb binary
+*.fbx binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.zip binary
+*.spv binary
+*.dxil binary
+*.mucap binary

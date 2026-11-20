@@ -1,0 +1,50 @@
+# Build output
+build/
+out/
+artifacts/
+Testing/
+vcpkg_installed/
+compile_commands.json
+CMakeUserPresets.json
+*.obj
+*.o
+*.lib
+*.a
+*.dll
+*.so
+*.dylib
+*.exe
+*.pdb
+*.ilk
+coverage*/
+
+# IDEs
+.vs/
+.idea/
+*.user
+*.suo
+.vscode/*
+!.vscode/extensions.json
+
+# Tools
+node_modules/
+__pycache__/
+*.pyc
+
+# Converted cache made by muimport from the user's own installation (docs/adr/0008-*)
+cache/
+
+# Claude Code: per-machine local settings
+.claude/settings.local.json
+.claude/central.local.json
+
+# Secrets: never committed
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
+secrets.json
