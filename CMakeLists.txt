@@ -20,6 +20,7 @@ enable_testing()
 
 add_subdirectory(Engine/Core)
 add_subdirectory(Engine/Time)
+add_subdirectory(Engine/Debug)
 add_subdirectory(Engine/Platform)
 add_subdirectory(Engine/Render)
 add_subdirectory(Kit/GridRpg)
