@@ -8,7 +8,8 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
 
 - [x] T01: Sondagem sem janela. Cria o módulo `Engine/Render` com o `GpuDevice`: a ordem de escolha do backend do ADR 0029, a opção de forçar um backend e o erro para um nome desconhecido. Também cria um alvo sem janela que limpa a imagem e lê os pixels de volta, e informa o backend e a placa. O `Engine/Platform` ganha o `VideoSystem`, que liga o vídeo do SDL (CA-06). Verificação: `py scripts/dev.py verify` passa aqui, com a sondagem rodando na placa deste computador.
   - Resultado: `verify` verde, com os sanitizers e o build de jogador. Neste computador, a sondagem usou `vulkan` na NVIDIA GeForce GTX 1060 6GB (driver 582.78), e o vídeo do SDL é o `windows`.
-- [ ] T02: Sondagem com janela. A `Window` mínima em `Engine/Platform` e um teste que abre a janela, limpa e apresenta alguns quadros. No Linux, o SDL com X11 e Wayland (`vcpkg.json`, TD-0003), os pacotes e o Xvfb no `setup-build`, e os testes dentro do Xvfb no `ci.yml` (CA-10). Verificação: `verify` aqui.
+- [x] T02: Sondagem com janela. A `Window` mínima em `Engine/Platform` e um teste que abre a janela, limpa e apresenta alguns quadros. No Linux, o SDL com X11 e Wayland (`vcpkg.json`, TD-0003), os pacotes e o Xvfb no `setup-build`, e os testes dentro do Xvfb no `ci.yml` (CA-10). Verificação: `verify` aqui.
+  - Resultado: `verify` verde. A janela mostrou os 5 quadros pelo Vulkan, e um teste novo limpa e lê de volta em cada backend que o sistema oferece: aqui, o Vulkan e o Direct3D 12 passaram na mesma placa. As três travas mudaram como o plano aprovou, e o `DEV.md` ganhou os pacotes do Linux. O Linux só é provado na T03.
 - [ ] T03: A sondagem na CI dos 3 sistemas, por um PR em rascunho, porque a CI só roda em PR. Verificação: todos os checks verdes, com o lavapipe no Linux, o WARP no Windows e o Metal no macOS. Se um sistema falhar, a fatia para e as opções vão para o dono.
 
 ## Peças sem tela

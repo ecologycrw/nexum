@@ -5,4 +5,5 @@ nexum_add_tests(nexum_render_tests
         GpuDriverOrderTest.cpp
         GpuDeviceTest.cpp
         OffscreenTargetTest.cpp
+        WindowTargetTest.cpp
     DEPS Nexum::Render)

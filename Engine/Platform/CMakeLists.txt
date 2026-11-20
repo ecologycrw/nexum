@@ -5,6 +5,7 @@ nexum_add_library(nexum_platform
     SOURCES
         Private/PlatformInfo.cpp
         Private/VideoSystem.cpp
+        Private/Window.cpp
     PUBLIC_DEPS Nexum::Core
     PRIVATE_DEPS SDL3::SDL3)
 

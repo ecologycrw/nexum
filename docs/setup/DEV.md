@@ -11,7 +11,13 @@ No Windows:
 - Python 3.12 ou mais novo.
 - Git e GitHub CLI (`gh`).
 
-No Linux (usado na CI): Clang, GCC, CMake, Ninja, vcpkg e Python 3.
+No Linux (usado na CI): Clang, GCC, CMake, Ninja, vcpkg e Python 3. O SDL precisa também das bibliotecas de janela (X11 e Wayland) e de um driver Vulkan. Sem placa de vídeo, o driver por software (lavapipe) serve. Sem tela, os testes rodam dentro do Xvfb, como na CI:
+
+```bash
+sudo apt-get install ninja-build clang g++ libvulkan1 mesa-vulkan-drivers \
+  libx11-dev libxext-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev xvfb
+xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" python3 scripts/dev.py verify
+```
 
 No macOS (usado na CI): as ferramentas de linha de comando do Xcode (Clang), CMake, Ninja, vcpkg e Python 3.
 

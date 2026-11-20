@@ -7,6 +7,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "GpuColor.hpp"
 #include "GpuDeviceAccess.hpp"
 
 namespace nexum::render {
@@ -14,7 +15,6 @@ namespace nexum::render {
 namespace {
 
 constexpr std::uint32_t kBytesPerPixel = 4;
-constexpr float kMaxChannel = 255.0F;
 
 struct ReleaseTexture {
     SDL_GPUDevice* device = nullptr;
@@ -30,10 +30,6 @@ struct ReleaseTransferBuffer {
 
 using TexturePointer = std::unique_ptr<SDL_GPUTexture, ReleaseTexture>;
 using TransferBufferPointer = std::unique_ptr<SDL_GPUTransferBuffer, ReleaseTransferBuffer>;
-
-[[nodiscard]] core::Error SdlFailure(const char* what) {
-    return core::Error{std::string(what) + ": " + SDL_GetError()};
-}
 
 [[nodiscard]] std::uint32_t ByteCount(TargetSize size) noexcept {
     return size.width * size.height * kBytesPerPixel;
@@ -76,11 +72,6 @@ using TransferBufferPointer = std::unique_ptr<SDL_GPUTransferBuffer, ReleaseTran
         return tl::unexpected(SdlFailure("could not create the download buffer"));
     }
     return buffer;
-}
-
-[[nodiscard]] SDL_FColor ToFloatColor(core::Rgba8 color) noexcept {
-    return SDL_FColor{static_cast<float>(color.r) / kMaxChannel, static_cast<float>(color.g) / kMaxChannel,
-                      static_cast<float>(color.b) / kMaxChannel, static_cast<float>(color.a) / kMaxChannel};
 }
 
 [[nodiscard]] std::vector<core::Rgba8> ToPixels(std::span<const std::uint8_t> bytes) {
