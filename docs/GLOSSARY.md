@@ -7,9 +7,13 @@ Termos usados no projeto, em português simples.
 | **A\*** | O algoritmo clássico para calcular um caminho entre dois pontos desviando dos obstáculos. No MU, quem calcula o caminho é o cliente; o servidor só confere passo a passo |
 | **ADR** | *Architecture Decision Record*: um registro curto de uma decisão importante, com o motivo e as alternativas. Fica em `docs/adr/` |
 | **Alocação de memória** | Quando o programa pede ao computador um pedaço novo de memória. Pedir no meio do jogo pode causar pequenos travamentos, por isso o caminho quente usa arenas |
+| **Antialiasing (MSAA)** | Suavizar os "serrilhados" nas bordas dos objetos. O MSAA faz isso calculando cada ponto da tela mais de uma vez (2, 4 ou 8 amostras). No Classic vem desligado, como no MuMain |
+| **AO** | Oclusão de ambiente: escurece cantos, bases de parede e o chão embaixo dos objetos, onde a luz chega menos |
 | **Arena** | Um bloco de memória reservado uma vez e zerado a cada quadro ou a cada tick, para os dados temporários |
 | **Asset** | Tudo o que não é código: modelos 3D, animações, texturas, ícones, sons |
+| **Áudio 3D** | Uma opção do Nexum, separada do Enhanced: o som vem da posição de quem o fez, e há volumes extras (ambiente, interface). O original toca os efeitos sempre em 2D |
 | **Aviso de pronto** | A mensagem em que o cliente diz ao servidor "terminei de carregar o mapa" (`C1 F3 12`). O servidor só a espera na troca de mapa |
+| **Bloom** | O brilho que "vaza" em volta das partes mais claras da tela. No Enhanced, só os efeitos de luz (magias, fogo) brilham assim |
 | **Branch** | Uma linha de trabalho paralela no Git. Cada fatia é feita na sua branch, sem mexer na versão oficial |
 | **Build de desenvolvimento (Dev)** | A versão compilada para desenvolver: com conferências extras e com o modo de autoria |
 | **Build de jogador** | A versão otimizada que vai para quem joga, sem modo de autoria, socket de automação nem inspetor de pacotes |
@@ -26,7 +30,7 @@ Termos usados no projeto, em português simples.
 | **Conta de máquina** | A conta do GitHub usada só pela IA. Ela envia código e abre PRs, mas não aprova nem faz merge |
 | **Coordenada dupla** | Cada personagem tem uma posição em células (a que o servidor conhece) e uma posição contínua no mundo (a que aparece na tela) |
 | **Dialeto de pacotes** | A família de formatos que o OpenMU usa com um cliente, escolhida pela versão que o cliente manda no login. O Nexum usa o dialeto 106.3, o "Extended" |
-| **Enhanced** | O modo de aparência aprimorado: sombras do sol, AO, bloom, LUT e áudio 3D, sem compromisso de paridade |
+| **Enhanced** | O modo de aparência aprimorado, criado pelo MuMain: filtragem de textura, iluminação aprimorada, luzes dinâmicas, luz do sol, light mood, pós-processamento e antialiasing, sem compromisso de paridade. Não inclui o som |
 | **Enquadramento** | Cortar o fluxo contínuo de bytes do TCP em mensagens separadas, lendo o tamanho no cabeçalho |
 | **Época** | Um número local que muda a cada conexão e a cada troca de mapa. Mensagens de uma época velha são descartadas |
 | **Evento neutro** | A tradução de um pacote para algo que o jogo entende sem saber de bytes, como "o objeto X entrou na visão em P" |
@@ -40,7 +44,9 @@ Termos usados no projeto, em português simples.
 | **Hook** | Um script que roda automaticamente antes ou depois de uma ação (um commit, um comando da IA) e pode bloqueá-la |
 | **Interpolação de render** | Com o tick fixo, a tela desenha "entre" dois ticks, misturando o estado anterior e o atual. Assim o movimento fica liso a 144 Hz, com a lógica a 25 Hz |
 | **Invariante** | Uma regra que nenhuma mudança pode violar (`INV-01`…, em [ARCHITECTURE.md](ARCHITECTURE.md#invariantes)) |
+| **Light mood** | A luz própria de cada mapa no Enhanced: deixa a luz fixa do chão mais escura, para tochas, fogueiras e magias se destacarem. No Classic fica desligado |
 | **Linha vermelha** | A regra de que a Engine e o Kit não sabem o que é MU: nenhum nome, número ou código de pacote do jogo dentro deles. Uma checagem automática confere |
+| **LUT de cor** | Uma tabela que troca cada cor da tela por outra, para dar um tom próprio a cada mapa. No Enhanced é opcional e nunca clareia a imagem |
 | **`main`** | A branch principal: a versão oficial, aprovada pelo dono |
 | **Marco** | Um objetivo grande do roteiro (M0 a M15), como "rede sem gráficos". Pode virar várias fatias |
 | **Merge (squash)** | Juntar uma branch na `main`. O *squash* transforma todos os commits da branch num commit só |

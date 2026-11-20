@@ -22,7 +22,7 @@
 
 | Marco | Tamanho | O que entrega, do ponto de vista de quem testa | Investigar antes (central) |
 |---|---|---|---|
-| **M0 Fundação** (fatia 0) | M | O `MuClient` abre uma janela que limpa a tela pelo SDL GPU nos 3 sistemas. O laço de ticks de 25 Hz passa no teste de tempo. Log, asserts, handles, arenas, Tracy, o teste de alocação do quadro e a ferramenta de prova visual. **A CI fica verde nos 3 sistemas**, o que exige o repositório publicado no GitHub | requisitos do SDL GPU na versão escolhida (documentação externa) |
+| **M0 Fundação** (fatia 0) | M | O `MuClient` abre uma janela que limpa a tela pelo SDL GPU nos 3 sistemas. O laço de ticks de 25 Hz passa no teste de tempo. Log, asserts, handles, arenas, Tracy, o teste de alocação do quadro e a ferramenta de prova visual. **A CI fica verde nos 3 sistemas**, o que exige o repositório publicado no GitHub | requisitos do SDL GPU na versão escolhida e o estado do defeito do D3D12 com mais de 2048 samplers por quadro (documentação externa; [ADR 0029](adr/0029-sdl3-e-sdl-gpu.md)) |
 | **M1 Importador e visualizador** | G | Qualquer modelo do jogo animando a partir do cache convertido, no modo de autoria. O `muimport` converte a instalação inteira e exporta glTF. 1 hora de fuzzing sem falha | resolução de nome de textura, "script" de textura no nome, ordem dos eixos de Euler e lateralidade, formatos das tabelas de dados e dos sons (agente `formatos`) |
 | **M2 Rede sem gráficos** | G | Entrar no OpenMU e "ver" o mundo numa visão 2D de depuração: 100% dos vetores do OpenMU passam, 30 minutos logado andando sem queda, replay com o mesmo estado final | spec da cifra (Xor32, SimpleModulus, contador), da sessão e do item estendido, com vetores; qual porta cabe a cada tipo de cliente (agente `protocolo`) |
 | **M3 Mundo 3D estático** | G | Lorencia em 3D, igual ao original no modo Classic: a cena passa na comparação de imagem e o picking acerta a célula em 100 pontos de teste | perfil de luz por mapa, névoa e céu (agente `render`) |
@@ -50,7 +50,7 @@ Fase 2, conteúdo. A ordem é revista no ponto de decisão.
 - **M11 Eventos (GG):** Blood Castle, Devil Square, Chaos Castle, Kalima, Kanturu, Crywolf, Castle Siege e os demais.
 - **M12 Social e economia (GG):** party, guild, amigos, chat, troca, loja pessoal, baú, NPCs de loja, mix.
 - **M13 Helper, Master Tree e quests (G).**
-- **M14 Enhanced Look (G):** sombra do sol, AO, bloom, LUT, luz por pixel, áudio 3D.
+- **M14 Enhanced Look (G):** os 7 recursos do Enhanced do MuMain (filtragem de textura, iluminação aprimorada, luzes dinâmicas, luz do sol com nuvens, light mood, pós-processamento com bloom, LUT e AO, antialiasing), os ambientes por mapa e os ajustes do jogador. À parte, a opção "Áudio 3D". Investigar antes: as fórmulas e os valores do Enhanced (agentes `render` e `interface`) e, de novo, o defeito do D3D12.
 - **M15 Autoria completa e mods (G):** editor de mapa e de dados, mods com glTF.
 
 Quando uma fatia depende de algo que ainda não existe, uma fatia de fundação técnica entra antes dela.

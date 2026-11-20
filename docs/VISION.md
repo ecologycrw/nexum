@@ -41,7 +41,7 @@ Em vez de prometer "100% de fidelidade", o Nexum mede **níveis de paridade**. C
 | **P0** | Protocolo | cada pacote enviado é idêntico, byte a byte, ao que o OpenMU espera, e cada pacote recebido é entendido |
 | **P1** | Comportamento | tempos e regras visíveis iguais: ritmo do andar, velocidade das animações, alcance dos cliques, ordem dos eventos |
 | **P2** | Visual clássico | no modo **Classic**, a imagem fica próxima do original na mesma cena e câmera |
-| **P3** | Visual aprimorado | no modo **Enhanced**, melhorias opcionais (sombras do sol, AO, bloom, LUT, áudio 3D), sem compromisso de paridade |
+| **P3** | Aprimorado | no modo **Enhanced**, o pacote visual criado pelo MuMain (filtragem de textura, iluminação aprimorada, luzes dinâmicas, luz do sol, light mood, pós-processamento com AO e antialiasing) e, à parte, a opção **Áudio 3D**, uma ideia do Nexum. Melhorias opcionais, sem compromisso de paridade |
 
 **Compatível** quer dizer P0 e P1 contra o OpenMU sem modificações. **Fiel** quer dizer de P0 a P2.
 

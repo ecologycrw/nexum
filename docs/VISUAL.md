@@ -1,6 +1,6 @@
 # Guia visual
 
-> Documento vivo. Mudanças exigem a aprovação do dono ([ADR 0028](adr/0028-prova-visual-e-paridade.md)). A fonte são as seções 0.3, D-09 e V.2.3 da [especificação de referência](referencia/especificacao-engine-propria-caminho-b.md#v23-imagens-de-referência).
+> Documento vivo. Mudanças exigem a aprovação do dono ([ADR 0028](adr/0028-prova-visual-e-paridade.md)). A fonte são as seções 0.3, D-09, IV.9.7 e V.2.3 da [especificação de referência](referencia/especificacao-engine-propria-caminho-b.md#v23-imagens-de-referência).
 
 ## A ideia central
 
@@ -9,9 +9,11 @@ O Nexum tem **dois modos de aparência**, e cada um tem um objetivo diferente:
 | Modo | Objetivo | Paridade |
 |---|---|---|
 | **Classic** | parecer o original: espaço gama, luz por vértice a partir de uma grade, materiais clássicos como pilhas de passes, sombra planar | **P2**: medida contra o original |
-| **Enhanced** | melhorar sem trair o estilo: sombras do sol, AO, bloom, LUT de cor, luz por pixel, áudio 3D | **P3**: revisão visual, sem compromisso de paridade |
+| **Enhanced** | melhorar sem trair o estilo, tendo como referência o pacote que o MuMain criou: filtragem de textura, iluminação aprimorada, luzes dinâmicas, luz do sol (com nuvens e o tom do céu), light mood, pós-processamento (bloom, LUT de cor e AO) e antialiasing | **P3**: revisão visual, sem compromisso de paridade |
 
-Cada melhoria do Enhanced é uma opção que pode ser desligada. O modo Classic é o padrão de referência de cada fatia de render.
+Cada recurso do Enhanced tem a sua própria chave e pode ser desligado sozinho, inclusive o AO separado do bloom. Os valores ficam em dados, por mapa e por ambiente, com a preferência do jogador por cima ([ADR 0030](adr/0030-render-forward-classic-e-enhanced.md)). O som não faz parte do Enhanced: o áudio 3D é a opção "Áudio 3D", à parte ([ADR 0031](adr/0031-audio-paridade-primeiro-e-audio-3d.md)).
+
+O modo Classic é o padrão de referência de cada fatia de render. Nele, o light mood fica desligado e o antialiasing (MSAA) vem desligado por padrão, como no MuMain.
 
 ## De onde vêm as referências
 
@@ -21,7 +23,7 @@ Cada melhoria do Enhanced é uma opção que pode ser desligada. O modo Classic 
 
 ## Cenas de paridade
 
-Cenas fixas, sem efeitos aleatórios ou com eles congelados:
+Cenas fixas, sempre no modo Classic e sem MSAA (no Nexum e no MuMain), sem efeitos aleatórios ou com eles congelados:
 
 - Lorencia, numa posição e câmera conhecidas, ao meio-dia;
 - um personagem de cada classe parado, com equipamento +0, +9, +13 e +15;
@@ -76,4 +78,4 @@ Mede-se o tempo médio e o do pior 1% dos quadros, porque a média sozinha escon
 | M3 | a primeira cena de paridade (Lorencia), com a comparação contra a referência |
 | M4 e M5 | personagens, skinning, sombra planar, cores de estado, contorno de seleção |
 | M8 | as pilhas de reflexo por nível de item |
-| M14 | o modo Enhanced completo |
+| M14 | o modo Enhanced completo: os 7 recursos, os ambientes por mapa e os ajustes do jogador; à parte, a opção "Áudio 3D" |
