@@ -1,6 +1,7 @@
 // A test program of its own, because a false NEXUM_ASSERT ends the whole program in the development build.
-// Engine/Core/Tests/CMakeLists.txt checks the output: in the development build, the message of the assert and
-// no sign that the program went on; in the player build, where the assert is off, the program goes on.
+// Engine/Core/Tests/CheckAssertFailure.cmake runs it and checks how it ended: in the development build, with
+// the message of the assert and no sign that the program went on; in the player build, where the assert is
+// off, the program goes on.
 #include <doctest/doctest.h>
 
 #include <cstdio>
