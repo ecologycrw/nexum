@@ -22,6 +22,18 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
 
+### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
+- Origem: feedback do dono na fatia 0, depois da T03
+- Tipo: trava
+- Evidência: depois das tarefas T01 a T03, o `tasks.md` estava certo, mas o STATUS ainda dizia que a próxima ação "começa pela sondagem", e a memória da IA também. Nenhum lugar dizia que o aviso automático da CI vale só para a sessão que o ligou. Tudo foi corrigido à mão no commit `0e51420`, e a própria correção repetiu no STATUS "3 de 17 tarefas feitas" e "a partir da T04", que vão envelhecer de novo. O dono perguntou "Acha que devemos ter uma skil ou alguma mudança nos docs para quando por exemplo, isso acontecer ? exemplo, uma tarefa é terminada aqui, mas não tenho certeza que existem arquivos desatualizados que fará com que a nova sessão não reconheça as coisas corretamente.", depois "Você acha que as suas 3 sugestões seria melhor que do jeito que está ?" e, com a versão menor, "Sim, registrar". A proposta:
+  1. o hook do início da sessão lê o `tasks.md` da fatia atual e mostra quantas tarefas estão feitas, em andamento, bloqueadas e pendentes, e qual é a próxima, com um teste nos testes dos hooks;
+  2. uma regra: o STATUS aponta para o `tasks.md` e não repete números de tarefa nem contagens. O "3 de 17" e o "a partir da T04" saem do STATUS;
+  3. uma linha no `/situacao`: dizer se o PR está em rascunho e lembrar que o aviso automático da CI vale só para a sessão que o ligou.
+
+  Fica de fora uma checagem da fase do STATUS contra o status da spec: ela não teria pegado este caso, porque o erro estava numa frase. Muda travas: o hook `session-start`, os testes dos hooks e a skill `/situacao`
+- Prioridade sugerida: média (aplicar antes de muitas sessões novas na fatia 0)
+- Status: aberta
+
 ## Processadas
 
 ### P-0002: conferir se a descrição da central basta antes de aprovar a spec
