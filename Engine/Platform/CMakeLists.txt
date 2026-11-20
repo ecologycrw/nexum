@@ -4,6 +4,7 @@ nexum_add_library(nexum_platform
     ALIAS Nexum::Platform
     SOURCES
         Private/PlatformInfo.cpp
+        Private/VideoSystem.cpp
     PUBLIC_DEPS Nexum::Core
     PRIVATE_DEPS SDL3::SDL3)
 
