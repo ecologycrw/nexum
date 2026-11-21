@@ -48,3 +48,26 @@ TEST_CASE("[0000-CA-05] the newest route gets the messages of SDL and gives them
     inner.reset();
     CHECK(outer.IsActive());
 }
+
+TEST_CASE("a route that ends before newer ones leaves them giving the messages back to the route before it") {
+    MemoryLogSink sink;
+    Logger logger{sink};
+    const SdlLogRoute outer{logger};
+    std::optional<SdlLogRoute> first;
+    std::optional<SdlLogRoute> second;
+    std::optional<SdlLogRoute> newest;
+    first.emplace(logger);
+    second.emplace(logger);
+    newest.emplace(logger);
+
+    // The first route ends while two newer ones exist; the newest one keeps the messages.
+    first.reset();
+    CHECK(newest->IsActive());
+
+    newest.reset();
+    CHECK(second->IsActive());
+
+    // The second route gave back the first one; without the hand-over, it would give back a route that ended.
+    second.reset();
+    CHECK(outer.IsActive());
+}

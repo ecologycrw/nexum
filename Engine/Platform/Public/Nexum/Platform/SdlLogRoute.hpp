@@ -12,8 +12,10 @@ struct SdlLogForwarding;
 // specs/0000-fundacao/spec.md), in the category "sdl" or in one per area of SDL, such as "sdl.gpu" and
 // "sdl.video". When it starts, it announces itself through the log of SDL.
 //
-// Routes nest: the newest one gets the messages, and when it ends, the one before gets them back. They end in
-// the reverse order they started, on the main thread. The logger must outlive the route.
+// Routes nest: the newest one gets the messages, and when it ends, the one before gets them back. A route may
+// end before a newer one: the newer one then gives the messages back to the route before the one that ended.
+// Routes start and end on the main thread, and an output set on SDL by other code after a route must end
+// before it. The logger must outlive the route.
 class SdlLogRoute {
 public:
     explicit SdlLogRoute(debug::Logger& logger);

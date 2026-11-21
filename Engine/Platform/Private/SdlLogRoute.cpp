@@ -77,6 +77,22 @@ SdlLogRoute::SdlLogRoute(debug::Logger& logger)
 SdlLogRoute::~SdlLogRoute() {
     if (IsActive()) {
         SDL_SetLogOutputFunction(m_previous->output, m_previous->context);
+        return;
+    }
+    // A newer route keeps this one as the output it gives back. Walk the newer routes, from the newest, and
+    // hand this route's own previous output to the one that kept it, so no route gives back a route that
+    // ended.
+    SDL_LogOutputFunction output = nullptr;
+    void* context = nullptr;
+    SDL_GetLogOutputFunction(&output, &context);
+    while (output == &SdlLogForwarding::Output && context != nullptr) {
+        PreviousOutput& newerPrevious = *static_cast<SdlLogRoute*>(context)->m_previous;
+        if (newerPrevious.output == &SdlLogForwarding::Output && newerPrevious.context == this) {
+            newerPrevious = *m_previous;
+            return;
+        }
+        output = newerPrevious.output;
+        context = newerPrevious.context;
     }
 }
 
