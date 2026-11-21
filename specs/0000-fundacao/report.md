@@ -207,6 +207,7 @@ Lições técnicas, sem erro da IA, que ficam para as próximas fatias:
 - **P-0007:** os testes sem as janelas de falha do Windows, e um tempo limite geral. Aceita e aplicada nesta branch.
 - **P-0008:** a prova visual do M3 com as placas de vídeo por software da CI. Aberta, para decidir antes do M3.
 - **P-0009:** as opções para a CI ter uma placa de vídeo de verdade. Aberta, para rever no M3 e no M7.
+- **P-0010:** a janela do `MuClient` sem a tela preta no início. Aberta, vinda do teste do dono, para o M1.
 
 O detalhe de cada uma está em [PROPOSALS.md](../../docs/PROPOSALS.md).
 

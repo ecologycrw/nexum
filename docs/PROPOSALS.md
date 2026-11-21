@@ -60,6 +60,34 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (rever no M3 e no M7)
 - Status: aberta
 
+### P-0010: a janela do `MuClient` sem a tela preta no início
+- Origem: feedback do dono, no teste da fatia 0
+- Tipo: fatia (o começo do programa, no M1)
+- Evidência: no teste, o dono viu a janela preta antes do cartão e escreveu: "O timing entre o [info] platform: video driver windows e o [info] render: GPU backend vulkan on NVIDIA GeForce GTX 1060 6GB (driver NVIDIA 582.78.0.0) gera esse delay inicial que faz com que a primeira tela fique preta". Depois, perguntou "quais são as soluções pra isso, ou o que engines ou jogos fazem" e escolheu "Virar proposta".
+  - **A causa:** o `MuClient` abre a janela antes de ligar a placa de vídeo (`Games/MuOnline/App/Private/FoundationApp.cpp`). Até o primeiro quadro, a janela não tem nada para mostrar, e o Windows a pinta de preto. Não quebra nenhum critério da fatia 0: acontece uma vez, no início, e o ritmo do laço segue normal depois.
+  - **A medição** em 2026-11-21, no computador do dono, com `--frames 1` e a hora de cada linha do log, em 5 execuções:
+
+    | Passo | Vulkan | Direct3D 12 |
+    |---|---|---|
+    | o vídeo ligado e a janela aberta | 0,07 s | 0,06 s |
+    | a placa de vídeo ligada (a linha `GPU backend ...`) | 0,44 s | 0,69 s |
+    | o primeiro quadro desenhado (a imagem da janela preparada, o cartão enviado à placa e o primeiro desenho) | 0,75 s | 0,72 s |
+
+    A janela fica preta por uns 0,7 s. A maior parte do tempo é o driver da placa começando, e o Nexum não controla isso.
+  - **As soluções** levadas ao dono:
+    1. a janela criada escondida e mostrada só depois do primeiro quadro;
+    2. a placa de vídeo ligada antes de abrir a janela (o preto cairia para uns 0,3 s);
+    3. uma tela de abertura com um logo, desenhada pelo sistema, sem a placa;
+    4. a janela pintada com a cor de fundo do jogo no lugar do preto;
+    5. uma tela de carregamento, com o resto carregando em paralelo pelos *workers*.
+  - **O que as engines e os jogos fazem:** Unity, Unreal e Godot mostram uma tela de abertura configurável enquanto a engine começa (a solução 3). Os programas de desktop feitos com o Electron criam a janela escondida e a mostram quando ela está pronta (a solução 1). Os jogos grandes cobrem o começo com logos e vídeos e depois usam telas de carregamento (as soluções 3 e 5).
+  - **A recomendação dada ao dono:**
+    - as soluções 1 e 2 juntas, no M1. São simples, tiram o preto e não mudam a arquitetura. Pedem uma opção nova na `Window` (`Engine/Platform`) para abrir escondida e mostrar depois, e a ordem nova no início do `MuClient`;
+    - a solução 5 também no M1, quando o `MuClient` começar a carregar arquivos de verdade. O quadro nunca espera por disco (INV-06), então a tela de carregamento vai ser necessária de qualquer jeito;
+    - a solução 3 só se o início passar de 1 a 2 segundos antes de qualquer coisa aparecer.
+- Prioridade sugerida: baixa (é só aparência e dura menos de 1 segundo; fazer no M1, junto com o início do visualizador)
+- Status: aberta
+
 ## Processadas
 
 ### P-0007: o `MuClient` nos testes sem as janelas de falha do Windows, e um tempo limite geral para os testes
