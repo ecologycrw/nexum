@@ -1,10 +1,9 @@
 #include <doctest/doctest.h>
 
-#include <algorithm>
-#include <cstddef>
-#include <ostream>
-#include <utility>
+#include <string>
 
+#include "GpuFixture.hpp"
+#include "Nexum/Core/Image.hpp"
 #include "Nexum/Core/Rgba8.hpp"
 #include "Nexum/Platform/PlatformInfo.hpp"
 #include "Nexum/Platform/VideoSystem.hpp"
@@ -12,6 +11,7 @@
 #include "Nexum/Render/GpuDevice.hpp"
 #include "Nexum/Render/OffscreenTarget.hpp"
 
+using nexum::core::Image;
 using nexum::core::Rgba8;
 using nexum::platform::CurrentOperatingSystem;
 using nexum::platform::VideoSystem;
@@ -22,48 +22,25 @@ using nexum::render::OffscreenTarget;
 using nexum::render::PreferredBackends;
 using nexum::render::TargetSize;
 using nexum::render::ToString;
-
-namespace nexum::core {
-
-std::ostream& operator<<(std::ostream& stream, const Rgba8& pixel) {
-    return stream << "(" << +pixel.r << ", " << +pixel.g << ", " << +pixel.b << ", " << +pixel.a << ")";
-}
-
-} // namespace nexum::core
+using nexum::render_tests::CheckSameImage;
+using nexum::render_tests::GpuFixture;
+using nexum::render_tests::PixelText;
+using nexum::render_tests::StartGpu;
+using nexum::render_tests::StartVideo;
 
 namespace {
-
-// Each test owns its video system and device, in the order the engine requires: video, device, target.
-struct GpuFixture {
-    VideoSystem video;
-    GpuDevice device;
-};
-
-VideoSystem StartVideo() {
-    auto video = VideoSystem::Start();
-    REQUIRE_MESSAGE(video.has_value(), (video ? "" : video.error().message));
-    return std::move(*video);
-}
-
-GpuFixture StartGpu() {
-    VideoSystem video = StartVideo();
-    auto device = GpuDevice::Create(video, GpuDeviceOptions{});
-    REQUIRE_MESSAGE(device.has_value(), (device ? "" : device.error().message));
-    return GpuFixture{std::move(video), std::move(*device)};
-}
 
 // Not square, so a swap of width and height shows up.
 constexpr TargetSize kSize{.width = 64, .height = 48};
 
 void ExpectClearReadsBack(OffscreenTarget& target, Rgba8 color) {
-    CAPTURE(color);
+    const std::string clearColor = PixelText(color);
+    CAPTURE(clearColor);
     const auto cleared = target.Clear(color);
     REQUIRE_MESSAGE(cleared.has_value(), (cleared ? "" : cleared.error().message));
-    const auto pixels = target.ReadPixels();
-    REQUIRE_MESSAGE(pixels.has_value(), (pixels ? "" : pixels.error().message));
-    REQUIRE(pixels->size() == std::size_t{kSize.width} * kSize.height);
-    const auto different = std::ranges::find_if(*pixels, [&](const Rgba8& pixel) { return pixel != color; });
-    CHECK_MESSAGE(different == pixels->end(), "first different pixel at index ", different - pixels->begin());
+    const auto image = target.ReadImage();
+    REQUIRE_MESSAGE(image.has_value(), (image ? "" : image.error().message));
+    CheckSameImage(*image, Image(kSize.width, kSize.height, color));
 }
 
 } // namespace

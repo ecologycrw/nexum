@@ -3,9 +3,12 @@
 nexum_add_library(nexum_render
     ALIAS Nexum::Render
     SOURCES
+        Private/DrawList.cpp
+        Private/DrawRecording.cpp
         Private/GpuBackend.cpp
         Private/GpuDevice.cpp
         Private/OffscreenTarget.cpp
+        Private/TextureStore.cpp
         Private/WindowTarget.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Platform
     PRIVATE_DEPS SDL3::SDL3)

@@ -4,32 +4,20 @@
 #include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <SDL3/SDL.h>
 
+#include "DrawRecording.hpp"
 #include "GpuColor.hpp"
 #include "GpuDeviceAccess.hpp"
+#include "GpuResources.hpp"
 
 namespace nexum::render {
 
 namespace {
 
 constexpr std::uint32_t kBytesPerPixel = 4;
-
-struct ReleaseTexture {
-    SDL_GPUDevice* device = nullptr;
-    void operator()(SDL_GPUTexture* texture) const noexcept { SDL_ReleaseGPUTexture(device, texture); }
-};
-
-struct ReleaseTransferBuffer {
-    SDL_GPUDevice* device = nullptr;
-    void operator()(SDL_GPUTransferBuffer* buffer) const noexcept {
-        SDL_ReleaseGPUTransferBuffer(device, buffer);
-    }
-};
-
-using TexturePointer = std::unique_ptr<SDL_GPUTexture, ReleaseTexture>;
-using TransferBufferPointer = std::unique_ptr<SDL_GPUTransferBuffer, ReleaseTransferBuffer>;
 
 [[nodiscard]] std::uint32_t ByteCount(TargetSize size) noexcept {
     return size.width * size.height * kBytesPerPixel;
@@ -45,7 +33,7 @@ using TransferBufferPointer = std::unique_ptr<SDL_GPUTransferBuffer, ReleaseTran
     return {};
 }
 
-[[nodiscard]] core::Result<TexturePointer> CreateColorTexture(SDL_GPUDevice* device, TargetSize size) {
+[[nodiscard]] core::Result<GpuTexturePointer> CreateColorTexture(SDL_GPUDevice* device, TargetSize size) {
     SDL_GPUTextureCreateInfo info{};
     info.type = SDL_GPU_TEXTURETYPE_2D;
     info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
@@ -55,19 +43,20 @@ using TransferBufferPointer = std::unique_ptr<SDL_GPUTransferBuffer, ReleaseTran
     info.layer_count_or_depth = 1;
     info.num_levels = 1;
     info.sample_count = SDL_GPU_SAMPLECOUNT_1;
-    TexturePointer texture(SDL_CreateGPUTexture(device, &info), ReleaseTexture{device});
+    GpuTexturePointer texture(SDL_CreateGPUTexture(device, &info), ReleaseGpuTexture{device});
     if (!texture) {
         return tl::unexpected(SdlFailure("could not create the offscreen texture"));
     }
     return texture;
 }
 
-[[nodiscard]] core::Result<TransferBufferPointer> CreateDownloadBuffer(SDL_GPUDevice* device,
-                                                                       TargetSize size) {
+[[nodiscard]] core::Result<GpuTransferBufferPointer> CreateDownloadBuffer(SDL_GPUDevice* device,
+                                                                          TargetSize size) {
     SDL_GPUTransferBufferCreateInfo info{};
     info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD;
     info.size = ByteCount(size);
-    TransferBufferPointer buffer(SDL_CreateGPUTransferBuffer(device, &info), ReleaseTransferBuffer{device});
+    GpuTransferBufferPointer buffer(SDL_CreateGPUTransferBuffer(device, &info),
+                                    ReleaseGpuTransferBuffer{device});
     if (!buffer) {
         return tl::unexpected(SdlFailure("could not create the download buffer"));
     }
@@ -102,8 +91,8 @@ using TransferBufferPointer = std::unique_ptr<SDL_GPUTransferBuffer, ReleaseTran
 struct OffscreenTarget::State {
     SDL_GPUDevice* device = nullptr; // Not owned: the device outlives the target.
     TargetSize size;
-    TexturePointer texture;
-    TransferBufferPointer download;
+    GpuTexturePointer texture;
+    GpuTransferBufferPointer download;
 };
 
 core::Result<OffscreenTarget> OffscreenTarget::Create(GpuDevice& device, TargetSize size) {
@@ -144,25 +133,36 @@ core::Result<void> OffscreenTarget::Clear(core::Rgba8 color) {
     if (commands == nullptr) {
         return tl::unexpected(SdlFailure("could not start the GPU commands"));
     }
-    SDL_GPUColorTargetInfo target{};
-    target.texture = m_state->texture.get();
-    target.clear_color = ToFloatColor(color);
-    target.load_op = SDL_GPU_LOADOP_CLEAR;
-    target.store_op = SDL_GPU_STOREOP_STORE;
-    SDL_GPURenderPass* const pass = SDL_BeginGPURenderPass(commands, &target, 1, nullptr);
-    if (pass == nullptr) {
-        const core::Error error = SdlFailure("could not start the clear");
+    if (auto cleared = RecordClear(commands, m_state->texture.get(), color); !cleared) {
         SDL_CancelGPUCommandBuffer(commands);
-        return tl::unexpected(error);
+        return cleared;
     }
-    SDL_EndGPURenderPass(pass);
     if (!SDL_SubmitGPUCommandBuffer(commands)) {
         return tl::unexpected(SdlFailure("could not submit the clear"));
     }
     return {};
 }
 
-core::Result<std::vector<core::Rgba8>> OffscreenTarget::ReadPixels() {
+core::Result<void> OffscreenTarget::Draw(const DrawList& list, const TextureStore& store) {
+    if (auto valid = CheckDrawList(m_state->device, list, store); !valid) {
+        return valid;
+    }
+    SDL_GPUCommandBuffer* const commands = SDL_AcquireGPUCommandBuffer(m_state->device);
+    if (commands == nullptr) {
+        return tl::unexpected(SdlFailure("could not start the GPU commands"));
+    }
+    const TextureSize size{.width = m_state->size.width, .height = m_state->size.height};
+    if (auto drawn = RecordDrawList(commands, m_state->texture.get(), size, list, store); !drawn) {
+        SDL_CancelGPUCommandBuffer(commands);
+        return drawn;
+    }
+    if (!SDL_SubmitGPUCommandBuffer(commands)) {
+        return tl::unexpected(SdlFailure("could not submit the frame"));
+    }
+    return {};
+}
+
+core::Result<core::Image> OffscreenTarget::ReadImage() {
     SDL_GPUCommandBuffer* const commands = SDL_AcquireGPUCommandBuffer(m_state->device);
     if (commands == nullptr) {
         return tl::unexpected(SdlFailure("could not start the GPU commands"));
@@ -193,7 +193,7 @@ core::Result<std::vector<core::Rgba8>> OffscreenTarget::ReadPixels() {
     std::vector<core::Rgba8> pixels =
         ToPixels({static_cast<const std::uint8_t*>(mapped), ByteCount(m_state->size)});
     SDL_UnmapGPUTransferBuffer(m_state->device, m_state->download.get());
-    return pixels;
+    return core::Image::FromPixels(m_state->size.width, m_state->size.height, std::move(pixels));
 }
 
 } // namespace nexum::render

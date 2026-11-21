@@ -6,7 +6,9 @@
 #include "Nexum/Core/Result.hpp"
 #include "Nexum/Core/Rgba8.hpp"
 #include "Nexum/Platform/Window.hpp"
+#include "Nexum/Render/DrawList.hpp"
 #include "Nexum/Render/GpuDevice.hpp"
+#include "Nexum/Render/TextureStore.hpp"
 
 namespace nexum::render {
 
@@ -31,6 +33,11 @@ public:
 
     // Fills the window with one color and shows it.
     [[nodiscard]] core::Result<FrameOutcome> PresentClear(core::Rgba8 color);
+
+    // Draws a frame and shows it: the clear color of the list, then its copies, in order, at the pixel size
+    // the window has now. The textures must come from a store of the same device. Nothing is drawn when the
+    // list or the store is refused. A frame never asks for memory (INV-13).
+    [[nodiscard]] core::Result<FrameOutcome> Present(const DrawList& list, const TextureStore& store);
 
 private:
     struct State;

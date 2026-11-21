@@ -2,11 +2,13 @@
 
 #include <cstdint>
 #include <memory>
-#include <vector>
 
+#include "Nexum/Core/Image.hpp"
 #include "Nexum/Core/Result.hpp"
 #include "Nexum/Core/Rgba8.hpp"
+#include "Nexum/Render/DrawList.hpp"
 #include "Nexum/Render/GpuDevice.hpp"
+#include "Nexum/Render/TextureStore.hpp"
 
 namespace nexum::render {
 
@@ -36,8 +38,13 @@ public:
     // Fills the whole image with one color.
     [[nodiscard]] core::Result<void> Clear(core::Rgba8 color);
 
-    // Waits for the GPU and copies the pixels back, row by row from the top, left to right.
-    [[nodiscard]] core::Result<std::vector<core::Rgba8>> ReadPixels();
+    // Draws a frame: the clear color of the list, then its copies, in order. The textures must come from a
+    // store of the same device. Nothing is drawn when the list or the store is refused. A frame never asks
+    // for memory (INV-13).
+    [[nodiscard]] core::Result<void> Draw(const DrawList& list, const TextureStore& store);
+
+    // Waits for the GPU and copies the image back, with the pixels of everything drawn before.
+    [[nodiscard]] core::Result<core::Image> ReadImage();
 
 private:
     struct State;

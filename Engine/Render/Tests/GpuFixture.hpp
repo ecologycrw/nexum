@@ -1,0 +1,65 @@
+#pragma once
+
+// What the GPU tests share: the video system and the device in the order the engine requires, and the text of
+// a pixel when a check fails. It came from the third copy in the tests (docs/CONVENTIONS.md, "Regra de
+// três").
+
+#include <doctest/doctest.h>
+
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <utility>
+
+#include "Nexum/Core/Image.hpp"
+#include "Nexum/Core/Rgba8.hpp"
+#include "Nexum/Platform/VideoSystem.hpp"
+#include "Nexum/Render/GpuDevice.hpp"
+
+namespace nexum::render_tests {
+
+// A pixel as text, such as "(12, 34, 56, 255)", for the messages of a failed check.
+inline std::string PixelText(const core::Rgba8& pixel) {
+    return "(" + std::to_string(pixel.r) + ", " + std::to_string(pixel.g) + ", " + std::to_string(pixel.b) +
+           ", " + std::to_string(pixel.a) + ")";
+}
+
+// Each test owns its video system and device: video first, then the device, then what the device makes.
+struct GpuFixture {
+    platform::VideoSystem video;
+    render::GpuDevice device;
+};
+
+inline platform::VideoSystem StartVideo() {
+    auto video = platform::VideoSystem::Start();
+    REQUIRE_MESSAGE(video.has_value(), (video ? "" : video.error().message));
+    return std::move(*video);
+}
+
+inline GpuFixture StartGpu() {
+    platform::VideoSystem video = StartVideo();
+    auto device = render::GpuDevice::Create(video, render::GpuDeviceOptions{});
+    REQUIRE_MESSAGE(device.has_value(), (device ? "" : device.error().message));
+    return GpuFixture{std::move(video), std::move(*device)};
+}
+
+// Checks two images pixel by pixel and names the first pixel that differs, with both values.
+inline void CheckSameImage(const core::Image& actual, const core::Image& expected) {
+    REQUIRE(actual.Width() == expected.Width());
+    REQUIRE(actual.Height() == expected.Height());
+    std::optional<std::pair<std::uint32_t, std::uint32_t>> different;
+    for (std::uint32_t y = 0; y < actual.Height() && !different; ++y) {
+        for (std::uint32_t x = 0; x < actual.Width() && !different; ++x) {
+            if (actual.At(x, y) != expected.At(x, y)) {
+                different = std::pair{x, y};
+            }
+        }
+    }
+    if (different) {
+        const auto [x, y] = *different;
+        FAIL_CHECK("first different pixel at (", x, ", ", y, "): ", PixelText(actual.At(x, y)),
+                   " instead of ", PixelText(expected.At(x, y)));
+    }
+}
+
+} // namespace nexum::render_tests

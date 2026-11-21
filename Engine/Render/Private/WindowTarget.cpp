@@ -4,10 +4,54 @@
 
 #include <SDL3/SDL.h>
 
+#include "DrawRecording.hpp"
 #include "GpuColor.hpp"
 #include "GpuDeviceAccess.hpp"
 
 namespace nexum::render {
+
+namespace {
+
+// Gets the image of the window, lets `record` draw into it, and shows it. When the window has nothing to show
+// into, as when it is minimized, nothing is drawn. The commands are submitted even when `record` fails,
+// because SDL forbids cancelling commands that hold the image of a window. `record` is a template parameter,
+// not a std::function, so a frame asks for no memory (INV-13).
+template <typename Record>
+[[nodiscard]] core::Result<FrameOutcome> PresentFrame(SDL_GPUDevice* device, SDL_Window* window,
+                                                      Record record) {
+    SDL_GPUCommandBuffer* const commands = SDL_AcquireGPUCommandBuffer(device);
+    if (commands == nullptr) {
+        return tl::unexpected(SdlFailure("could not start the GPU commands"));
+    }
+    SDL_GPUTexture* screen = nullptr;
+    Uint32 width = 0;
+    Uint32 height = 0;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(commands, window, &screen, &width, &height)) {
+        const core::Error error = SdlFailure("could not get the window's image");
+        SDL_CancelGPUCommandBuffer(commands);
+        return tl::unexpected(error);
+    }
+    if (screen == nullptr) {
+        // With no image, submitting only releases the commands.
+        if (!SDL_SubmitGPUCommandBuffer(commands)) {
+            return tl::unexpected(SdlFailure("could not submit the frame"));
+        }
+        return FrameOutcome::Skipped;
+    }
+    const core::Result<void> recorded =
+        record(commands, screen, TextureSize{.width = width, .height = height});
+    // Submitting also presents the image.
+    const bool submitted = SDL_SubmitGPUCommandBuffer(commands);
+    if (!recorded) {
+        return tl::unexpected(recorded.error());
+    }
+    if (!submitted) {
+        return tl::unexpected(SdlFailure("could not submit the frame"));
+    }
+    return FrameOutcome::Shown;
+}
+
+} // namespace
 
 struct WindowTarget::State {
     // Neither is owned: the device and the window outlive the target.
@@ -46,37 +90,20 @@ WindowTarget& WindowTarget::operator=(WindowTarget&& other) noexcept = default;
 WindowTarget::~WindowTarget() = default;
 
 core::Result<FrameOutcome> WindowTarget::PresentClear(core::Rgba8 color) {
-    SDL_GPUCommandBuffer* const commands = SDL_AcquireGPUCommandBuffer(m_state->device);
-    if (commands == nullptr) {
-        return tl::unexpected(SdlFailure("could not start the GPU commands"));
+    return PresentFrame(m_state->device, m_state->window,
+                        [color](SDL_GPUCommandBuffer* commands, SDL_GPUTexture* screen,
+                                TextureSize /*size*/) { return RecordClear(commands, screen, color); });
+}
+
+core::Result<FrameOutcome> WindowTarget::Present(const DrawList& list, const TextureStore& store) {
+    if (auto valid = CheckDrawList(m_state->device, list, store); !valid) {
+        return tl::unexpected(valid.error());
     }
-    SDL_GPUTexture* screen = nullptr;
-    if (!SDL_WaitAndAcquireGPUSwapchainTexture(commands, m_state->window, &screen, nullptr, nullptr)) {
-        const core::Error error = SdlFailure("could not get the window's image");
-        SDL_CancelGPUCommandBuffer(commands);
-        return tl::unexpected(error);
-    }
-    FrameOutcome outcome = FrameOutcome::Skipped;
-    if (screen != nullptr) {
-        SDL_GPUColorTargetInfo target{};
-        target.texture = screen;
-        target.clear_color = ToFloatColor(color);
-        target.load_op = SDL_GPU_LOADOP_CLEAR;
-        target.store_op = SDL_GPU_STOREOP_STORE;
-        SDL_GPURenderPass* const pass = SDL_BeginGPURenderPass(commands, &target, 1, nullptr);
-        if (pass == nullptr) {
-            const core::Error error = SdlFailure("could not start the clear");
-            SDL_CancelGPUCommandBuffer(commands);
-            return tl::unexpected(error);
-        }
-        SDL_EndGPURenderPass(pass);
-        outcome = FrameOutcome::Shown;
-    }
-    // Submitting also presents the image; with no image, it only releases the commands.
-    if (!SDL_SubmitGPUCommandBuffer(commands)) {
-        return tl::unexpected(SdlFailure("could not submit the frame"));
-    }
-    return outcome;
+    return PresentFrame(
+        m_state->device, m_state->window,
+        [&list, &store](SDL_GPUCommandBuffer* commands, SDL_GPUTexture* screen, TextureSize size) {
+            return RecordDrawList(commands, screen, size, list, store);
+        });
 }
 
 } // namespace nexum::render
