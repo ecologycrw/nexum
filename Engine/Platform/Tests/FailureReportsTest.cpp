@@ -19,8 +19,10 @@ TEST_CASE("only a value other than empty or 0 asks for the failures as text") {
     CHECK(AsksForFailuresAsText("yes"));
 }
 
-TEST_CASE("after WriteFailuresAsText, an abort and a failed assertion are text, without a dialog") {
+// Only the C runtime of Windows opens these dialogs; elsewhere the call changes nothing, and there is nothing
+// to check.
 #if defined(_MSC_VER)
+TEST_CASE("after WriteFailuresAsText, an abort and a failed assertion are text, without a dialog") {
     // The main function of the tests already writes the failures as text, so the dialogs come back first.
     _set_abort_behavior(_WRITE_ABORT_MSG | _CALL_REPORTFAULT, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 #if defined(_DEBUG)
@@ -41,9 +43,5 @@ TEST_CASE("after WriteFailuresAsText, an abort and a failed assertion are text, 
         CHECK((mode & _CRTDBG_MODE_WNDW) == 0);
     }
 #endif
-#else
-    // Only the C runtime of Windows opens these dialogs; elsewhere the call changes nothing.
-    nexum::platform::WriteFailuresAsText();
-    CHECK(true);
-#endif
 }
+#endif

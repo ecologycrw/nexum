@@ -234,7 +234,7 @@ TEST_CASE("only one program runs at a time") {
     CHECK(sink.Entries()[0].message == "a program is already running: only one runs at a time");
 }
 
-TEST_CASE("[0000-CA-11] a request to close a window reaches the program as an event of that window") {
+TEST_CASE("a request to close a window reaches the program as an event of that window") {
     MemoryLogSink sink;
     Logger log{sink};
     std::optional<Event> seen;
@@ -255,7 +255,7 @@ TEST_CASE("[0000-CA-11] a request to close a window reaches the program as an ev
     CHECK(seen->kind == EventKind::WindowCloseRequested);
 }
 
-TEST_CASE("[0000-CA-11] a new size of a window reaches the program as its size in pixels") {
+TEST_CASE("a new size of a window reaches the program as its size in pixels") {
     MemoryLogSink sink;
     Logger log{sink};
     std::optional<Event> seen;

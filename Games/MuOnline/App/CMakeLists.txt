@@ -49,9 +49,13 @@ function(muclient_add_run_test name arguments exit_code patterns)
 endfunction()
 
 # CA-10 and CA-06: the window opens, shows 300 frames and closes by itself with success, and the log names the
-# GPU backend and the graphics card. On Linux, the CI runs it inside the virtual X11 server.
-muclient_add_run_test(muclient_draws_300_frames_and_closes "--frames;300" 0
-    "render: GPU backend (vulkan|direct3d12|metal) on .;client: drew 300 frames")
+# GPU backend and the graphics card. On Linux, the tests run inside the virtual X11 server (docs/setup/DEV.md),
+# and the window must open on X11.
+set(frames_patterns "render: GPU backend (vulkan|direct3d12|metal) on .;client: drew 300 frames")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND frames_patterns "platform: video driver x11")
+endif()
+muclient_add_run_test(muclient_draws_300_frames_and_closes "--frames;300" 0 "${frames_patterns}")
 
 # The command line is read before anything starts (INV-12): a value it cannot read ends the program with the
 # reason and the usage.

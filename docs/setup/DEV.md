@@ -21,7 +21,7 @@ sudo apt-get install ninja-build clang g++ libvulkan1 mesa-vulkan-drivers \
 xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" python3 scripts/dev.py verify
 ```
 
-O build com os detectores de erro de memória no Linux exige o CMake 3.29 ou mais novo e o lavapipe (`libvulkan_lvp.so`, do pacote `mesa-vulkan-drivers`). Sem o lavapipe, a configuração para com um erro, para a checagem de vazamentos nunca passar em silêncio. No Linux, os testes abrem janelas só no X11 ([TD-0010](../TECH_DEBT.md)).
+O build com os detectores de erro de memória no Linux exige o CMake 3.29 ou mais novo e o lavapipe (`libvulkan_lvp.so`, do pacote `mesa-vulkan-drivers`). Sem o lavapipe, a configuração para com um erro, para a checagem de vazamentos nunca passar em silêncio. No Linux, os testes abrem janelas só no X11 ([TD-0010](../TECH_DEBT.md)), e o teste `muclient_draws_300_frames_and_closes` confere isso no log (CA-10 da fatia 0). Numa sessão Wayland, o SDL pode escolher o Wayland mesmo dentro do Xvfb: rode os testes sem a variável `WAYLAND_DISPLAY` (`env -u WAYLAND_DISPLAY xvfb-run ...`).
 
 No macOS (usado na CI): as ferramentas de linha de comando do Xcode (Clang), CMake, Ninja, vcpkg e Python 3.
 

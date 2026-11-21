@@ -29,7 +29,7 @@ TEST_CASE("a new draw list has its clear color and no copies") {
     CHECK(blue.ClearColor() == Rgba8{.r = 0, .g = 0, .b = 255, .a = 255});
 }
 
-TEST_CASE("[0000-CA-09] a draw list keeps its copies in order up to a fixed number and then refuses more") {
+TEST_CASE("a draw list keeps its copies in order up to a fixed number and then refuses more") {
     DrawList list;
     for (std::size_t index = 0; index < DrawList::kMaxBlits; ++index) {
         const auto added = list.Add(Blit{.texture = HandleNumber(static_cast<std::uint32_t>(index)),
