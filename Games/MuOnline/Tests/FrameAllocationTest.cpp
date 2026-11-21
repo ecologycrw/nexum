@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <utility>
 
 #include "AllocationCounter.hpp"
@@ -127,9 +128,11 @@ TEST_CASE("[0000-CA-09] after 3 frames of warm-up, 1000 frames of the foundation
         tally = counter.Tally();
     }
 
+    // On Linux and macOS, a failure also says where the first requests came from.
+    const std::string origins = frame_allocations::DescribeCountedRequests();
     CHECK(failed == 0);
     CHECK_MESSAGE(tally.requests == 0, tally.requests, " requests for memory (", tally.bytes, " bytes) in ",
-                  kMeasuredFrames, " frames");
+                  kMeasuredFrames, " frames\n", origins);
     // The measured frames went through every part of the frame: more than a thousand ticks, and the reports
     // of the tick loop in the log.
     CHECK(screen->Ticks().ElapsedTicks() - ticksBefore > 1000);
@@ -154,6 +157,17 @@ TEST_CASE("[0000-CA-09] the counter sees each request for memory of its thread w
     }
     CHECK(tally.requests == 3);
     CHECK(tally.bytes == sizeof(std::uint64_t) + (100 * sizeof(std::uint32_t)) + sizeof(WideBlock));
+
+    // On Linux and macOS, each of the 3 requests has its size and its call stack.
+    const std::string origins = frame_allocations::DescribeCountedRequests();
+    if constexpr (frame_allocations::kRecordsCallStacks) {
+        CHECK(origins.starts_with("request 1 (8 bytes):\n  "));
+        CHECK(origins.find("request 2 (400 bytes):\n  ") != std::string::npos);
+        CHECK(origins.find("request 3 (64 bytes):\n  ") != std::string::npos);
+        CHECK(origins.find("request 4") == std::string::npos);
+    } else {
+        CHECK(origins.empty());
+    }
 
     // Without a counter nothing is counted, and a new counter starts from zero.
     const auto uncounted = std::make_unique<std::uint64_t>(8);
