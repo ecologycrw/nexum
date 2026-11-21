@@ -17,6 +17,13 @@ inline constexpr std::array<Seconds, 4> kTickTimeBandLimits{
     std::chrono::milliseconds{8}};
 inline constexpr std::size_t kTickTimeBandCount = kTickTimeBandLimits.size() + 1;
 
+// The frame times are sorted into bands of 0.1 ms, up to 200 ms, to find the worst 1% without keeping every
+// frame. The last band also holds the frames above 200 ms.
+inline constexpr std::chrono::microseconds kFrameTimeBandWidth{100};
+inline constexpr std::chrono::milliseconds kFrameTimeBandsEnd{200};
+inline constexpr std::size_t kFrameTimeBandCount =
+    static_cast<std::size_t>(kFrameTimeBandsEnd / kFrameTimeBandWidth);
+
 // What the tick loop did during a stretch of wall time.
 struct TickReport {
     // The wall time the report covers: the sum of its frame times.
@@ -27,6 +34,12 @@ struct TickReport {
     double ticksPerSecond = 0.0;
     // The frame time the tick clock dropped, measured in ticks: 50 ms is 1.25 ticks.
     double droppedTicks = 0.0;
+    // The frames in that time, and their mean time.
+    std::uint64_t frames = 0;
+    Seconds meanFrame{0.0};
+    // The worst 1% of the frames: the time that 99% of the frames stay within, rounded up to the next
+    // 0.1 ms. When it falls in the last band, around or above 200 ms, the longest frame takes its place.
+    Seconds worstOnePercentFrame{0.0};
     Seconds longestFrame{0.0};
     // How many ticks took up to 1, 2, 4 and 8 ms to run, and how many took more than 8 ms.
     std::array<std::uint64_t, kTickTimeBandCount> tickTimeBands{};
@@ -46,7 +59,11 @@ public:
     [[nodiscard]] TickReport TakeReport() noexcept;
 
 private:
+    [[nodiscard]] Seconds WorstOnePercentFrame(std::uint64_t frames, Seconds longestFrame) const noexcept;
+
     TickReport m_report;
+    // How many frames fell into each band of frame time.
+    std::array<std::uint64_t, kFrameTimeBandCount> m_frameTimeBands{};
 };
 
 } // namespace nexum::time

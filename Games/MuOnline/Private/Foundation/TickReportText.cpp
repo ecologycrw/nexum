@@ -30,7 +30,13 @@ std::string_view TickReportText::Format(const nexum::time::TickReport& report) n
     AppendDecimal(report.ticksPerSecond, 1);
     Append(" ticks per second, ");
     AppendDecimal(report.droppedTicks, 2);
-    Append(" ticks dropped, longest frame ");
+    Append(" ticks dropped, ");
+    AppendCount(report.frames);
+    Append(" frames, mean frame ");
+    AppendDecimal(report.meanFrame.count() * 1000.0, 1);
+    Append(" ms, worst 1% ");
+    AppendDecimal(report.worstOnePercentFrame.count() * 1000.0, 1);
+    Append(" ms, longest frame ");
     AppendDecimal(report.longestFrame.count() * 1000.0, 1);
     Append(" ms, ticks up to 1/2/4/8 ms and above 8 ms: ");
     for (std::size_t band = 0; band < report.tickTimeBands.size(); ++band) {

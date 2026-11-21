@@ -195,9 +195,9 @@ TEST_CASE("the foundation screen writes the report of the tick loop to the log e
         if (entry.category == "time") {
             ++reports;
             CHECK(entry.level == nexum::debug::LogLevel::Info);
-            CHECK(
-                entry.message.starts_with("25.0 ticks per second, 0.00 ticks dropped, longest frame 40.0 ms, "
-                                          "ticks up to 1/2/4/8 ms and above 8 ms: "));
+            CHECK(entry.message.starts_with("25.0 ticks per second, 0.00 ticks dropped, "));
+            CHECK(entry.message.find(" frames, mean frame 40.0 ms, worst 1% 40.0 ms, longest frame 40.0 ms, "
+                                     "ticks up to 1/2/4/8 ms and above 8 ms: ") != std::string::npos);
         }
     }
     CHECK(reports == 2);
