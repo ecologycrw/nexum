@@ -57,6 +57,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 muclient_add_run_test(muclient_draws_300_frames_and_closes "--frames;300" 0 "${frames_patterns}")
 
+# CA-06: on Windows, when Vulkan is missing, the default order falls to Direct3D 12. The Vulkan loader finds no
+# driver when its list of drivers names only a file that does not exist, so Vulkan cannot start in this test.
+if(WIN32)
+    muclient_add_run_test(muclient_falls_back_to_direct3d12_without_vulkan "--frames;30" 0
+        "render: GPU backend direct3d12 on .;client: drew 30 frames")
+    set(no_vulkan_driver "${CMAKE_CURRENT_BINARY_DIR}/no-vulkan-driver/none.json")
+    set_tests_properties(muclient_falls_back_to_direct3d12_without_vulkan PROPERTIES
+        ENVIRONMENT "VK_DRIVER_FILES=${no_vulkan_driver};VK_ICD_FILENAMES=${no_vulkan_driver}")
+endif()
+
 # The command line is read before anything starts (INV-12): a value it cannot read ends the program with the
 # reason and the usage.
 muclient_add_run_test(muclient_refuses_an_unknown_gpu_driver "--gpu-driver;glide" 2
