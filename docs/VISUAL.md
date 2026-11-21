@@ -30,7 +30,7 @@ Cenas fixas, sempre no modo Classic e sem MSAA (no Nexum e no MuMain), sem efeit
 - Atlans, com a água;
 - Hellas, com a superfície ondulante.
 
-A comparação usa uma métrica perceptual (SSIM, por exemplo) e a diferença por pixel com tolerância. A tolerância de cada cena é definida e versionada junto com ela.
+A comparação usa uma métrica perceptual (SSIM, por exemplo) e a diferença por pixel com tolerância. A tolerância de cada cena é definida e versionada junto com ela. Até a primeira cena de paridade, só existe a diferença por pixel ([TD-0016](TECH_DEBT.md)).
 
 ## O que reprova uma imagem
 
@@ -51,7 +51,11 @@ Vale para toda fatia que muda o que aparece na tela.
 4. **O revisor olha sozinho.** Ele abre as imagens sem confiar na descrição de quem fez o trabalho.
 5. **O dono aprova.** Só o dono copia uma imagem para a pasta das referências aprovadas de conteúdo próprio, que é uma trava. Depois disso, uma mudança que altere o resultado sem aprovação é recusada.
 
-A ferramenta de comparação ainda não existe: ela entra no M0, com a primeira janela ([TD-0006](TECH_DEBT.md)).
+**Como funciona hoje:**
+
+- **Captura.** O `MuClient` do build de desenvolvimento grava a cena de prova sem janela, com `--capture ARQUIVO.png`. A cena não usa o relógio de verdade: ela recebe tempos de quadro fixos, e por isso sai sempre igual. O build de jogador recusa a opção.
+- **Comparação.** A ferramenta `visualproof` (`Tools/VisualProof`, só no build de desenvolvimento) compara a captura com a imagem aprovada: `visualproof CAPTURA.png APROVADA.png --tolerance NÍVEIS`. A tolerância é obrigatória, porque cada cena declara a sua. A ferramenta termina com 0 quando aprova, 1 quando recusa e 2 quando a linha de comando está errada. A recusa diz o motivo: tamanhos diferentes, os pixels acima da tolerância (com o primeiro deles), arquivo ilegível ou imagem vazia ou de uma cor só.
+- **Imagens aprovadas.** Ficam em `tests/visual/approved/`, com o número da fatia no nome (`0000-test-card.png`). Um teste do CTest para cada cena faz a captura e a comparação em sequência, nos 3 sistemas da CI.
 
 ## Fluidez
 
@@ -67,13 +71,13 @@ Metas da spec (V.5), medidas a partir do M3:
 | Memória do processo (mapa grande, 100 entidades) | até 1,5 GB |
 | Atraso entre o clique e o envio do comando | até 1 tick + 1 quadro |
 
-Mede-se o tempo médio e o do pior 1% dos quadros, porque a média sozinha esconde os engasgos. O computador de desenvolvimento mostra a tendência, mas não comprova o piso de hardware ([TD-0005](TECH_DEBT.md)).
+Mede-se o tempo médio e o do pior 1% dos quadros, porque a média sozinha esconde os engasgos. O computador de desenvolvimento mostra a tendência, mas não comprova o piso de hardware ([TD-0018](TECH_DEBT.md)).
 
 ## Quando cada parte chega
 
 | Marco | O que passa a valer |
 |---|---|
-| M0 | a janela limpa a tela; a ferramenta de prova visual nasce com uma cena de conteúdo próprio |
+| M0 | a janela mostra o cartão de teste; a ferramenta de prova visual nasce com a primeira cena de conteúdo próprio (o cartão no tick 50, com α 0,5), comparada pixel a pixel com tolerância de 1 nível por canal |
 | M1 | o visualizador de modelos no modo de autoria; a pose do glTF exportado confere com a do visualizador |
 | M3 | a primeira cena de paridade (Lorencia), com a comparação contra a referência |
 | M4 e M5 | personagens, skinning, sombra planar, cores de estado, contorno de seleção |

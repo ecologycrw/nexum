@@ -22,7 +22,38 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
 
+### P-0004: o contador de alocações ver também a memória que o SDL pede
+- Origem: fatia 0, T15 (os 35 pedidos de memória do macOS)
+- Tipo: trava (o contador fica em `tests/architecture/frame_allocations/`)
+- Evidência: o teste do quadro (CA-09) só conta os pedidos feitos por `new`. O SDL pede memória por `malloc`, que o contador não vê. Por isso, a fila sem limite do desenho sem janela só apareceu no macOS, onde o driver da Apple pede memória por `new`. No Windows e no Linux, a mesma fila pode ter crescido sem que o teste visse. O SDL permite trocar as suas funções de memória (`SDL_SetMemoryFunctions`) antes do primeiro pedido. Com isso, o contador veria os pedidos do SDL nos 3 sistemas. A troca seria feita só nos programas de teste e precisa respeitar a INV-10 (cada biblioteca externa atrás de um único módulo).
+- Prioridade sugerida: média
+- Status: aberta
+
+### P-0005: a checagem `structure` conferir também as bibliotecas opcionais do vcpkg
+- Origem: fatia 0, T16 (o registro do Tracy no THIRD_PARTY)
+- Tipo: trava (a checagem fica em `scripts/checks/`)
+- Evidência: a checagem compara o THIRD_PARTY só com as bibliotecas principais do `vcpkg.json`. O Tracy fica numa opção (*feature*) do `vcpkg.json` e, por isso, não é conferido: ele foi registrado numa lista à parte, fora da tabela que a checagem lê. Uma biblioteca opcional nova poderia entrar sem registro e sem licença conferida.
+- Prioridade sugerida: baixa
+- Status: aberta
+
 ## Processadas
+
+### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
+- Origem: feedback do dono na fatia 0, depois da T03
+- Tipo: trava
+- Evidência: depois das tarefas T01 a T03, o `tasks.md` estava certo, mas o STATUS ainda dizia que a próxima ação "começa pela sondagem", e a memória da IA também. Nenhum lugar dizia que o aviso automático da CI vale só para a sessão que o ligou. Tudo foi corrigido à mão no commit `0e51420`, e a própria correção repetiu no STATUS "3 de 17 tarefas feitas" e "a partir da T04", que vão envelhecer de novo. O dono perguntou "Acha que devemos ter uma skil ou alguma mudança nos docs para quando por exemplo, isso acontecer ? exemplo, uma tarefa é terminada aqui, mas não tenho certeza que existem arquivos desatualizados que fará com que a nova sessão não reconheça as coisas corretamente.", depois "Você acha que as suas 3 sugestões seria melhor que do jeito que está ?" e, com a versão menor, "Sim, registrar". A proposta:
+  1. o hook do início da sessão lê o `tasks.md` da fatia atual e mostra quantas tarefas estão feitas, em andamento, bloqueadas e pendentes, e qual é a próxima, com um teste nos testes dos hooks;
+  2. uma regra: o STATUS aponta para o `tasks.md` e não repete números de tarefa nem contagens. O "3 de 17" e o "a partir da T04" saem do STATUS;
+  3. uma linha no `/situacao`: dizer se o PR está em rascunho e lembrar que o aviso automático da CI vale só para a sessão que o ligou.
+
+  Fica de fora uma checagem da fase do STATUS contra o status da spec: ela não teria pegado este caso, porque o erro estava numa frase. Muda travas: o hook `session-start`, os testes dos hooks e a skill `/situacao`
+- Prioridade sugerida: média (aplicar antes de muitas sessões novas na fatia 0)
+- Status: aceita
+- Destino: trava, regra e skill, aplicadas na branch `consolidacao/proposta-p-0003` a pedido do dono ("Bom, quero que você adiante assim como foi com a P-0002"). A branch sai da `fatia/0000-fundacao`, e o PR dela entra nessa branch, para as sessões da fatia 0 já terem o resumo novo. Mudaram:
+  - o hook `session-start`, que conta as tarefas e mostra a próxima;
+  - os testes dos hooks (`tests/hooks/session-start.tests.ps1`);
+  - a skill `/situacao` (o andamento vem do `tasks.md`; o PR em rascunho e o aviso automático por sessão);
+  - o `docs/WORKFLOW.md` (a regra) e o STATUS, que deixou de repetir números de tarefa.
 
 ### P-0002: conferir se a descrição da central basta antes de aprovar a spec
 - Origem: feedback do dono, depois do merge da preparação

@@ -10,11 +10,11 @@
 
 ## Concluídas
 
-- **Preparação.** Documentos e ADRs a partir da spec do Caminho B, a cópia da spec, o esqueleto do código com as três camadas, as checagens automáticas (camadas, linha vermelha, regras de C++, docs e estrutura), os hooks do Git, a CI (ainda não executada) e o ambiente de IA. Parte do M0 já veio daqui: CMake com presets e vcpkg, módulos com `Public/` e `Private/`, os testes de fronteira e de palavras proibidas, `Result`, doctest, as convenções e os primeiros ADRs.
+- **Preparação.** Documentos e ADRs a partir da spec do Caminho B, a cópia da spec, o esqueleto do código com as três camadas, as checagens automáticas (camadas, linha vermelha, regras de C++, docs e estrutura), os hooks do Git, a CI, verde nos 3 sistemas desde o PR #2, e o ambiente de IA. Parte do M0 já veio daqui: CMake com presets e vcpkg, módulos com `Public/` e `Private/`, os testes de fronteira e de palavras proibidas, `Result`, doctest, as convenções e os primeiros ADRs.
 
 ## Agora
 
-*(nenhuma fatia em andamento)*
+- **Fatia 0, Fundação** (marco M0, tamanho M): [spec](../specs/0000-fundacao/spec.md). O `MuClient` abre uma janela e desenha um cartão de teste pela placa de vídeo, com o laço de ticks, as peças de base, o profiler e a ferramenta de prova visual, e a CI fica verde nos 3 sistemas.
 
 ## Próximas
 
@@ -22,7 +22,6 @@
 
 | Marco | Tamanho | O que entrega, do ponto de vista de quem testa | Investigar antes (central) |
 |---|---|---|---|
-| **M0 Fundação** (fatia 0) | M | O `MuClient` abre uma janela que limpa a tela pelo SDL GPU nos 3 sistemas. O laço de ticks de 25 Hz passa no teste de tempo. Log, asserts, handles, arenas, Tracy, o teste de alocação do quadro e a ferramenta de prova visual. **A CI fica verde nos 3 sistemas**, o que exige o repositório publicado no GitHub | requisitos do SDL GPU na versão escolhida e o estado do defeito do D3D12 com mais de 2048 samplers por quadro (documentação externa; [ADR 0029](adr/0029-sdl3-e-sdl-gpu.md)) |
 | **M1 Importador e visualizador** | G | Qualquer modelo do jogo animando a partir do cache convertido, no modo de autoria. O `muimport` converte a instalação inteira e exporta glTF. 1 hora de fuzzing sem falha | resolução de nome de textura, "script" de textura no nome, ordem dos eixos de Euler e lateralidade, formatos das tabelas de dados e dos sons (agente `formatos`) |
 | **M2 Rede sem gráficos** | G | Entrar no OpenMU e "ver" o mundo numa visão 2D de depuração: 100% dos vetores do OpenMU passam, 30 minutos logado andando sem queda, replay com o mesmo estado final | spec da cifra (Xor32, SimpleModulus, contador), da sessão e do item estendido, com vetores; qual porta cabe a cada tipo de cliente (agente `protocolo`) |
 | **M3 Mundo 3D estático** | G | Lorencia em 3D, igual ao original no modo Classic: a cena passa na comparação de imagem e o picking acerta a célula em 100 pontos de teste | perfil de luz por mapa, névoa e céu (agente `render`) |

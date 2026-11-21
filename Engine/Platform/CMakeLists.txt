@@ -3,8 +3,17 @@
 nexum_add_library(nexum_platform
     ALIAS Nexum::Platform
     SOURCES
+        Private/Application.cpp
         Private/PlatformInfo.cpp
-    PUBLIC_DEPS Nexum::Core
+        Private/Png.cpp
+        Private/SdlLogRoute.cpp
+        Private/VideoSystem.cpp
+        Private/Window.cpp
+    PUBLIC_DEPS Nexum::Core Nexum::Debug
     PRIVATE_DEPS SDL3::SDL3)
+
+# Application.cpp needs the declarations of SDL_main.h, but not the main function that the header would add:
+# the main function is the program's own (Nexum/Platform/Application.hpp).
+set_source_files_properties(Private/Application.cpp PROPERTIES COMPILE_DEFINITIONS SDL_MAIN_NOIMPL)
 
 add_subdirectory(Tests)

@@ -3,7 +3,7 @@
 # and the red line refuses any name of that game.
 nexum_add_library(other_game
     SOURCES Private/OtherGame.cpp
-    PUBLIC_DEPS Nexum::GridRpg)
+    PUBLIC_DEPS Nexum::GridRpg Nexum::Time)
 
 nexum_add_tests(other_game_tests
     SOURCES OtherGameTest.cpp

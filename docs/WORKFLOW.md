@@ -51,6 +51,7 @@ Cada fatia tem uma pasta `specs/NNNN-nome/`. A fatia N fica na pasta de número 
 | `report.md` | O que aconteceu; a prova de cada CA; **a checklist de sala limpa**; o que o dono deve testar | dono, junto com o PR | não, depois de concluída |
 
 - O status fica no front matter do `spec.md`: `rascunho` → `aprovada` → `em-andamento` → `concluida`.
+- O andamento das tarefas fica só no `tasks.md`. O STATUS aponta para ele e não repete números de tarefa nem contagens, porque uma cópia envelhece na tarefa seguinte. O hook do início da sessão conta as tarefas e mostra a próxima a partir do `tasks.md` ([P-0003](PROPOSALS.md)).
 - Todo CA tem uma prova: um teste com a etiqueta `[NNNN-CA-xx]` no nome ou uma verificação manual descrita no report.
 - A spec aprovada não é editada em silêncio. Uma mudança de escopo é registrada no report ou volta para a aprovação do dono.
 - Uma fatia grande demais vira duas fatias, nunca specs dentro de specs.
