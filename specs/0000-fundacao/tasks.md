@@ -134,7 +134,17 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
 
 ## Fechamento
 
-- [ ] T16: O `other_game` passa a usar o relógio de ticks. A documentação viva fica em dia: VISÃO, VISUAL, ARCHITECTURE, CONVENTIONS, THIRD_PARTY, DEV.md e os itens provisórios TD-0005 e TD-0006 (CA-12, CA-13). Verificação: `verify` e a checagem `docs`.
+- [x] T16: O `other_game` passa a usar o relógio de ticks. A documentação viva fica em dia: VISÃO, VISUAL, ARCHITECTURE, CONVENTIONS, THIRD_PARTY, DEV.md e os itens provisórios TD-0005 e TD-0006 (CA-12, CA-13). Verificação: `verify` e a checagem `docs`.
+  - Resultado: `verify` verde nos três builds, com 25 testes no desenvolvimento, 26 com os sanitizers e 22 no build de jogador, a análise estática sem problemas e as checagens `docs`, `terms` e `structure` aceitando. O dono aprovou tudo em 2026-11-21, depois de ver os diffs: a trava do `other_game` (ver "Travas alteradas"), a VISÃO, o VISUAL, o novo destino do TD-0009 e a correção da spec.
+  - **`other_game`** (trava `tests/architecture/`): ganhou o `Walker`, uma peça que anda uma casa por tick guiada pelo `TickClock` da engine, e o teste `another game of the genre runs on the tick clock of the engine`. Um segundo em quadros de 200 ms dá 25 ticks e 25 casas, e um quadro de 1 segundo roda só 5 ticks. O alvo passou a ligar o `Nexum::Time`, e as checagens `architecture` e `terms` aceitaram.
+  - **Itens provisórios:** o TD-0005 ficou só com o defeito do Direct3D 12, com destino M14. O TD-0006 saiu, e o que sobrou dele virou o TD-0016 (a comparação perceptual, M3). Entraram, vindos das simplificações do plano, o TD-0017 (a contagem de samplers, M1) e o TD-0018 (a CI com placas por software e o piso de hardware sem medição, M7). A tabela ficou em ordem de número. O destino do TD-0009 (a conta de máquina provisória) passou de M0 para M1, porque a conta `nexum-ci-dev` ainda não foi liberada.
+  - **VISÃO e VISUAL:** a VISÃO ganhou a tabela com os requisitos exatos do SDL GPU 3.4.20 em cada sistema. O VISUAL passou a dizer como a prova visual funciona hoje (a captura, o `visualproof` e as imagens aprovadas), que até o M3 só existe a comparação pixel a pixel, e o que o M0 entregou.
+  - **ARCHITECTURE:** o "como é agora" da fatia 0, os módulos novos (Time, Debug, Render, VisualProof e `tests/visual`), os alvos novos de `tests/architecture` e `tests/support`, as pastas que ainda faltam (Jobs e Assets no M1), os nomes em PascalCase das pastas de `Tools/`, os workers a partir do M1 e os testes que garantem a INV-05 e a INV-13.
+  - **CONVENTIONS:** o código de referência ganhou 8 padrões da fatia (handles, tempo injetado, log no construtor, quadro sem memória, retrato só de leitura, falha esperada, prova visual e a placa de vídeo atrás do módulo).
+  - **THIRD_PARTY:** o Tracy 0.15.0 saiu de "Planejadas" e entrou numa lista de bibliotecas opcionais. Ele não vai para a tabela porque a checagem `structure` lê só as bibliotecas principais do `vcpkg.json` (proposta P-0005). O SDL ganhou o SDL GPU e o PNG no "para quê", e o SDL_ttf e o SDL_shadercross passaram para o M1.
+  - **DEV.md:** o que o build com sanitizers do Linux exige (CMake 3.29 e o lavapipe), as opções do `MuClient`, como rodar e onde fica a prova visual, e onde a troca do `operator new` é aceita.
+  - **Correção na spec:** o passo 7 do teste do dono (`spec.md`) mandava abrir `build\visual\0000-test-card.png`, mas a captura fica em `build\windows-dev\tests\visual\0000-test-card.png`. O caminho foi corrigido com o ok do dono.
+  - O piso do macOS na VISÃO continua só com Apple Silicon, como o dono aprovou, embora o SDL também aceite os Macs com Intel da família *Mac2*.
 - [ ] T17: A CI completa verde nos 3 sistemas (CA-10, CA-12). Verificação: os checks do PR.
 
 O CA-11 é a verificação manual do dono, registrada no report.
@@ -222,8 +232,13 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
   - **Segunda mudança, depois da CI:** o contador passou a guardar a pilha de chamadas dos primeiros pedidos contados, para investigar os 35 pedidos do macOS (ver "Bloqueios"). Aprovada pelo dono em 2026-11-21, com o diff mostrado antes do commit.
   - **Diferença do que o dono aprovou:** a aprovação era para pôr o teste inteiro na pasta. A checagem `terms` recusou os nomes do MU lá dentro, e o teste voltou para `Games/MuOnline/Tests`, como o plano previa. A pasta da trava ficou com menos do que foi aprovado: só o contador, sem nada do MU.
 
+- **`tests/architecture/OtherGame/`: o "outro jogo" usa o relógio de ticks** (T16). Aprovado pelo dono em 2026-11-21, depois de ver o diff.
+  - **O que mudou:** o `other_game` ganhou o `Walker`, uma peça que anda uma casa por tick do `TickClock`, e um teste novo. O alvo passou a ligar o `Nexum::Time`.
+  - **Por quê:** o plano pede que o outro jogo abra o relógio de ticks, para provar que a engine serve a outro jogo do gênero sem o módulo MU (INV-02).
+
 ## Notas para a próxima sessão
 
+- **Onde parou:** da T01 à T16 estão concluídas. Falta a T17, a CI completa verde nos 3 sistemas, e depois vem o `/revisar`.
 - O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
 - O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.

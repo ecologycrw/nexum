@@ -96,4 +96,4 @@ No Windows, num terminal aberto na pasta do Nexum:
    .\build\windows-dev\Games\MuOnline\App\MuClient.exe --gpu-driver direct3d12
    ```
 
-7. Abra a imagem da prova visual, `build\visual\0000-test-card.png`, e diga se ela mostra o mesmo que a janela. Ao aprovar, ela vira a imagem de referência.
+7. Abra a imagem da prova visual, `build\windows-dev\tests\visual\0000-test-card.png`, e diga se ela mostra o mesmo que a janela. Ao aprovar, ela vira a imagem de referência.

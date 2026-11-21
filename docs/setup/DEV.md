@@ -19,6 +19,8 @@ sudo apt-get install ninja-build clang g++ libvulkan1 mesa-vulkan-drivers \
 xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" python3 scripts/dev.py verify
 ```
 
+O build com os detectores de erro de memória no Linux exige o CMake 3.29 ou mais novo e o lavapipe (`libvulkan_lvp.so`, do pacote `mesa-vulkan-drivers`). Sem o lavapipe, a configuração para com um erro, para a checagem de vazamentos nunca passar em silêncio. No Linux, os testes abrem janelas só no X11 ([TD-0010](../TECH_DEBT.md)).
+
 No macOS (usado na CI): as ferramentas de linha de comando do Xcode (Clang), CMake, Ninja, vcpkg e Python 3.
 
 ## Primeira vez num clone
@@ -66,6 +68,19 @@ cmake --build build/windows-profiler
 
 No Linux e no macOS, troque o preset por `linux-dev`, `linux-gcc-dev` ou `macos-dev`. Ligado, cada programa abre uma porta de rede para o visualizador do Tracy, e o Windows pede a liberação do firewall. O código marca o trabalho com as macros de `Nexum/Debug/Profiler.hpp`, nunca com o Tracy direto. Ainda não há comando no `scripts/dev.py` ([TD-0012](../TECH_DEBT.md)).
 
+### O MuClient e a prova visual
+
+O programa fica na pasta de build do preset, como `build/windows-dev/Games/MuOnline/App/MuClient.exe`:
+
+| O quê | Opção |
+|---|---|
+| Ver a versão e o tipo de build | `--version` |
+| Desenhar N quadros e fechar sozinho | `--frames N` |
+| Escolher o backend da placa de vídeo (no Windows, o padrão é o Vulkan) | `--gpu-driver vulkan`, `direct3d12` ou `metal` |
+| Gravar a cena de prova sem janela (só no build de desenvolvimento) | `--capture ARQUIVO.png` |
+
+O teste `visual_proof_0000_test_card` faz a captura e a compara com `tests/visual/approved/0000-test-card.png`: `ctest --preset windows-dev -R visual_proof`. A captura fica em `build/windows-dev/tests/visual/0000-test-card.png`. A comparação sozinha é `visualproof CAPTURA.png APROVADA.png --tolerance NÍVEIS`, que termina com 0 quando aprova, 1 quando recusa e 2 quando a linha de comando está errada. Só o dono põe imagens em `tests/visual/approved/` ([VISUAL](../VISUAL.md#prova-visual)).
+
 ## O que roda automaticamente
 
 | Quando | O quê | Onde |
@@ -84,7 +99,7 @@ O `scripts/checks` confere o que o compilador não confere:
 | `docs` | links quebrados, specs incompletas, critério de aceitação sem prova, seções "Prova visual", "Fontes da central usadas", "Suficiência das descrições" e "Sala limpa" ausentes, plano aprovado com perguntas abertas para a central, ADRs fora de sequência, item provisório sem destino |
 | `structure` | arquivos obrigatórios faltando, módulos fora do padrão, nomes de arquivo errados, biblioteca sem licença registrada, arquivos originais do jogo no repositório |
 | `architecture` | dependência proibida entre camadas, e bibliotecas externas ou o sistema operacional fora do módulo dono |
-| `cpp-rules` | `new` e `delete` soltos, funções perigosas de C, `rand`, relógios fora de Platform e Time, `reinterpret_cast`, `throw` no runtime |
+| `cpp-rules` | `new` e `delete` soltos, funções perigosas de C, `rand`, relógios fora de Platform e Time, `reinterpret_cast`, `throw` no runtime. A troca do `operator new` global só é aceita no contador de `tests/architecture/frame_allocations/` |
 | `terms` | a linha vermelha: nomes do MU em `Engine/` e `Kit/`, e nomes dos formatos originais fora de `Tools/` |
 
 ## Central de conhecimento

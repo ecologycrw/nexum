@@ -119,7 +119,14 @@ A IA imita o código que já existe. Por isso, os melhores exemplos de cada padr
 | declarar uma biblioteca, um programa ou testes | `cmake/NexumModule.cmake`, com o exemplo em `Engine/Core/CMakeLists.txt` |
 | ler dados externos com validação e devolver erros por valor | `Engine/Core/Private/Version.cpp` |
 | testar uma leitura com dados inválidos | `Engine/Core/Tests/VersionTest.cpp` |
-| esconder uma biblioteca externa atrás do módulo dono | `Engine/Platform/Private/PlatformInfo.cpp` |
+| esconder uma biblioteca externa atrás do módulo dono | `Engine/Platform/Private/PlatformInfo.cpp`; com objetos da biblioteca, `Engine/Render/Public/Nexum/Render/GpuDevice.hpp` e `Engine/Render/Private/GpuDevice.cpp` |
+| guardar objetos que podem morrer por handle geracional, num pool que não cresce | `Engine/Core/Public/Nexum/Core/HandlePool.hpp`, com os testes em `Engine/Core/Tests/HandlePoolTest.cpp` |
+| receber o tempo de quem chama, sem relógio dentro, e simular minutos em milissegundos no teste | `Engine/Time/Public/Nexum/Time/TickClock.hpp` e `Engine/Time/Tests/TickClockTest.cpp` |
+| receber a saída no construtor, sem estado global | `Engine/Debug/Public/Nexum/Debug/Logger.hpp`, com o log em memória dos testes em `tests/support/Public/Nexum/TestSupport/MemoryLogSink.hpp` |
+| montar um quadro sem pedir memória e provar isso | `Engine/Core/Public/Nexum/Core/FrameArena.hpp` e `Games/MuOnline/Tests/FrameAllocationTest.cpp` |
+| separar o estado que muda no tick do retrato que o desenho só lê | `Games/MuOnline/Public/Mu/Foundation/FoundationScreen.hpp` |
+| testar que um programa falha com a mensagem certa | `Engine/Core/Tests/CMakeLists.txt` (o teste `nexum_core_assert_failure_tests`) |
+| juntar a captura e a comparação de uma cena num teste da prova visual | `tests/visual/CMakeLists.txt` |
 
 ## Testes
 
