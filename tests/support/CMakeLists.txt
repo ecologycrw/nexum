@@ -7,3 +7,9 @@ nexum_apply_defaults(nexum_test_main)
 
 nexum_add_tests(nexum_test_main_tests
     SOURCES DoctestMainTest.cpp)
+
+# A log output in memory, for the tests that check what reaches the log (Nexum/TestSupport/MemoryLogSink.hpp).
+# It came from the third copy of the same class in the tests (docs/CONVENTIONS.md, "Regra de três").
+add_library(nexum_test_log INTERFACE)
+target_include_directories(nexum_test_log INTERFACE Public)
+target_link_libraries(nexum_test_log INTERFACE Nexum::Debug)

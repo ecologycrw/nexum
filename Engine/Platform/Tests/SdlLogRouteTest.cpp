@@ -1,39 +1,19 @@
 #include <doctest/doctest.h>
 
 #include <optional>
-#include <string>
-#include <vector>
 
 #include "Nexum/Debug/Logger.hpp"
 #include "Nexum/Platform/SdlLogRoute.hpp"
+#include "Nexum/TestSupport/MemoryLogSink.hpp"
 
 using nexum::debug::Logger;
 using nexum::debug::LogLevel;
-using nexum::debug::LogRecord;
-using nexum::debug::LogSink;
 using nexum::platform::SdlLogRoute;
+using nexum::test_support::MemoryLogSink;
 
 namespace {
 
 constexpr const char* kAnnouncement = "the messages of SDL now go to the engine log";
-
-class MemoryLogSink final : public LogSink {
-public:
-    struct Entry {
-        LogLevel level;
-        std::string category;
-        std::string message;
-    };
-
-    void Write(const LogRecord& record) noexcept override {
-        m_entries.push_back({record.level, std::string(record.category.name), std::string(record.message)});
-    }
-
-    [[nodiscard]] const std::vector<Entry>& Entries() const noexcept { return m_entries; }
-
-private:
-    std::vector<Entry> m_entries;
-};
 
 } // namespace
 

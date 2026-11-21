@@ -2,7 +2,7 @@ nexum_add_tests(nexum_debug_tests
     SOURCES
         LoggerTest.cpp
         ProfilerTest.cpp
-    DEPS Nexum::Debug)
+    DEPS Nexum::Debug nexum_test_log)
 
 # The terminal output is checked by what reaches the terminal (specs/0000-fundacao/spec.md, CA-05).
 nexum_add_tests(nexum_debug_terminal_log_tests

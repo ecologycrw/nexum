@@ -19,6 +19,15 @@ struct WindowOptions {
 struct PixelSize {
     std::uint32_t width = 0;
     std::uint32_t height = 0;
+
+    friend bool operator==(const PixelSize&, const PixelSize&) = default;
+};
+
+// Which window an event is about. The empty id belongs to no window.
+struct WindowId {
+    std::uint32_t value = 0;
+
+    friend bool operator==(const WindowId&, const WindowId&) = default;
 };
 
 // The window as the operating system layer knows it. Only Engine/Render looks inside it (INV-10).
@@ -42,6 +51,17 @@ public:
 
     // The size of the drawing area in pixels, which is what the GPU draws.
     [[nodiscard]] PixelSize SizeInPixels() const;
+
+    [[nodiscard]] WindowId Id() const noexcept;
+
+    // Asks for a new size of the drawing area, in points, with the limits of Open. The window may take a few
+    // frames to change; the program learns the new size from the WindowResized event
+    // (Nexum/Platform/Application.hpp).
+    [[nodiscard]] core::Result<void> Resize(std::uint32_t width, std::uint32_t height);
+
+    // Asks to close the window, as its close button does: the program receives WindowCloseRequested between
+    // two frames and decides what to do.
+    [[nodiscard]] core::Result<void> RequestClose() const;
 
     [[nodiscard]] NativeWindow Native() const noexcept;
 
