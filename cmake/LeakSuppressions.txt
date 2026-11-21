@@ -3,7 +3,6 @@
 # Only leaks inside the system's libraries go here, never one in the code of the Nexum
 # (specs/0000-fundacao/plan.md). The report of the slice that adds a line lists it.
 
-# Slice 0: each time SDL GPU loads the Vulkan driver to look for a graphics card, the driver (Mesa lavapipe on
-# the CI) keeps 128 bytes. The driver is unloaded before the report, so its own frames have no names; the only
-# named frame is the SDL function that calls it.
-leak:VULKAN_INTERNAL_DeterminePhysicalDevice
+# The list is empty. In slice 0, the Vulkan driver without a graphics card (Mesa lavapipe) seemed to leak 128 and
+# 56 bytes, because it was unloaded before the check. The driver now stays loaded until the end
+# (cmake/NexumSanitizers.cmake), so nothing of it reaches the report, and no line is needed.
