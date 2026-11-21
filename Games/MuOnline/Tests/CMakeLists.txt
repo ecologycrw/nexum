@@ -8,3 +8,10 @@ nexum_add_tests(muonline_tests
         ModuleIdentityTest.cpp
         TickReportTextTest.cpp
     DEPS MuOnline nexum_test_log)
+
+# CA-09: the frame of the foundation screen never asks for memory (INV-13). It is a test program of its own,
+# because the allocation counter replaces the global allocation functions of C++ for the whole program that
+# links it (tests/architecture/frame_allocations).
+nexum_add_tests(muonline_frame_allocation_tests
+    SOURCES FrameAllocationTest.cpp
+    DEPS MuOnline nexum_test_allocation_counter)
