@@ -146,6 +146,18 @@ O CA-11 é a verificação manual do dono, registrada no report.
   - **Proposta levada ao dono:** o contador passa a guardar de onde vieram os primeiros pedidos contados (a pilha de chamadas, no Linux e no macOS), e a falha do teste mostra isso. Muda a trava `tests/architecture/frame_allocations/`. A próxima execução da CI no macOS mostraria a origem, e o dono decide o que fazer com o teste a partir daí.
   - **Aprovada pelo dono em 2026-11-21** e feita. O contador guarda, num espaço fixo, o tamanho e a pilha de chamadas (até 32 funções) dos primeiros 8 pedidos contados, pelo `backtrace` do sistema, no Linux e no macOS. No Windows, a pilha não é guardada, porque o acesso ao sistema operacional fica só no `Engine/Platform`. A falha do teste do quadro mostra as pilhas, e o caso do contador confere que as 3 pilhas foram guardadas, com o tamanho de cada pedido. O que o teste do quadro exige não mudou.
   - **Prova no contêiner** (Linux, build com sanitizers): com um pedido de propósito no quadro, a falha mostrou `1000 requests for memory (4000 bytes)` e a pilha de cada um dos primeiros pedidos. As funções do próprio programa aparecem como endereços, e as das bibliotecas do sistema, com o nome. É o nome da biblioteca que vai dizer se os pedidos do macOS vêm do Metal. No build otimizado, o mesmo pedido de propósito não falha, porque o Clang o apaga: a memória nunca é usada. Um pedido apagado pelo compilador também não acontece no jogo.
+  - **Origem, pela CI do commit `8d2146b`** (execução [44895239993](https://github.com/ecologycrw/nexum/actions/runs/44895239993)): a conta deu de novo 35 pedidos e 5.688 bytes. Os 8 primeiros têm 48 bytes cada e a mesma pilha: `FrameLoop::Run` → `OffscreenTarget::Draw` → `RecordDrawList` → `SDL_BlitGPUTexture` → `METAL_BindGraphicsPipeline` → `METAL_INTERNAL_AcquireUniformBufferFromPool` → `METAL_INTERNAL_CreateUniformBuffer` → o driver Metal da máquina virtual da CI (`AppleParavirtGPUMetalIOGPUFamily`) → `operator new`. Os outros 27 pedidos não aparecem, porque o contador guarda só os 8 primeiros.
+  - **Por que isso acontece**, pelo código do SDL 3.4.20 (`src/gpu/metal/SDL_gpu_metal.m` e `src/gpu/SDL_gpu.c`, lidos no GitHub):
+    - O SDL começa com um estoque de 32 buffers de uniformes e só cria um buffer novo quando o estoque está vazio.
+    - Cada lista de comandos que faz uma cópia segura um desses buffers.
+    - O buffer só volta ao estoque num envio seguinte, e só se a placa já terminou aquela lista.
+    - O `OffscreenTarget::Draw` envia sem esperar, e no desenho sem janela nada limita quantas listas ficam na fila. Quando o processador grava os quadros mais depressa do que a placa virtual da CI consegue executar, a fila passa de 32 listas. Cada lista a mais cria um buffer novo, e o driver da Apple pede memória por `new` para ele.
+    - Na janela, isso não acontece: o `WindowTarget` usa `SDL_WaitAndAcquireGPUSwapchainTexture`, que espera, e o SDL deixa no máximo 2 quadros na fila.
+  - **Conclusão:** o defeito está no `OffscreenTarget` (o desenho sem janela não tem limite de quadros na fila), e não no teste nem no contador. Não foi conferido se a fila também cresce no Vulkan e no Direct3D 12. Se crescer, o contador não vê, porque lá o SDL pede memória por `malloc`.
+  - **Opções levadas ao dono:**
+    - (A, recomendada) O `OffscreenTarget` passa a deixar no máximo 2 quadros na fila, como a janela: antes de enviar um quadro novo, ele espera a placa terminar o mais antigo. O teste não muda.
+    - (B) Mais quadros de aquecimento. Não resolve, porque o tamanho da fila depende da velocidade da placa da CI.
+    - Aceitar pedidos no macOS seria enfraquecer o teste, o que as regras proíbem.
 
 ## Prova visual
 
