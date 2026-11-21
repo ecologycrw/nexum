@@ -22,6 +22,13 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
 
+### P-0004: o contador de alocações ver também a memória que o SDL pede
+- Origem: fatia 0, T15 (os 35 pedidos de memória do macOS)
+- Tipo: trava (o contador fica em `tests/architecture/frame_allocations/`)
+- Evidência: o teste do quadro (CA-09) só conta os pedidos feitos por `new`. O SDL pede memória por `malloc`, que o contador não vê. Por isso, a fila sem limite do desenho sem janela só apareceu no macOS, onde o driver da Apple pede memória por `new`. No Windows e no Linux, a mesma fila pode ter crescido sem que o teste visse. O SDL permite trocar as suas funções de memória (`SDL_SetMemoryFunctions`) antes do primeiro pedido. Com isso, o contador veria os pedidos do SDL nos 3 sistemas. A troca seria feita só nos programas de teste e precisa respeitar a INV-10 (cada biblioteca externa atrás de um único módulo).
+- Prioridade sugerida: média
+- Status: aberta
+
 ## Processadas
 
 ### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
