@@ -35,8 +35,9 @@ public:
     [[nodiscard]] core::Result<FrameOutcome> PresentClear(core::Rgba8 color);
 
     // Draws a frame and shows it: the clear color of the list, then its copies, in order, at the pixel size
-    // the window has now. The textures must come from a store of the same device. Nothing is drawn when the
-    // list or the store is refused. A frame never asks for memory (INV-13).
+    // the window has now. The handles of the list must come from `store`, a store of the same device: a
+    // handle of another store of the same device is not caught, and may name another texture of `store`.
+    // Nothing is drawn when the list or the store is refused. A frame never asks for memory (INV-13).
     [[nodiscard]] core::Result<FrameOutcome> Present(const DrawList& list, const TextureStore& store);
 
 private:

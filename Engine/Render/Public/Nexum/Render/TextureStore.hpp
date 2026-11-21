@@ -29,8 +29,7 @@ struct TextureSize {
 // holds a fixed number of them and never grows. It must be destroyed before its device.
 class TextureStore {
 public:
-    // The largest side Direct3D 12 guarantees for a texture.
-    static constexpr std::uint32_t kMaxSide = 16384;
+    static constexpr std::uint32_t kMaxSide = kMaxTextureSide;
 
     [[nodiscard]] static core::Result<TextureStore> Create(GpuDevice& device, std::uint32_t capacity);
 

@@ -15,12 +15,6 @@ namespace core = nexum::core;
 
 namespace {
 
-// A pixel as text, such as "(12, 34, 56, 255)".
-[[nodiscard]] std::string PixelText(const core::Rgba8& pixel) {
-    return "(" + std::to_string(pixel.r) + ", " + std::to_string(pixel.g) + ", " + std::to_string(pixel.b) +
-           ", " + std::to_string(pixel.a) + ")";
-}
-
 [[nodiscard]] std::string SizeText(const core::Image& image) {
     return std::to_string(image.Width()) + "x" + std::to_string(image.Height()) + " pixels";
 }
@@ -53,8 +47,8 @@ struct Beyond {
                               std::to_string(capture.Pixels().size()) +
                               (beyond.count == 1 ? " pixels is" : " pixels are");
     return core::Error{count + " beyond the tolerance of " + LevelsText(tolerance.levels) +
-                       "; the first is at (" + std::to_string(x) + ", " + std::to_string(y) +
-                       "): " + PixelText(capture.At(x, y)) + " instead of " + PixelText(approved.At(x, y))};
+                       "; the first is at (" + std::to_string(x) + ", " + std::to_string(y) + "): " +
+                       core::ToString(capture.At(x, y)) + " instead of " + core::ToString(approved.At(x, y))};
 }
 
 // Both images have the same size here.
@@ -98,7 +92,7 @@ core::Result<void> CheckHasContent(const core::Image& image, std::string_view na
     }
     const core::Rgba8 first = pixels.front();
     if (std::ranges::all_of(pixels, [&first](const core::Rgba8& pixel) { return pixel == first; })) {
-        return core::MakeError("the " + std::string(name) + " has a single color, " + PixelText(first) +
+        return core::MakeError("the " + std::string(name) + " has a single color, " + core::ToString(first) +
                                ": an empty, black or single-color image fails (docs/VISUAL.md)");
     }
     return {};

@@ -4,6 +4,7 @@ nexum_add_library(nexum_core
         Private/Assert.cpp
         Private/FrameArena.cpp
         Private/Image.cpp
+        Private/Rgba8.cpp
         Private/Version.cpp
     PUBLIC_DEPS tl::expected)
 

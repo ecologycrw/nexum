@@ -24,7 +24,6 @@ using nexum::render::TargetSize;
 using nexum::render::ToString;
 using nexum::render_tests::CheckSameImage;
 using nexum::render_tests::GpuFixture;
-using nexum::render_tests::PixelText;
 using nexum::render_tests::StartGpu;
 using nexum::render_tests::StartVideo;
 
@@ -34,7 +33,7 @@ namespace {
 constexpr TargetSize kSize{.width = 64, .height = 48};
 
 void ExpectClearReadsBack(OffscreenTarget& target, Rgba8 color) {
-    const std::string clearColor = PixelText(color);
+    const std::string clearColor = nexum::core::ToString(color);
     CAPTURE(clearColor);
     const auto cleared = target.Clear(color);
     REQUIRE_MESSAGE(cleared.has_value(), (cleared ? "" : cleared.error().message));
@@ -62,7 +61,8 @@ TEST_CASE("every backend this system offers clears and reads back exactly") {
         CAPTURE(ToString(backend));
         auto device = GpuDevice::Create(video, GpuDeviceOptions{.forcedBackend = backend});
         if (!device) {
-            // The CI machines have no Vulkan driver on Windows; the default order then falls to Direct3D 12.
+            // A backend of the order may be missing on a machine, such as Vulkan on a Windows without its
+            // driver. At least one of them must start.
             MESSAGE("not available here: ", device.error().message);
             continue;
         }

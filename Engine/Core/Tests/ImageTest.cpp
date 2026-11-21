@@ -52,6 +52,10 @@ TEST_CASE("two images are equal when their sizes and pixels are") {
     CHECK_FALSE(left == right);
 }
 
+TEST_CASE("a pixel as text gives its 4 channels in order") {
+    CHECK(nexum::core::ToString(Rgba8{.r = 12, .g = 0, .b = 255, .a = 7}) == "(12, 0, 255, 7)");
+}
+
 TEST_CASE("the default image is empty") {
     const Image image;
     CHECK(image.Width() == 0);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace nexum::core {
 
@@ -13,5 +14,8 @@ struct Rgba8 {
 
     friend bool operator==(const Rgba8&, const Rgba8&) = default;
 };
+
+// The pixel as text, such as "(12, 34, 56, 255)", for messages.
+[[nodiscard]] std::string ToString(const Rgba8& pixel);
 
 } // namespace nexum::core

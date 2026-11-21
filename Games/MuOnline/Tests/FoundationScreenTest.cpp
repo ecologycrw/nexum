@@ -49,17 +49,12 @@ void CheckBlit(const nexum::render::Blit& blit, nexum::render::TextureHandle tex
     CHECK(blit.y == y);
 }
 
-// A pixel as text, such as "(12, 34, 56, 255)": doctest cannot print the type by itself.
-std::string PixelText(const nexum::core::Rgba8& pixel) {
-    return "(" + std::to_string(pixel.r) + ", " + std::to_string(pixel.g) + ", " + std::to_string(pixel.b) +
-           ", " + std::to_string(pixel.a) + ")";
-}
-
+// doctest cannot print a pixel by itself, so the message carries its text.
 void CheckPixel(const nexum::core::Image& image, std::uint32_t x, std::uint32_t y,
                 const nexum::core::Rgba8& expected) {
     const nexum::core::Rgba8 actual = image.At(x, y);
-    CHECK_MESSAGE(actual == expected, "pixel (", x, ", ", y, ") is ", PixelText(actual), " instead of ",
-                  PixelText(expected));
+    CHECK_MESSAGE(actual == expected, "pixel (", x, ", ", y, ") is ", nexum::core::ToString(actual),
+                  " instead of ", nexum::core::ToString(expected));
 }
 
 // What the GPU tests share, in the order the engine requires: video first, then the device and its store.

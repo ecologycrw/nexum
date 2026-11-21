@@ -23,8 +23,7 @@ struct TargetSize {
 // The target must be destroyed before its device.
 class OffscreenTarget {
 public:
-    // The largest side Direct3D 12 guarantees for a texture.
-    static constexpr std::uint32_t kMaxSide = 16384;
+    static constexpr std::uint32_t kMaxSide = kMaxTextureSide;
 
     // How many frames may wait for the GPU at once, as with a window. Drawing or clearing first waits for the
     // GPU to finish the oldest of them. Without the limit, a loop that draws faster than the GPU piles up
@@ -44,9 +43,10 @@ public:
     // Fills the whole image with one color. It counts as a frame for kFramesInFlight.
     [[nodiscard]] core::Result<void> Clear(core::Rgba8 color);
 
-    // Draws a frame: the clear color of the list, then its copies, in order. The textures must come from a
-    // store of the same device. Nothing is drawn when the list or the store is refused. A frame never asks
-    // for memory (INV-13), and it may wait for the GPU (kFramesInFlight).
+    // Draws a frame: the clear color of the list, then its copies, in order. The handles of the list must
+    // come from `store`, a store of the same device: a handle of another store of the same device is not
+    // caught, and may name another texture of `store`. Nothing is drawn when the list or the store is
+    // refused. A frame never asks for memory (INV-13), and it may wait for the GPU (kFramesInFlight).
     [[nodiscard]] core::Result<void> Draw(const DrawList& list, const TextureStore& store);
 
     // Waits for the GPU and copies the image back, with the pixels of everything drawn before.

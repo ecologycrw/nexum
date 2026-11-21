@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -9,6 +10,9 @@
 #include "Nexum/Render/GpuBackend.hpp"
 
 namespace nexum::render {
+
+// The largest side Direct3D 12 guarantees for a texture, and so for every texture and target of this module.
+inline constexpr std::uint32_t kMaxTextureSide = 16384;
 
 struct GpuDeviceOptions {
     // Empty: the backends are tried in the order of PreferredBackends. Set: only this one (the --gpu-driver

@@ -1,14 +1,12 @@
 #pragma once
 
-// What the GPU tests share: the video system and the device in the order the engine requires, and the text of
-// a pixel when a check fails. It came from the third copy in the tests (docs/CONVENTIONS.md, "Regra de
-// três").
+// What the GPU tests share: the video system and the device in the order the engine requires, and the check
+// of two images. It came from the third copy in the tests (docs/CONVENTIONS.md, "Regra de três").
 
 #include <doctest/doctest.h>
 
 #include <cstdint>
 #include <optional>
-#include <string>
 #include <utility>
 
 #include "Nexum/Core/Image.hpp"
@@ -17,12 +15,6 @@
 #include "Nexum/Render/GpuDevice.hpp"
 
 namespace nexum::render_tests {
-
-// A pixel as text, such as "(12, 34, 56, 255)", for the messages of a failed check.
-inline std::string PixelText(const core::Rgba8& pixel) {
-    return "(" + std::to_string(pixel.r) + ", " + std::to_string(pixel.g) + ", " + std::to_string(pixel.b) +
-           ", " + std::to_string(pixel.a) + ")";
-}
 
 // Each test owns its video system and device: video first, then the device, then what the device makes.
 struct GpuFixture {
@@ -57,8 +49,8 @@ inline void CheckSameImage(const core::Image& actual, const core::Image& expecte
     }
     if (different) {
         const auto [x, y] = *different;
-        FAIL_CHECK("first different pixel at (", x, ", ", y, "): ", PixelText(actual.At(x, y)),
-                   " instead of ", PixelText(expected.At(x, y)));
+        FAIL_CHECK("first different pixel at (", x, ", ", y, "): ", core::ToString(actual.At(x, y)),
+                   " instead of ", core::ToString(expected.At(x, y)));
     }
 }
 

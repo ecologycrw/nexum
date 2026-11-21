@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 
+#include "GpuFixture.hpp"
 #include "Nexum/Platform/PlatformInfo.hpp"
 #include "Nexum/Platform/VideoSystem.hpp"
 #include "Nexum/Render/GpuDevice.hpp"
@@ -17,14 +18,9 @@ using nexum::render::GpuDevice;
 using nexum::render::GpuDeviceOptions;
 using nexum::render::PreferredBackends;
 using nexum::render::ToString;
+using nexum::render_tests::StartVideo;
 
 namespace {
-
-VideoSystem StartVideo() {
-    auto video = VideoSystem::Start();
-    REQUIRE_MESSAGE(video.has_value(), (video ? "" : video.error().message));
-    return std::move(*video);
-}
 
 // A backend SDL GPU never offers on this system.
 GpuBackend MissingBackend() {
