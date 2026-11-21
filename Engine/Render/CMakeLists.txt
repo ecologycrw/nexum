@@ -8,6 +8,7 @@ nexum_add_library(nexum_render
         Private/GpuBackend.cpp
         Private/GpuDevice.cpp
         Private/OffscreenTarget.cpp
+        Private/TestCard.cpp
         Private/TextureStore.cpp
         Private/WindowTarget.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Platform
