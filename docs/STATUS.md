@@ -2,7 +2,7 @@
 fase: em-andamento
 spec-atual: 0000
 branch: fatia/0000-fundacao
-atualizado-em: 2026-11-20
+atualizado-em: 2026-11-21
 ---
 
 # Status
@@ -13,7 +13,7 @@ atualizado-em: 2026-11-20
 
 ## Próxima ação
 
-1. `/implementar` da fatia 0. Ele continua pela próxima tarefa pendente do [tasks.md](../specs/0000-fundacao/tasks.md).
+1. `/fechar` da fatia 0. As 17 tarefas e a revisão estão concluídas ([tasks.md](../specs/0000-fundacao/tasks.md)); o fechamento escreve o report e prepara o PR para o teste do dono.
 2. Numa sessão nova, ligar de novo o aviso automático da CI no PR #5, porque ele vale só para a sessão que o ligou.
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -37,3 +37,4 @@ Nenhum.
 | 2026-11-20 | A central reescreveu o Enhanced da spec a partir da doc oficial do MuMain. A pedido do dono, a cópia em `docs/referencia/` foi trocada inteira, os ADRs 0029 a 0031 substituíram os 0004, 0009 e 0012, e o VISUAL, a VISÃO, o ROADMAP, o glossário e o TD-0005 foram atualizados |
 | 2026-11-20 | O dono fez o merge do PR #3 (proposta P-0002) e do PR #4 (a spec com o Enhanced reescrito) |
 | 2026-11-20 | Spec da fatia 0 (Fundação) aprovada pelo dono, com o Tracy, as mudanças nas travas e a lista de requisitos do SDL GPU na VISÃO. O SDL 3.4.20 ainda tem o defeito do D3D12 (SDL #16369, correção prevista para o 3.6.0), e o Vulkan segue como padrão no Windows |
+| 2026-11-21 | Fatia 0: as 17 tarefas concluídas e a revisão independente feita, sem achados críticos, com 2 importantes e 9 menores. As correções vão até o commit `9b6cb3c` |
