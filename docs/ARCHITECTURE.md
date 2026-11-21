@@ -2,7 +2,7 @@
 
 > Documento vivo: descreve como o Nexum é **agora** e para onde vai. É atualizado no mesmo PR do código que muda o que ele descreve. A fonte é a Parte III da [especificação de referência](referencia/especificacao-engine-propria-caminho-b.md#parte-iii--arquitetura).
 
-**Como é agora (fatia 0, Fundação):** a engine tem a base (`nexum_core`), o tempo e o laço de ticks (`nexum_time`), o log e o profiler (`nexum_debug`), a plataforma com a janela (`nexum_platform`) e a placa de vídeo pelo SDL GPU (`nexum_render`). O kit (`nexum_gridrpg`) ainda é mínimo. O `MuClient` abre uma janela e desenha o cartão de teste num laço de ticks, e o build de desenvolvimento tem a prova visual (`--capture` e `visualproof`). Todo o resto desta página é o destino.
+**Como é agora (fatia 0, Fundação):** a engine tem a base (`nexum_core`), o tempo e o laço de ticks (`nexum_time`), o log e o profiler (`nexum_debug`), a plataforma com a janela (`nexum_platform`) e a placa de vídeo pelo SDL GPU (`nexum_render`). O kit (`nexum_gridrpg`) ainda é mínimo. O `MuClient` abre uma janela e desenha o cartão de teste num laço de ticks, e o build de desenvolvimento tem a prova visual (`--capture` e `visualproof`). Cada módulo que já existe tem a sua página em [docs/modules](modules/README.md). Todo o resto desta página é o destino.
 
 ## Visão geral
 

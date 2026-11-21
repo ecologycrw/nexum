@@ -156,7 +156,7 @@ O CA-11 é a verificação manual do dono, registrada no report.
 Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a data e, na revisão, o commit. O hook do início da sessão lê esta lista para dizer a etapa e o próximo passo (`docs/WORKFLOW.md`).
 
 - [x] Revisão (`/revisar`): 2026-11-21, commit `3444b67`
-- [ ] Fechamento (`/fechar`)
+- [x] Fechamento (`/fechar`): 2026-11-21
 - [ ] Teste do dono
 - [ ] Retrospectiva (`/retrospectiva`)
 
@@ -284,8 +284,8 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
 
 ## Notas para a próxima sessão
 
-- **Onde parou:** as 17 tarefas e a revisão estão concluídas; as correções da revisão vão até o commit `3444b67`. O próximo passo é o `/fechar`, que confere a CI desses commits. A etapa e o próximo passo vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.
-- O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
+- **Onde parou:** as 17 tarefas, a revisão e o fechamento estão concluídos. O [report](report.md) tem a prova de cada critério e o passo a passo do teste do dono. O próximo passo é o teste do dono; depois, a `/retrospectiva`, na mesma branch. A etapa e o próximo passo vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.
+- O PR #5 saiu do rascunho no fechamento e está pronto para o teste do dono. O merge é só dele, depois da retrospectiva.
 - O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.
 - No commit `29fb789` (T03), o `git add -A` levou junto uma mudança do dono no `.claude/settings.json`, que é uma trava. A IA não tinha visto a mudança. Daqui em diante, cada commit adiciona só os caminhos da tarefa, nunca `-A`. Esta é a primeira ocorrência, para o report.

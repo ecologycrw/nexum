@@ -1,7 +1,7 @@
 ---
 id: 0000
 titulo: Fundação
-status: em-andamento
+status: concluida
 aprovada-em: 2026-11-20
 marco: M0
 ---
