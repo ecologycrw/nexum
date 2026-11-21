@@ -106,6 +106,8 @@ private:
 
 } // namespace
 
+// The counter sees the requests made through new on the thread of the frame. What SDL and the video drivers
+// ask for through malloc is not counted on Windows and Linux (docs/TECH_DEBT.md, TD-0019).
 TEST_CASE("[0000-CA-09] after 3 frames of warm-up, 1000 frames of the foundation screen ask for no memory") {
     Gpu gpu = StartGpu();
     CountingLogSink sink;
