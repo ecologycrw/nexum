@@ -255,6 +255,12 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
   - **O que mudou:** cada teste tem no máximo 300 segundos. Com a variável, o `MuClient` e o `visualproof` escrevem as falhas do Windows como texto, pelo `Nexum/Platform/FailureReports.hpp` novo, em vez de abrir uma janela e ficar parados.
   - **Por quê:** os programas de teste já faziam isso pelo `main` comum, mas o `MuClient` rodado pelos testes não, e nada limitava o tempo de um teste (ver a P-0007 em `docs/PROPOSALS.md`, com as provas).
 
+- **`CMakePresets.json`: o passo do vcpkg que copia DLLs desligado no Windows** (`VCPKG_APPLOCAL_DEPS=OFF`, depois da P-0007). Aprovado pelo dono em 2026-11-21, depois de perguntar os prós, os contras e as outras soluções.
+  - **O que aconteceu:** o build de jogador do Windows falhou duas vezes seguidas na CI, no passo do vcpkg que roda depois de montar cada programa (`z-applocal`): "Access is denied" no commit `272fdf6` (execução [44901413618](https://github.com/ecologycrw/nexum/actions/runs/44901413618)) e "The process cannot access the file because it is being used by another process" no `5f23e16` (execução [44906243137](https://github.com/ecologycrw/nexum/actions/runs/44906243137)). Os outros 9 checks passaram nas duas vezes.
+  - **Por quê:** o passo copia as DLLs das bibliotecas para perto de cada programa, mas o Windows liga todas dentro dos programas (`x64-windows-static-md`): não existe nenhuma DLL em `vcpkg_installed`. O passo rodava 13 vezes por build sem copiar nada. Não se sabe qual arquivo estava em uso; desligar o passo resolve qualquer que seja.
+  - **Prova, antes de mexer na trava:** o build de jogador montado numa pasta separada com a opção desligada não teve nenhum passo de cópia (contra 13 no build de sempre), e os 22 testes passaram.
+  - **O que fica de olho:** se um dia uma biblioteca vier como DLL, o programa nem abre e os testes falham; a correção está no `docs/setup/DEV.md`.
+
 ## Notas para a próxima sessão
 
 - **Onde parou:** as 17 tarefas estão concluídas, e a CI ficou verde no commit `8232a3e`. A etapa e o próximo passo agora vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.

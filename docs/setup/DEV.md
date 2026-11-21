@@ -11,6 +11,8 @@ No Windows:
 - Python 3.12 ou mais novo.
 - Git e GitHub CLI (`gh`).
 
+No Windows, as bibliotecas do vcpkg entram dentro dos próprios programas (o triplet `x64-windows-static-md`), e não existe nenhuma DLL para copiar. Por isso, os presets desligam o passo do vcpkg que copia as DLLs para perto de cada programa (`VCPKG_APPLOCAL_DEPS=OFF`): ele não fazia nada e, na CI, às vezes parava o build com um arquivo em uso. Se um dia uma biblioteca vier como DLL, o programa nem abre e os testes falham; aí é preciso copiar essa DLL pelo CMake ou religar a opção.
+
 No Linux (usado na CI): Clang, GCC, CMake, Ninja, vcpkg e Python 3. O SDL precisa também das bibliotecas de janela (X11 e Wayland) e de um driver Vulkan. Sem placa de vídeo, o driver por software (lavapipe) serve. Sem tela, os testes rodam dentro do Xvfb, como na CI:
 
 ```bash
