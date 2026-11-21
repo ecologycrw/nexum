@@ -36,6 +36,20 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa
 - Status: aberta
 
+### P-0006: a etapa da fatia calculada a partir do tasks.md, para o ciclo inteiro
+- Origem: feedback do dono na fatia 0, depois da T17
+- Tipo: trava (o hook do início da sessão, as skills do ciclo e os testes dos hooks)
+- Evidência: nas palavras do dono, "quando todas as tarefas da fatia são concluídas, uma nova sessão quando chamado o /situacao só sabe que tem o /revisar pendente por causa das tarefas concluídas", "assim como para o restante do fluxo que aparece no WORKFLOW". Depois da última tarefa, nenhuma etapa deixa uma marca que o hook leia: a revisão, o fechamento, o teste do dono, a retrospectiva e o merge. O hook só diz "Todas as tarefas estao feitas". Uma sessão nova depois do `/revisar` não saberia que a revisão já foi feita. O campo `fase` do STATUS, que ninguém atualiza, ainda diz `em-andamento`, com a data de 2026-11-20. Proposta, seguindo a ideia da P-0003 (o estado calculado, não copiado):
+  1. o `tasks.md` (e o modelo dele) ganha, depois das tarefas, uma lista de etapas: Revisão, Fechamento, Teste do dono e Retrospectiva. Cada skill marca a sua ao terminar, com a data e o commit; o teste do dono é marcado quando ele conta o resultado;
+  2. o hook do início da sessão lê essa lista, a spec e as tarefas, e mostra a etapa, o próximo passo e quem age (o dono ou a IA), para o ciclo inteiro do WORKFLOW: sem fatia, spec em rascunho, tarefas, tarefa bloqueada, revisão, fechamento, teste do dono, retrospectiva, merge e a branch já na `main`;
+  3. o hook avisa quando algo não bate: o fechamento marcado sem o `report.md`, uma mudança no código depois da revisão, ou a branch já na `main` com o STATUS ainda apontando para a fatia;
+  4. o `/situacao` usa essa linha, em vez de deduzir a etapa;
+  5. o campo `fase` sai do STATUS, pelo mesmo motivo da P-0003;
+  6. um teste por etapa nos testes dos hooks, e uma linha no WORKFLOW dizendo onde a etapa fica.
+  Até a mudança, a linha "Onde parou" das notas do `tasks.md` serve de apoio, atualizada por cada etapa.
+- Prioridade sugerida: alta (processar na `/retrospectiva` da fatia 0, no mesmo PR, para a fatia 1 já começar com isso)
+- Status: aberta
+
 ## Processadas
 
 ### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
