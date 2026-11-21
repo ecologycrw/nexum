@@ -27,11 +27,15 @@ set_tests_properties(muclient_refuses_unknown_arguments PROPERTIES WILL_FAIL TRU
 
 # Runs MuClient with the arguments, and checks the exit code and every pattern of the output. The lists are
 # joined with $<SEMICOLON>, so each one reaches the script as a single argument.
+#
+# CMake puts its test launcher only in front of the programs of the build, never in front of a script. The
+# script gets it here, so MuClient runs with what the launcher sets, such as the leak exceptions of the
+# sanitizer build (cmake/NexumSanitizers.cmake).
 function(muclient_add_run_test name arguments exit_code patterns)
     list(JOIN arguments "$<SEMICOLON>" joined_arguments)
     list(JOIN patterns "$<SEMICOLON>" joined_patterns)
     add_test(NAME ${name}
-        COMMAND "${CMAKE_COMMAND}"
+        COMMAND ${CMAKE_TEST_LAUNCHER} "${CMAKE_COMMAND}"
             -DPROGRAM=$<TARGET_FILE:MuClient>
             "-DARGUMENTS=${joined_arguments}"
             -DEXIT_CODE=${exit_code}
