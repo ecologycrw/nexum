@@ -145,7 +145,8 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
   - **DEV.md:** o que o build com sanitizers do Linux exige (CMake 3.29 e o lavapipe), as opções do `MuClient`, como rodar e onde fica a prova visual, e onde a troca do `operator new` é aceita.
   - **Correção na spec:** o passo 7 do teste do dono (`spec.md`) mandava abrir `build\visual\0000-test-card.png`, mas a captura fica em `build\windows-dev\tests\visual\0000-test-card.png`. O caminho foi corrigido com o ok do dono.
   - O piso do macOS na VISÃO continua só com Apple Silicon, como o dono aprovou, embora o SDL também aceite os Macs com Intel da família *Mac2*.
-- [ ] T17: A CI completa verde nos 3 sistemas (CA-10, CA-12). Verificação: os checks do PR.
+- [x] T17: A CI completa verde nos 3 sistemas (CA-10, CA-12). Verificação: os checks do PR.
+  - Resultado: a execução [44900296364](https://github.com/ecologycrw/nexum/actions/runs/44900296364), do commit `8232a3e` (o último da T16), ficou verde nos 10 checks: os builds de testes no Windows (MSVC), no Linux (Clang e GCC) e no macOS, os builds de jogador dos 3 sistemas, a análise estática, os diagramas e o resumo do PR.
 
 O CA-11 é a verificação manual do dono, registrada no report.
 
@@ -238,7 +239,7 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
 
 ## Notas para a próxima sessão
 
-- **Onde parou:** da T01 à T16 estão concluídas. Falta a T17, a CI completa verde nos 3 sistemas, e depois vem o `/revisar`.
+- **Onde parou:** as 17 tarefas estão concluídas, e a CI ficou verde no commit `8232a3e`. A próxima etapa é o `/revisar`.
 - O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
 - O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.
