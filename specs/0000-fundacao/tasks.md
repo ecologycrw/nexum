@@ -155,7 +155,7 @@ O CA-11 é a verificação manual do dono, registrada no report.
 
 Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a data e, na revisão, o commit. O hook do início da sessão lê esta lista para dizer a etapa e o próximo passo (`docs/WORKFLOW.md`).
 
-- [x] Revisão (`/revisar`): 2026-11-21, commit `9b6cb3c`
+- [x] Revisão (`/revisar`): 2026-11-21, commit `3444b67`
 - [ ] Fechamento (`/fechar`)
 - [ ] Teste do dono
 - [ ] Retrospectiva (`/retrospectiva`)
@@ -204,7 +204,7 @@ O que a IA viu em cada imagem da cena de prova, inclusive o que ficou ruim.
 
 Achados do revisor e o que foi feito com cada um. Preenchido pelo `/revisar`.
 
-O subagente `revisor`, com contexto limpo, revisou em 2026-11-21 o diff `main...HEAD` até o commit `846efb2`, pela lista obrigatória inteira, e abriu as duas imagens da prova visual. Não achou nenhum crítico; achou 2 importantes e 9 menores. O `verify` passou antes da revisão e de novo depois das correções: 25 testes no desenvolvimento, 26 com os sanitizers, 22 no build de jogador e a análise estática de 42 arquivos sem problemas. A CI dos commits da revisão é conferida no `/fechar`.
+O subagente `revisor`, com contexto limpo, revisou em 2026-11-21 o diff `main...HEAD` até o commit `846efb2`, pela lista obrigatória inteira, e abriu as duas imagens da prova visual. Não achou nenhum crítico; achou 2 importantes e 9 menores. O `verify` passou antes da revisão e de novo depois das correções: 26 testes no desenvolvimento, 27 com os sanitizers, 23 no build de jogador e a análise estática de 42 arquivos sem problemas. A CI dos commits da revisão é conferida no `/fechar`.
 
 1. **Importante: o teste do CA-09 prova menos do que o critério diz.** O contador só vê o `new` do C++ na linha do quadro. A memória que o SDL e os drivers pedem por `malloc` não é contada no Windows e no Linux. **Procede.** Virou o TD-0019, com destino M1 e ligado à P-0004, e o teste ganhou um comentário sobre o limite (`92588d5`). O report diz que a prova do CA-09 vale para o `new` e o `new[]` da linha do quadro.
 2. **Importante: não havia como medir o tempo médio e o pior 1% dos quadros**, que a seção "Fluidez" da spec manda registrar no report. **Procede.** O relatório do laço agora conta os quadros e dá o tempo médio e o pior 1%: o tempo que 99% dos quadros não passam, por faixas fixas de 0,1 ms até 200 ms, sem pedir memória. São 5 testes novos no `TickDiagnosticsTest` (`b56dff8`). Medido aqui, com o Vulkan na GTX 1060: `300 frames, mean frame 16.7 ms, worst 1% 17.4 ms, longest frame 17.5 ms`. O `/fechar` registra os números no report.
@@ -214,7 +214,8 @@ O subagente `revisor`, com contexto limpo, revisou em 2026-11-21 o diff `main...
 6. **Menor: o log escreve no terminal de dentro do quadro, sem fila.** **Procede.** Entrou no TD-0011, com destino M7 (`92588d5`).
 7. **Menor: partes do CA-06 e do CA-10 sem prova, e um comentário sem fundamento.** **Procede em parte.**
    - Feito: no Linux, o teste das 300 imagens agora exige `platform: video driver x11`, e o DEV.md diz como rodar os testes numa sessão Wayland (`9b6cb3c`). O comentário que dizia que a CI do Windows não tem Vulkan foi corrigido (`e70d6db`).
-   - Não feito: mostrar a linha do backend no log da CI pede mudar o `ci.yml`, que é uma trava. A troca para o Direct3D 12 quando o Vulkan falta não tem teste automático, porque o teste não tem como tirar o Vulkan da máquina. A ordem é provada pelo `GpuDriverOrderTest`, e o `GpuDevice::Create` tenta cada backend dela. Os dois pontos vão para o report.
+   - Feito depois, a pedido do dono: a troca para o Direct3D 12 quando o Vulkan falta ganhou um teste no Windows, `muclient_falls_back_to_direct3d12_without_vulkan`. Ele esconde os drivers do Vulkan do carregador do Vulkan (`VK_DRIVER_FILES` e `VK_ICD_FILENAMES` apontando para um arquivo que não existe) e exige que o `MuClient` comece no Direct3D 12. Aqui, o log disse `GPU backend direct3d12 on NVIDIA GeForce GTX 1060 6GB`. Prova de que o teste pega o erro: com o dispositivo tentando só o primeiro backend da ordem, ele falhou com `no GPU driver could start` (`3444b67`).
+   - Não feito: mostrar no log da CI qual backend rodou pede mudar o `ci.yml`, o `CMakePresets.json` ou o `scripts/dev.py`, que são travas. Os testes já exigem a linha do backend; falta só ela aparecer quando o teste passa. Vai para o report.
 8. **Menor: etiquetas de critério em testes que só apoiam o critério.**
    - **Procede para o CA-09 e o CA-11:** as etiquetas saíram do `DrawListTest` e do `ApplicationTest` (`9b6cb3c`). O CA-09 é provado pelos 1.000 quadros, e o CA-11 é a verificação manual do dono.
    - **Não procede para o CA-10 no `WindowTargetTest`:** esse teste abre uma janela e mostra quadros nos 3 sistemas da CI, que é parte do CA-10. A prova principal, `muclient_draws_300_frames_and_closes`, é um teste do CTest por script, e a checagem `docs` só aceita etiquetas em arquivos `.cpp`. O report liga o CA-10 aos dois testes.
@@ -283,7 +284,7 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
 
 ## Notas para a próxima sessão
 
-- **Onde parou:** as 17 tarefas e a revisão estão concluídas; as correções da revisão vão até o commit `9b6cb3c`. O próximo passo é o `/fechar`, que confere a CI desses commits. A etapa e o próximo passo vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.
+- **Onde parou:** as 17 tarefas e a revisão estão concluídas; as correções da revisão vão até o commit `3444b67`. O próximo passo é o `/fechar`, que confere a CI desses commits. A etapa e o próximo passo vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.
 - O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
 - O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.
