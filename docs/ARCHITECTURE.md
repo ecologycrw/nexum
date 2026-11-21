@@ -78,7 +78,7 @@ Cada módulo segue o mesmo formato:
 | `Engine/Core` | tipos básicos, `Result`, versão, `NEXUM_ASSERT`, handles geracionais e pools, a arena do quadro e a imagem RGBA | `nexum_core` (`Nexum::Core`), `nexum_core_tests`, `nexum_core_assert_failure_tests` | Engine |
 | `Engine/Time` | o relógio de ticks, os temporizadores de parede e de tick, o diagnóstico do laço e o relógio monotônico | `nexum_time` (`Nexum::Time`), `nexum_time_tests` | Engine |
 | `Engine/Debug` | o log com categorias e níveis e as marcações do profiler (o Tracy, opcional) | `nexum_debug` (`Nexum::Debug`), `nexum_debug_tests` | Engine |
-| `Engine/Platform` | a fronteira com o SDL3 e o sistema operacional: a entrada pelos *main callbacks*, o vídeo, a janela e o PNG | `nexum_platform` (`Nexum::Platform`), `nexum_platform_tests` | Engine |
+| `Engine/Platform` | a fronteira com o SDL3 e o sistema operacional: a entrada pelos *main callbacks*, o vídeo, a janela, o PNG e as falhas escritas como texto nos testes | `nexum_platform` (`Nexum::Platform`), `nexum_platform_tests` | Engine |
 | `Engine/Render` | a placa de vídeo pelo SDL GPU: o dispositivo e a escolha do backend, o alvo da janela, o alvo sem janela com a leitura dos pixels, as texturas por handle, a lista de cópias e o cartão de teste | `nexum_render` (`Nexum::Render`), `nexum_render_tests` | Engine |
 | `Kit/GridRpg` | o kit do gênero | `nexum_gridrpg` (`Nexum::GridRpg`), `nexum_gridrpg_tests` | Kit |
 | `Games/MuOnline` | o módulo MU; hoje, a tela da fundação e a cena de prova | `MuOnline`, `muonline_tests`, `muonline_frame_allocation_tests` | Games |

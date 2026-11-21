@@ -81,6 +81,16 @@ O programa fica na pasta de build do preset, como `build/windows-dev/Games/MuOnl
 
 O teste `visual_proof_0000_test_card` faz a captura e a compara com `tests/visual/approved/0000-test-card.png`: `ctest --preset windows-dev -R visual_proof`. A captura fica em `build/windows-dev/tests/visual/0000-test-card.png`. A comparação sozinha é `visualproof CAPTURA.png APROVADA.png --tolerance NÍVEIS`, que termina com 0 quando aprova, 1 quando recusa e 2 quando a linha de comando está errada. Só o dono põe imagens em `tests/visual/approved/` ([VISUAL](../VISUAL.md#prova-visual)).
 
+### Testes sem as janelas de falha do Windows
+
+No Windows, um assert da biblioteca do C++, um `abort` ou uma queda abrem uma janela que deixa o programa parado até alguém clicar. Nos testes, isso nunca acontece:
+
+- **Os programas de teste** escrevem essas falhas como texto e terminam na hora, sempre, pelo `main` comum (`tests/support/DoctestMain.cpp`) e pelo doctest.
+- **O `MuClient` e o `visualproof`** fazem o mesmo quando a variável de ambiente `NEXUM_FAILURES_AS_TEXT` está ligada (`Nexum/Platform/FailureReports.hpp`). Os presets de teste a ligam. Rodando o `MuClient` à mão, a janela continua aparecendo, porque ela ajuda a investigar.
+- **Tempo limite:** os presets de teste dão a cada teste no máximo 300 segundos. Um teste que travar por outro motivo é encerrado e aparece como falha, em vez de parar a verificação e a CI.
+
+Os dois valores ficam no `CMakePresets.json`, que é uma trava.
+
 ## O que roda automaticamente
 
 | Quando | O quê | Onde |

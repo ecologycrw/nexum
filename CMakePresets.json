@@ -106,7 +106,8 @@
       "name": "base",
       "hidden": true,
       "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error" },
+      "execution": { "noTestsAction": "error", "timeout": 300 },
+      "environment": { "NEXUM_FAILURES_AS_TEXT": "1" },
       "filter": { "exclude": { "label": "gpu" } }
     },
     { "name": "windows-dev", "inherits": "base", "configurePreset": "windows-dev" },

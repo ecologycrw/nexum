@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "Nexum/Platform/FailureReports.hpp"
 #include "VisualProof/ImageComparison.hpp"
 #include "VisualProof/ProofOptions.hpp"
 
@@ -19,6 +20,7 @@ constexpr int kUsageError = 2;
 // visualproof CAPTURE.png APPROVED.png --tolerance LEVELS: compares a capture with the image the owner
 // approved (docs/VISUAL.md). It ends with 0 when the capture is approved.
 int main(int argc, char* argv[]) {
+    nexum::platform::WriteFailuresAsTextWhenAsked();
     const std::span<char*> given(argv, static_cast<std::size_t>(argc));
     const std::vector<std::string_view> arguments(given.begin(), given.end());
     const auto options = visualproof::ParseProofOptions(arguments);

@@ -36,6 +36,8 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa
 - Status: aberta
 
+## Processadas
+
 ### P-0007: o `MuClient` nos testes sem as janelas de falha do Windows, e um tempo limite geral para os testes
 - Origem: feedback do dono na fatia 0, depois da P-0006, comparando com uma proposta de outro projeto dele
 - Tipo: trava (os presets de teste ficam no `CMakePresets.json`)
@@ -46,9 +48,14 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 
   Sugestão: um tempo limite geral nos presets de teste, como rede de segurança para qualquer travamento; o `MuClient` de desenvolvimento escrever as falhas como texto quando roda dentro de um teste, mas continuar abrindo a janela quando um desenvolvedor o roda à mão, porque ela ajuda a investigar; e uma linha no `docs/setup/DEV.md`
 - Prioridade sugerida: média
-- Status: aberta
+- Status: aceita
+- Destino: trava e código da engine, aplicados na própria branch `fatia/0000-fundacao`, antes do `/revisar`, a pedido do dono ("Mas quero que você já analise a proposta P-0007 agora."). Mudaram:
+  - o `CMakePresets.json`: os presets de teste dão a cada teste no máximo 300 segundos e ligam a variável `NEXUM_FAILURES_AS_TEXT`;
+  - o `Engine/Platform` ganhou o `Nexum/Platform/FailureReports.hpp`, que, com a variável ligada, desliga as janelas do `abort` e dos asserts da biblioteca do C, encerra na hora quando uma função da biblioteca do C recebe um argumento inválido e desliga a janela de queda do Windows. Um teste novo (`FailureReportsTest.cpp`) confere a variável e o modo das falhas;
+  - o `MuClient` e o `visualproof` chamam essa função na primeira linha do `main`. Ela não ficou no `RunApplication`, porque a versão, os argumentos e a captura do `MuClient` terminam antes dele;
+  - o `docs/setup/DEV.md` e o `docs/ARCHITECTURE.md` explicam a regra.
 
-## Processadas
+  Provas com uma falha de propósito no `MuClient`, desfeita depois. Um índice fora de uma lista saiu como texto ("Assertion failed: vector subscript out of range") em 0,5 s, sem janela; sem a janela de queda desligada, o mesmo teste levou 4 a 5 s, e 28 s na primeira vez. Uma string nula passada ao `fputs` saiu como "a function of the C runtime received an invalid parameter" em 1 s. Nos programas de teste comuns, a mesma falha já terminava em 0,2 s, porque o doctest desliga a janela de queda sozinho. O tempo limite aparece no CTest como "Test timeout computed to be: 300"
 
 ### P-0006: a etapa da fatia calculada a partir do tasks.md, para o ciclo inteiro
 - Origem: feedback do dono na fatia 0, depois da T17

@@ -11,6 +11,7 @@
 #include "Nexum/Debug/Logger.hpp"
 #include "Nexum/Debug/TerminalLogSink.hpp"
 #include "Nexum/Platform/Application.hpp"
+#include "Nexum/Platform/FailureReports.hpp"
 
 #if NEXUM_AUTHORING_ENABLED
 #include "ProofCapture.hpp"
@@ -30,6 +31,7 @@ constexpr int kUsageError = 2;
 } // namespace
 
 int main(int argc, char* argv[]) {
+    nexum::platform::WriteFailuresAsTextWhenAsked();
     const std::span<char*> given(argv, static_cast<std::size_t>(argc));
     const std::vector<std::string_view> arguments(given.begin(), given.end());
     const auto options = mu::app::ParseClientOptions(arguments, kBuildKind);

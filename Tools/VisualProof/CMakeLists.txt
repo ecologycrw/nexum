@@ -11,6 +11,6 @@ nexum_add_library(visualproof_comparison
 
 nexum_add_program(visualproof
     SOURCES Private/Main.cpp
-    DEPS visualproof_comparison)
+    DEPS visualproof_comparison Nexum::Platform)
 
 add_subdirectory(Tests)

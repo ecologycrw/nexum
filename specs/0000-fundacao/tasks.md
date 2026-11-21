@@ -251,6 +251,10 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
   - **O que mudou:** o hook escreve a etapa, o próximo passo e quem age, para o ciclo inteiro, com avisos quando algo não bate. As skills marcam a sua linha na lista "Etapas" do `tasks.md`, e o `/situacao` usa a linha do hook. Os testes do hook passaram de 8 para 27 casos.
   - **Por quê:** depois da última tarefa, nenhuma etapa deixava uma marca que uma sessão nova conseguisse ler (ver a P-0006 em `docs/PROPOSALS.md`).
 
+- **`CMakePresets.json`: tempo limite de 300 segundos e a variável `NEXUM_FAILURES_AS_TEXT` nos presets de teste** (P-0007, depois da T17). Pedido pelo dono ("Mas quero que você já analise a proposta P-0007 agora.") e aprovado por ele em 2026-11-21, depois de ver o diff.
+  - **O que mudou:** cada teste tem no máximo 300 segundos. Com a variável, o `MuClient` e o `visualproof` escrevem as falhas do Windows como texto, pelo `Nexum/Platform/FailureReports.hpp` novo, em vez de abrir uma janela e ficar parados.
+  - **Por quê:** os programas de teste já faziam isso pelo `main` comum, mas o `MuClient` rodado pelos testes não, e nada limitava o tempo de um teste (ver a P-0007 em `docs/PROPOSALS.md`, com as provas).
+
 ## Notas para a próxima sessão
 
 - **Onde parou:** as 17 tarefas estão concluídas, e a CI ficou verde no commit `8232a3e`. A etapa e o próximo passo agora vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.
