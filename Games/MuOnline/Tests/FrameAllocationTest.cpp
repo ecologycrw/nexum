@@ -31,6 +31,15 @@ constexpr int kMeasuredFrames = 1000;
 // tick loop in the log every 5 seconds.
 constexpr std::array<double, 8> kFrameTimes{0.016, 0.017, 0.033, 0.008, 0.041, 0.1, 0.25, 0.0167};
 
+// C++ lets the compiler remove a request for memory whose memory is never used, and Clang does it in the
+// optimized builds. Writing the address to a volatile object uses it, so the requests the test makes on
+// purpose really happen.
+const void* volatile gKeptAddress = nullptr;
+
+void KeepAddress(const void* address) noexcept {
+    gKeptAddress = address;
+}
+
 // A log output that keeps nothing but the number of messages, so that writing to the log asks for no memory.
 class CountingLogSink final : public nexum::debug::LogSink {
 public:
@@ -136,8 +145,11 @@ TEST_CASE("[0000-CA-09] the counter sees each request for memory of its thread w
     {
         const AllocationCounter counter;
         const auto number = std::make_unique<std::uint64_t>(7);
+        KeepAddress(number.get());
         const auto numbers = std::make_unique<std::uint32_t[]>(100);
+        KeepAddress(numbers.get());
         const auto wide = std::make_unique<WideBlock>();
+        KeepAddress(wide.get());
         tally = counter.Tally();
     }
     CHECK(tally.requests == 3);
@@ -145,6 +157,7 @@ TEST_CASE("[0000-CA-09] the counter sees each request for memory of its thread w
 
     // Without a counter nothing is counted, and a new counter starts from zero.
     const auto uncounted = std::make_unique<std::uint64_t>(8);
+    KeepAddress(uncounted.get());
     AllocationTally fresh;
     {
         const AllocationCounter counter;
