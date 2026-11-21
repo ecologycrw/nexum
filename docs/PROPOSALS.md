@@ -36,6 +36,30 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa
 - Status: aberta
 
+### P-0008: a prova visual do M3 com as placas de vídeo por software da CI
+- Origem: feedback do dono, depois da revisão da fatia 0 (a pergunta sobre placa de vídeo nas máquinas do GitHub)
+- Tipo: decisão
+- Evidência: o dono perguntou "o Github tem GPU para o meu plano free ? Tanto windows quanto linux ? E o que essa resposta impacta em nosso projeto ?" e, depois da resposta, pediu "Sim, registrar". As máquinas gratuitas do GitHub não têm placa de vídeo: a CI desenha com placas feitas por software, o lavapipe no Linux, o WARP no Windows e a placa virtual do macOS ([TD-0018](TECH_DEBT.md)). Na fatia 0, a imagem aprovada foi tirada no computador do dono (NVIDIA, Vulkan), e a captura da CI bateu com ela, com no máximo 1 nível de diferença, porque o cartão de teste só copia pixels. A partir do M3, com luz, névoa, texturas suavizadas e shaders, uma placa por software e uma placa de verdade podem desenhar pixels um pouco diferentes, e a mesma imagem aprovada pode não servir para as duas. Nem o [VISUAL](VISUAL.md) nem o TD-0016 (a comparação perceptual, M3) dizem onde a imagem aprovada é gerada, nem qual tolerância vale entre uma placa de verdade e uma por software. A decisão cabe no que o M3 manda investigar antes. Opções a comparar:
+  - a imagem aprovada gerada na CI e conferida pelo dono;
+  - uma imagem aprovada por tipo de placa;
+  - a comparação perceptual com uma tolerância por cena, medida nas duas placas.
+
+  As opções de ter uma placa de verdade na CI estão na P-0009.
+- Prioridade sugerida: média (decidir antes do M3)
+- Status: aberta
+
+### P-0009: as opções para a CI ter uma placa de vídeo de verdade
+- Origem: feedback do dono, na mesma conversa da P-0008
+- Tipo: decisão
+- Evidência: o dono pediu "Deixe registrado em algum lugar que você ache melhor, algo sobre a seção ali 'Se um dia a CI precisar de uma placa de verdade' também." Hoje a CI só confere se o desenho está certo. A fluidez e os orçamentos são medidos no computador do dono, e nenhuma placa mais fraca é testada (TD-0018, M7). Em 2026-11-21, as opções eram três:
+  - **O computador do dono como máquina da CI** (o *runner* próprio do GitHub): sem custo, com a GTX 1060 de verdade. O repositório é público, então um PR de outra pessoa poderia rodar código no computador do dono. A máquina precisaria aceitar só os PRs do próprio projeto, e isso pede um ADR e mudanças nas travas (`.github/`).
+  - **As máquinas do GitHub com placa de vídeo** (NVIDIA T4, no Windows e no Linux): existem só para organizações nos planos pagos Team ou Enterprise Cloud, e são cobradas por minuto mesmo em repositório público. Em 2024, eram cerca de US$ 0,05 por minuto no Linux e US$ 0,10 no Windows, e o GitHub anunciou mudanças de preço em 2026 ([GPU hosted runners](https://github.blog/changelog/2024-07-08-github-actions-gpu-hosted-runners-are-now-generally-available/), [preços dos runners](https://docs.github.com/en/billing/reference/actions-runner-pricing)).
+  - **Continuar como hoje:** a correção na CI, e a fluidez e o desempenho no computador do dono.
+
+  A recomendação dada ao dono foi continuar como hoje até o M3, e decidir junto com a P-0008 e com a medição do piso de hardware (TD-0018, M7).
+- Prioridade sugerida: baixa (rever no M3 e no M7)
+- Status: aberta
+
 ## Processadas
 
 ### P-0007: o `MuClient` nos testes sem as janelas de falha do Windows, e um tempo limite geral para os testes
