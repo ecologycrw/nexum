@@ -36,6 +36,18 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa
 - Status: aberta
 
+### P-0007: o `MuClient` nos testes sem as janelas de falha do Windows, e um tempo limite geral para os testes
+- Origem: feedback do dono na fatia 0, depois da P-0006, comparando com uma proposta de outro projeto dele
+- Tipo: trava (os presets de teste ficam no `CMakePresets.json`)
+- Evidência: o dono mandou a proposta de outro projeto, em que um programa de teste abriu a janela "Debug Assertion Failed" do Windows e ficou parado até alguém clicar, e pediu: "Verifique pra mim, se o que a proposta propõe já existe funcionando ou documentado no Nexum Project". No Nexum, o `main` comum dos programas de teste (`tests/support/DoctestMain.cpp`, desde o commit `739471f`) já escreve essas falhas como texto (`_set_abort_behavior` e `_CrtSetReportMode`), com um teste em `nexum_test_main_tests`, e o doctest já transforma em texto as quedas graves no Windows. Ficam de fora:
+  1. o `MuClient` não usa esse `main`. Os testes do CTest que rodam o `MuClient` do build de desenvolvimento (a versão, os argumentos, os 300 quadros e a captura) abririam a janela se um assert do C++ ou o `NEXUM_ASSERT`, que chama `std::abort`, disparasse dentro do jogo, e o teste ficaria parado;
+  2. não há tempo limite geral para os testes: nem os presets, nem o `scripts/dev.py`, nem a CI definem um. Os testes `muclient_reports_its_version`, `muclient_reports_the_build_kind` e `muclient_refuses_unknown_arguments` rodam o `MuClient` direto, sem limite; os outros passam por scripts com 120 ou 300 segundos. Na CI, um teste parado só seria cortado pelo limite do GitHub, de 6 horas;
+  3. a regra não está escrita em nenhum documento, só no comentário do código e no teste.
+
+  Sugestão: um tempo limite geral nos presets de teste, como rede de segurança para qualquer travamento; o `MuClient` de desenvolvimento escrever as falhas como texto quando roda dentro de um teste, mas continuar abrindo a janela quando um desenvolvedor o roda à mão, porque ela ajuda a investigar; e uma linha no `docs/setup/DEV.md`
+- Prioridade sugerida: média
+- Status: aberta
+
 ## Processadas
 
 ### P-0006: a etapa da fatia calculada a partir do tasks.md, para o ciclo inteiro
