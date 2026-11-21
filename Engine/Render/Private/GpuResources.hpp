@@ -20,7 +20,13 @@ struct ReleaseGpuTransferBuffer {
     }
 };
 
+struct ReleaseGpuFence {
+    SDL_GPUDevice* device = nullptr;
+    void operator()(SDL_GPUFence* fence) const noexcept { SDL_ReleaseGPUFence(device, fence); }
+};
+
 using GpuTexturePointer = std::unique_ptr<SDL_GPUTexture, ReleaseGpuTexture>;
 using GpuTransferBufferPointer = std::unique_ptr<SDL_GPUTransferBuffer, ReleaseGpuTransferBuffer>;
+using GpuFencePointer = std::unique_ptr<SDL_GPUFence, ReleaseGpuFence>;
 
 } // namespace nexum::render

@@ -1,5 +1,6 @@
 #include "Nexum/Render/OffscreenTarget.hpp"
 
+#include <array>
 #include <cstddef>
 #include <span>
 #include <string>
@@ -72,18 +73,28 @@ constexpr std::uint32_t kBytesPerPixel = 4;
     return pixels;
 }
 
-// Submits the commands and blocks until the GPU has run them.
-[[nodiscard]] core::Result<void> SubmitAndWait(SDL_GPUDevice* device, SDL_GPUCommandBuffer* commands) {
-    SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(commands);
-    if (fence == nullptr) {
-        return tl::unexpected(SdlFailure("could not submit the GPU commands"));
+// Blocks until the GPU has run the commands of the fence, then lets the fence go. Without a fence there is
+// nothing to wait for.
+[[nodiscard]] core::Result<void> WaitAndRelease(SDL_GPUDevice* device, GpuFencePointer& fence) {
+    if (!fence) {
+        return {};
     }
-    const bool finished = SDL_WaitForGPUFences(device, true, &fence, 1);
-    SDL_ReleaseGPUFence(device, fence);
+    SDL_GPUFence* const native = fence.get();
+    const bool finished = SDL_WaitForGPUFences(device, true, &native, 1);
+    fence.reset();
     if (!finished) {
         return tl::unexpected(SdlFailure("could not wait for the GPU"));
     }
     return {};
+}
+
+// Submits the commands and blocks until the GPU has run them.
+[[nodiscard]] core::Result<void> SubmitAndWait(SDL_GPUDevice* device, SDL_GPUCommandBuffer* commands) {
+    GpuFencePointer fence(SDL_SubmitGPUCommandBufferAndAcquireFence(commands), ReleaseGpuFence{device});
+    if (!fence) {
+        return tl::unexpected(SdlFailure("could not submit the GPU commands"));
+    }
+    return WaitAndRelease(device, fence);
 }
 
 } // namespace
@@ -93,6 +104,25 @@ struct OffscreenTarget::State {
     TargetSize size;
     GpuTexturePointer texture;
     GpuTransferBufferPointer download;
+    // The fences of the last frames sent to the GPU, used in turn: the slot of the next frame holds the fence
+    // of the oldest one.
+    std::array<GpuFencePointer, kFramesInFlight> inFlight;
+    std::size_t nextFrame = 0;
+
+    // Waits for the GPU to finish the oldest frame, if it was sent kFramesInFlight frames ago.
+    [[nodiscard]] core::Result<void> WaitForTurn() { return WaitAndRelease(device, inFlight[nextFrame]); }
+
+    // Sends the commands of a frame to the GPU and keeps their fence for the frame that comes kFramesInFlight
+    // frames later.
+    [[nodiscard]] core::Result<void> SubmitFrame(SDL_GPUCommandBuffer* commands, const char* failure) {
+        GpuFencePointer fence(SDL_SubmitGPUCommandBufferAndAcquireFence(commands), ReleaseGpuFence{device});
+        if (!fence) {
+            return tl::unexpected(SdlFailure(failure));
+        }
+        inFlight[nextFrame] = std::move(fence);
+        nextFrame = (nextFrame + 1) % kFramesInFlight;
+        return {};
+    }
 };
 
 core::Result<OffscreenTarget> OffscreenTarget::Create(GpuDevice& device, TargetSize size) {
@@ -129,6 +159,9 @@ TargetSize OffscreenTarget::Size() const noexcept {
 }
 
 core::Result<void> OffscreenTarget::Clear(core::Rgba8 color) {
+    if (auto turn = m_state->WaitForTurn(); !turn) {
+        return turn;
+    }
     SDL_GPUCommandBuffer* const commands = SDL_AcquireGPUCommandBuffer(m_state->device);
     if (commands == nullptr) {
         return tl::unexpected(SdlFailure("could not start the GPU commands"));
@@ -137,15 +170,15 @@ core::Result<void> OffscreenTarget::Clear(core::Rgba8 color) {
         SDL_CancelGPUCommandBuffer(commands);
         return cleared;
     }
-    if (!SDL_SubmitGPUCommandBuffer(commands)) {
-        return tl::unexpected(SdlFailure("could not submit the clear"));
-    }
-    return {};
+    return m_state->SubmitFrame(commands, "could not submit the clear");
 }
 
 core::Result<void> OffscreenTarget::Draw(const DrawList& list, const TextureStore& store) {
     if (auto valid = CheckDrawList(m_state->device, list, store); !valid) {
         return valid;
+    }
+    if (auto turn = m_state->WaitForTurn(); !turn) {
+        return turn;
     }
     SDL_GPUCommandBuffer* const commands = SDL_AcquireGPUCommandBuffer(m_state->device);
     if (commands == nullptr) {
@@ -156,10 +189,7 @@ core::Result<void> OffscreenTarget::Draw(const DrawList& list, const TextureStor
         SDL_CancelGPUCommandBuffer(commands);
         return drawn;
     }
-    if (!SDL_SubmitGPUCommandBuffer(commands)) {
-        return tl::unexpected(SdlFailure("could not submit the frame"));
-    }
-    return {};
+    return m_state->SubmitFrame(commands, "could not submit the frame");
 }
 
 core::Result<core::Image> OffscreenTarget::ReadImage() {

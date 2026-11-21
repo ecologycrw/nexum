@@ -151,6 +151,35 @@ TEST_CASE("[0000-CA-07] a later copy covers the earlier ones where they overlap"
     DrawAndCheck(scene, copies);
 }
 
+TEST_CASE(
+    "an offscreen target draws many more frames than it lets wait for the GPU, and keeps the last one") {
+    GpuFixture gpu = StartGpu();
+    CopyScene scene = MakeScene(gpu.device);
+    const Image pattern = MakePattern(8, 4, 180);
+    const TextureHandle texture = UploadOrFail(scene.store, pattern);
+
+    // Each frame puts the copy in another place, with a clear every 10 frames. Every frame after the first
+    // kFramesInFlight waits for the GPU to finish an older one.
+    constexpr std::int32_t kFrames = 50;
+    static_assert(kFrames > 10 * static_cast<std::int32_t>(OffscreenTarget::kFramesInFlight));
+    DrawList list(kBackground);
+    for (std::int32_t frame = 0; frame < kFrames; ++frame) {
+        if (frame % 10 == 0) {
+            const auto cleared = scene.target.Clear(Rgba8{.r = 255, .g = 0, .b = 0, .a = 255});
+            REQUIRE_MESSAGE(cleared.has_value(), (cleared ? "" : cleared.error().message));
+        }
+        list.Reset(kBackground);
+        REQUIRE(list.Add(Blit{.texture = texture, .x = frame, .y = frame % 40}).has_value());
+        const auto drawn = scene.target.Draw(list, scene.store);
+        REQUIRE_MESSAGE(drawn.has_value(), (drawn ? "" : drawn.error().message));
+    }
+
+    const auto image = scene.target.ReadImage();
+    REQUIRE_MESSAGE(image.has_value(), (image ? "" : image.error().message));
+    const std::vector<Placed> last{{.image = &pattern, .x = kFrames - 1, .y = (kFrames - 1) % 40}};
+    CheckSameImage(*image, ExpectedImage(last));
+}
+
 TEST_CASE("[0000-CA-07] every backend this system offers copies textures exactly") {
     const VideoSystem video = StartVideo();
     int started = 0;

@@ -158,6 +158,12 @@ O CA-11 é a verificação manual do dono, registrada no report.
     - (A, recomendada) O `OffscreenTarget` passa a deixar no máximo 2 quadros na fila, como a janela: antes de enviar um quadro novo, ele espera a placa terminar o mais antigo. O teste não muda.
     - (B) Mais quadros de aquecimento. Não resolve, porque o tamanho da fila depende da velocidade da placa da CI.
     - Aceitar pedidos no macOS seria enfraquecer o teste, o que as regras proíbem.
+  - **O dono escolheu a opção A em 2026-11-21**, e ela foi feita:
+    - O `OffscreenTarget` guarda o sinal de pronto (a "fence" do SDL) dos 2 últimos quadros enviados (`kFramesInFlight`). Antes de gravar um quadro novo, o `Draw` e o `Clear` esperam a placa terminar o mais antigo. O teste do quadro e o contador não mudaram.
+    - Na janela, a espera é a do SDL, também de 2 quadros. A `ReadImage` continua esperando a placa terminar tudo.
+    - Teste novo: um alvo sem janela desenha 50 quadros seguidos, com uma limpeza a cada 10, e a imagem lida é a do último quadro, pixel a pixel. Esse teste confere que a fila em rodízio funciona. A prova de que a espera tira os pedidos de memória só pode vir da CI do macOS, porque no Windows e no Linux o contador não vê a memória que o SDL pede (ver P-0004).
+    - Linux, no contêiner: todos os testes passaram, 28 no build com sanitizers e 22 no build de jogador.
+    - Windows: `verify` verde, com 25 testes no desenvolvimento, 26 com os sanitizers, 22 no build de jogador e a análise estática sem nenhum problema.
 
 ## Prova visual
 
