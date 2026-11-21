@@ -59,10 +59,11 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
   - **A recusa no build de jogador:** o `CMakeLists.txt` da raiz confere a opção antes do `project()`, com a função de `Engine/Debug/ProfilerOption.cmake`. Para isso, a opção `NEXUM_AUTHORING` subiu para antes do `project()`. Três testes do CTest rodam a mesma função: ligado no jogador é recusado; ligado no desenvolvimento e desligado no jogador são aceitos. Prova com uma configuração de verdade: `cmake --preset windows-release -DNEXUM_PROFILER=ON` parou com `NEXUM_PROFILER=ON needs NEXUM_AUTHORING=ON: the player build never has the profiler (INV-19).`, antes de o vcpkg começar.
   - **O build com o profiler aqui (MSVC):** `cmake --preset windows-dev -B build/windows-profiler -DNEXUM_PROFILER=ON` e o build do projeto inteiro passaram, também depois das últimas correções. O texto `TRACY_PORT`, que só existe dentro do Tracy, aparece no `nexum_debug_tests.exe` desse build e não aparece no build normal. O clang-tidy passou no `Profiler.cpp` com o profiler ligado. Os testes desse build não rodaram aqui: ligado, cada programa abre uma porta de rede, e o Windows pediria a liberação do firewall.
   - **CI:** o `ci.yml` ganhou o passo "Build with the profiler" no `build-test` do Linux (Clang e GCC) e do macOS. O passo configura com `NEXUM_PROFILER=ON`, compila tudo e roda os testes `nexum_debug_*` com o Tracy dentro. No Windows, o passo não roda, porque o MSVC precisa do ambiente do Visual Studio, que só o `dev.py` carrega. Isso virou o TD-0012, com destino M7. O `DEV.md` ganhou como ligar o profiler.
+  - **CI do commit `5357421`:** a execução [44842378801](https://github.com/ecologycrw/nexum/actions/runs/44842378801) ficou verde nos 10 checks. O passo do profiler passou no Linux (Clang e GCC) e no macOS: o vcpkg instalou o Tracy, o projeto inteiro compilou com ele, e os 5 testes `nexum_debug_*` passaram com o Tracy dentro, inclusive o que confere o registro único de cada lugar. No Windows, o passo ficou como "pulado", como previsto.
 
 ## Parte gráfica
 
-- [ ] T11: Plataforma: a entrada pelos *main callbacks* do SDL, os eventos da janela (redimensionar, minimizar, restaurar e fechar), o relógio monotônico e a leitura e a gravação de PNG (CA-10, CA-11). Verificação: `verify`.
+- [ ] T11: Plataforma: a entrada pelos *main callbacks* do SDL, os eventos da janela (redimensionar, minimizar, restaurar e fechar) e a leitura e a gravação de PNG. O relógio monotônico fica no `Engine/Time`, pelo relógio padrão do C++, e não na plataforma, por decisão do dono (ver "Desvios do plano") (CA-10, CA-11). Verificação: `verify`.
 - [ ] T12: Render: texturas por handle, o envio de uma textura gerada, a cópia para a tela e a leitura do alvo sem janela como `Image` (CA-07). Verificação: `verify`.
 - [ ] T13: A tela da fundação no `MuClient`: o cartão de teste, o quadrado que anda por tick com interpolação, o retrato na arena do quadro, `--frames`, `--gpu-driver` e o log do backend e da placa (CA-06, CA-10, CA-11). Verificação: `verify` e a janela aberta aqui.
 - [ ] T14: A prova visual: `--capture`, a ferramenta `Tools/visualproof` e o teste do CTest que junta os dois. A primeira imagem vai para a aprovação do dono antes de entrar em `tests/visual/approved/` (CA-07, CA-08). Verificação: `verify` e a imagem conferida.
@@ -87,6 +88,12 @@ O que a IA viu em cada imagem da cena de prova, inclusive o que ficou ruim.
 
 Achados do revisor e o que foi feito com cada um. Preenchido pelo `/revisar`.
 
+## Desvios do plano
+
+O que mudou em relação ao [plano](plan.md). O `/fechar` copia esta lista para a seção de mesmo nome do report.
+
+- **O relógio monotônico fica no `Engine/Time`, e não no `Engine/Platform`.** Decisão do dono em 2026-11-20, antes da T11. O plano punha o relógio na plataforma, lendo o tempo pelo SDL, sem registrar o motivo (Abordagem, item 5, e a tabela "Alvos e módulos afetados"). A spec de referência o põe no `Engine/Time` ([III.2](../../docs/referencia/especificacao-engine-propria-caminho-b.md#iii2-repositório-e-módulos) e [IV.2](../../docs/referencia/especificacao-engine-propria-caminho-b.md#iv2-tempo-e-laço-enginetime)). O dono escolheu seguir a spec: o relógio lê o relógio padrão do C++ (`std::chrono::steady_clock`), que a checagem `cpp-rules` já permite no `Engine/Time/Private`, e o `Engine/Time` continua sem depender do SDL. O texto do plano e o da spec da fatia não mudam: a mudança fica registrada aqui e no report.
+
 ## Notas para a próxima sessão
 
 - O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
@@ -95,4 +102,4 @@ Achados do revisor e o que foi feito com cada um. Preenchido pelo `/revisar`.
 - No commit `29fb789` (T03), o `git add -A` levou junto uma mudança do dono no `.claude/settings.json`, que é uma trava. A IA não tinha visto a mudança. Daqui em diante, cada commit adiciona só os caminhos da tarefa, nunca `-A`. Esta é a primeira ocorrência, para o report.
 - O `guard-bash` recusa um comando que cita um arquivo de trava, como `scripts/dev.py`, e também grava um arquivo (`Out-File`, `>`). Para resumir a saída do `verify`, filtre com `Select-String`, sem gravar arquivo.
 - **Tempo do relógio de parede:** em segundos com `double` (`nexum::time::Seconds`), como manda o [ADR 0019](../../docs/adr/0019-convencoes.md). Quem precisa de somas exatas converte para nanossegundos inteiros, sempre arredondando, nunca cortando (decisão do dono na T04). Os temporizadores e o diagnóstico da T05 seguem a mesma regra.
-- **Para a T11:** a III.2 da spec põe o relógio monotônico no `Engine/Time`, e o plano o pôs no `Engine/Platform`, lendo pelo SDL, sem registrar o motivo. Antes da T11, explicar as duas opções ao dono. A recomendação é seguir a spec, com o relógio padrão do C++ dentro do `Engine/Time`.
+- **Para a T11:** o relógio monotônico vai para o `Engine/Time`, com o `std::chrono::steady_clock`, como o dono decidiu (ver "Desvios do plano"). A explicação das duas opções já foi dada; não pergunte de novo.
