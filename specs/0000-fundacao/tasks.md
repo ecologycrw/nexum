@@ -147,8 +147,18 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
   - O piso do macOS na VISÃO continua só com Apple Silicon, como o dono aprovou, embora o SDL também aceite os Macs com Intel da família *Mac2*.
 - [x] T17: A CI completa verde nos 3 sistemas (CA-10, CA-12). Verificação: os checks do PR.
   - Resultado: a execução [44900296364](https://github.com/ecologycrw/nexum/actions/runs/44900296364), do commit `8232a3e` (o último da T16), ficou verde nos 10 checks: os builds de testes no Windows (MSVC), no Linux (Clang e GCC) e no macOS, os builds de jogador dos 3 sistemas, a análise estática, os diagramas e o resumo do PR.
+  - **Falha passageira da CI, só para registro:** na execução [44901413618](https://github.com/ecologycrw/nexum/actions/runs/44901413618), do commit `272fdf6`, que só mudou o `docs/PROPOSALS.md`, o build de jogador do Windows parou com "Access is denied" no passo do vcpkg que copia as bibliotecas para perto do `nexum_debug_tests.exe` (`z-applocal`), logo depois de ligá-lo. Os outros 9 checks passaram. É um erro de arquivo da máquina da CI, não do código; o envio seguinte rodou a CI de novo.
 
 O CA-11 é a verificação manual do dono, registrada no report.
+
+## Etapas
+
+Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a data e, na revisão, o commit. O hook do início da sessão lê esta lista para dizer a etapa e o próximo passo (`docs/WORKFLOW.md`).
+
+- [ ] Revisão (`/revisar`)
+- [ ] Fechamento (`/fechar`)
+- [ ] Teste do dono
+- [ ] Retrospectiva (`/retrospectiva`)
 
 ## Bloqueios
 
@@ -237,9 +247,13 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
   - **O que mudou:** o `other_game` ganhou o `Walker`, uma peça que anda uma casa por tick do `TickClock`, e um teste novo. O alvo passou a ligar o `Nexum::Time`.
   - **Por quê:** o plano pede que o outro jogo abra o relógio de ticks, para provar que a engine serve a outro jogo do gênero sem o módulo MU (INV-02).
 
+- **`.claude/hooks/session-start.ps1`, `tests/hooks/session-start.tests.ps1` e as skills `/revisar`, `/fechar`, `/retrospectiva` e `/situacao`: a etapa da fatia calculada pelo hook** (P-0006, depois da T17). Pedido pelo dono ("Faça melhor, já analise essa proposta agora e aqui nessa sessão.") e aprovado por ele em 2026-11-21, depois de ver o diff.
+  - **O que mudou:** o hook escreve a etapa, o próximo passo e quem age, para o ciclo inteiro, com avisos quando algo não bate. As skills marcam a sua linha na lista "Etapas" do `tasks.md`, e o `/situacao` usa a linha do hook. Os testes do hook passaram de 8 para 27 casos.
+  - **Por quê:** depois da última tarefa, nenhuma etapa deixava uma marca que uma sessão nova conseguisse ler (ver a P-0006 em `docs/PROPOSALS.md`).
+
 ## Notas para a próxima sessão
 
-- **Onde parou:** as 17 tarefas estão concluídas, e a CI ficou verde no commit `8232a3e`. A próxima etapa é o `/revisar`.
+- **Onde parou:** as 17 tarefas estão concluídas, e a CI ficou verde no commit `8232a3e`. A etapa e o próximo passo agora vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.
 - O PR #5 está aberto só para a CI rodar a cada envio; ele não está pronto para revisão.
 - O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.

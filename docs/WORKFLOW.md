@@ -37,6 +37,8 @@ flowchart LR
 7. **`/retrospectiva`** registra o feedback, processa as propostas e sugere de 1 a 3 próximas fatias, com uma recomendação. Ela roda **no mesmo PR**, para o dono aprovar uma vez só.
 8. O dono aprova o PR e faz o squash merge.
 
+**Onde fica a etapa.** Nenhum documento guarda uma cópia da etapa, porque cópia envelhece. O hook do início da sessão a calcula toda vez e escreve a etapa, o próximo passo e quem age, com um aviso quando algo não bate. Ele usa o `spec-atual` do STATUS, a branch, o status da spec, as tarefas do `tasks.md` e a lista "Etapas", que fica no `tasks.md` depois das tarefas. Cada etapa marca a sua linha ao terminar: a revisão, com a data e o commit; o fechamento; o teste do dono, quando ele conta o resultado; e a retrospectiva. Depois da retrospectiva, o `spec-atual` vazio na branch da fatia quer dizer que ela espera o merge. O `/situacao` usa a linha do hook (P-0006).
+
 Outras skills: `/situacao` (onde estamos), `/propor` (registrar uma proposta), `/consolidar` (a faxina periódica) e `/consultar-central` (buscar uma spec, um achado ou uma lição na central).
 
 ## Specs

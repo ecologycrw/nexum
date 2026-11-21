@@ -7,7 +7,7 @@ description: Fecha a fatia do Nexum - escreve o report com a prova de cada crit�
 
 ## Pré-condições
 
-- Todas as tarefas `[x]`, `/verificar` verde e `/revisar` feito (seção "Revisão" preenchida no `tasks.md`).
+- Todas as tarefas `[x]`, `/verificar` verde e `/revisar` feito (seção "Revisão" preenchida e etapa Revisão marcada no `tasks.md`).
 
 ## Passos
 
@@ -25,7 +25,7 @@ description: Fecha a fatia do Nexum - escreve o report com a prova de cada crit�
    - "Código de referência" em `docs/CONVENTIONS.md`, se surgiu um bom exemplo.
    - `docs/TECH_DEBT.md`: tire os itens resolvidos e inclua os novos.
    - ADR para cada decisão nova, a partir de `templates/adr.md`, com a linha no índice `docs/adr/README.md`.
-3. **Status.** Mude a spec para `concluida`. Atualize o `docs/STATUS.md`: a fatia aguarda o teste do dono, com uma linha no "Histórico".
+3. **Status.** Mude a spec para `concluida`. Atualize o `docs/STATUS.md`: a fatia aguarda o teste do dono, com uma linha no "Histórico". Marque a etapa Fechamento na lista "Etapas" do `tasks.md`, com a data: `` - [x] Fechamento (`/fechar`): AAAA-MM-DD ``.
 4. **Verifique.** Rode `/verificar`. A checagem de docs confere que todo critério tem prova e que o report tem a sala limpa.
 5. **Commit e revisão do dono.**
    - Commit `docs(NNNN): close slice N`.

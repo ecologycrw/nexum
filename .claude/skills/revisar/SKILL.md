@@ -23,4 +23,5 @@ description: Faz a revisão independente da fatia do Nexum com o subagente revis
 3. **Corrija os críticos e importantes que procedem,** dentro do escopo e com testes. Um achado de sala limpa (comportamento sem fonte, constante sem origem) é sempre importante: busque a fonte com `/consultar-central` ou leve a pergunta à central. Rode `/verificar` de novo. Commits `fix(NNNN): ...` e, se houver remoto, `git push`.
 4. **Achados menores ou fora do escopo** vão para `/propor` ou para o report.
 5. **Registre na seção "Revisão" do `tasks.md`:** cada achado, se procedia e o que foi feito. O `/fechar` usa esse registro.
-6. Diga ao dono que a próxima etapa é `/fechar`.
+6. **Marque a etapa** na lista "Etapas" do `tasks.md`, com a data e o commit em que a revisão terminou, já com as correções: `` - [x] Revisão (`/revisar`): AAAA-MM-DD, commit `abc1234` ``. O hook do início da sessão usa esse commit para avisar se o código mudar depois da revisão. Commit `docs(NNNN): record the review` e, se houver remoto, `git push`.
+7. Diga ao dono que a próxima etapa é `/fechar`.

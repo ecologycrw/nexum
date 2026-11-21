@@ -36,6 +36,8 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa
 - Status: aberta
 
+## Processadas
+
 ### P-0006: a etapa da fatia calculada a partir do tasks.md, para o ciclo inteiro
 - Origem: feedback do dono na fatia 0, depois da T17
 - Tipo: trava (o hook do início da sessão, as skills do ciclo e os testes dos hooks)
@@ -48,9 +50,15 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
   6. um teste por etapa nos testes dos hooks, e uma linha no WORKFLOW dizendo onde a etapa fica.
   Até a mudança, a linha "Onde parou" das notas do `tasks.md` serve de apoio, atualizada por cada etapa.
 - Prioridade sugerida: alta (processar na `/retrospectiva` da fatia 0, no mesmo PR, para a fatia 1 já começar com isso)
-- Status: aberta
+- Status: aceita
+- Destino: trava e skill, aplicadas na própria branch `fatia/0000-fundacao`, antes do `/revisar`, a pedido do dono ("Faça melhor, já analise essa proposta agora e aqui nessa sessão. Assim na nova sessão as coisas vão funcionar corretamente desde já."). Mudaram:
+  - o hook `session-start`, que escreve a etapa, o próximo passo e quem age, com os avisos dos itens 2 e 3;
+  - os testes dos hooks (`tests/hooks/session-start.tests.ps1`), com um caso por etapa e por aviso;
+  - o modelo `templates/tasks.md` e o `tasks.md` da fatia 0, que ganharam a lista "Etapas";
+  - as skills `/revisar`, `/fechar` e `/retrospectiva`, que marcam a sua etapa, e a `/situacao`, que usa a linha do hook;
+  - o `docs/WORKFLOW.md`, que diz onde fica a etapa.
 
-## Processadas
+  O item 5 ficou de fora: o campo `fase` do STATUS só diz se há uma fatia em andamento, muda só no `/planejar` e na `/retrospectiva`, e a checagem `docs` exige o campo. Ele não estava errado; a etapa fina é que não tinha onde ficar, e agora fica no `tasks.md`.
 
 ### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
 - Origem: feedback do dono na fatia 0, depois da T03
