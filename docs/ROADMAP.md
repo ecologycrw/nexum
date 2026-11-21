@@ -10,7 +10,7 @@
 
 ## Concluídas
 
-- **Preparação.** Documentos e ADRs a partir da spec do Caminho B, a cópia da spec, o esqueleto do código com as três camadas, as checagens automáticas (camadas, linha vermelha, regras de C++, docs e estrutura), os hooks do Git, a CI (ainda não executada) e o ambiente de IA. Parte do M0 já veio daqui: CMake com presets e vcpkg, módulos com `Public/` e `Private/`, os testes de fronteira e de palavras proibidas, `Result`, doctest, as convenções e os primeiros ADRs.
+- **Preparação.** Documentos e ADRs a partir da spec do Caminho B, a cópia da spec, o esqueleto do código com as três camadas, as checagens automáticas (camadas, linha vermelha, regras de C++, docs e estrutura), os hooks do Git, a CI, verde nos 3 sistemas desde o PR #2, e o ambiente de IA. Parte do M0 já veio daqui: CMake com presets e vcpkg, módulos com `Public/` e `Private/`, os testes de fronteira e de palavras proibidas, `Result`, doctest, as convenções e os primeiros ADRs.
 
 ## Agora
 
