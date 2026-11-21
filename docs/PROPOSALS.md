@@ -29,6 +29,13 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: média
 - Status: aberta
 
+### P-0005: a checagem `structure` conferir também as bibliotecas opcionais do vcpkg
+- Origem: fatia 0, T16 (o registro do Tracy no THIRD_PARTY)
+- Tipo: trava (a checagem fica em `scripts/checks/`)
+- Evidência: a checagem compara o THIRD_PARTY só com as bibliotecas principais do `vcpkg.json`. O Tracy fica numa opção (*feature*) do `vcpkg.json` e, por isso, não é conferido: ele foi registrado numa lista à parte, fora da tabela que a checagem lê. Uma biblioteca opcional nova poderia entrar sem registro e sem licença conferida.
+- Prioridade sugerida: baixa
+- Status: aberta
+
 ## Processadas
 
 ### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
