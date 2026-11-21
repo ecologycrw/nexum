@@ -7,6 +7,7 @@
 
 #include "Mu/Foundation/FoundationScene.hpp"
 #include "Mu/Foundation/FoundationScreen.hpp"
+#include "Mu/Foundation/ProofScene.hpp"
 #include "Nexum/Core/Image.hpp"
 #include "Nexum/Core/Rgba8.hpp"
 #include "Nexum/Debug/Logger.hpp"
@@ -59,14 +60,6 @@ void CheckPixel(const nexum::core::Image& image, std::uint32_t x, std::uint32_t 
     const nexum::core::Rgba8 actual = image.At(x, y);
     CHECK_MESSAGE(actual == expected, "pixel (", x, ", ", y, ") is ", PixelText(actual), " instead of ",
                   PixelText(expected));
-}
-
-// The proof scene of the slice: 10 frames of 200 ms run 5 ticks each, and 20 ms more is half a tick.
-void RunToTheProofScene(FoundationScreen& screen, TargetSize target) {
-    for (int frame = 1; frame <= 10; ++frame) {
-        REQUIRE(screen.Frame(Seconds{0.2 * frame}, Seconds{0.2}, target).has_value());
-    }
-    REQUIRE(screen.Frame(Seconds{2.02}, Seconds{0.02}, target).has_value());
 }
 
 // What the GPU tests share, in the order the engine requires: video first, then the device and its store.
@@ -140,8 +133,7 @@ TEST_CASE("the foundation screen runs the ticks of each frame and draws the snap
     REQUIRE_MESSAGE(screen.has_value(), (screen ? "" : screen.error().message));
     CHECK(gpu.store.Count() == FoundationScreen::kTextureCount);
 
-    const TargetSize target{.width = 640, .height = 480};
-    RunToTheProofScene(*screen, target);
+    REQUIRE(mu::foundation::RunToTheProofScene(*screen).has_value());
     CHECK(screen->Ticks().ElapsedTicks() == 50);
     CHECK(screen->Ticks().Alpha() == doctest::Approx(0.5));
     CHECK(screen->Scene().Current().x == 200);
@@ -152,20 +144,15 @@ TEST_CASE("the foundation screen runs the ticks of each frame and draws the snap
     CHECK(blits[1].y == 424);
 }
 
-TEST_CASE("the proof scene shows the test card and the square at x 198 with the third color") {
-    Gpu gpu = StartGpu(static_cast<std::uint32_t>(FoundationScreen::kTextureCount));
+TEST_CASE("[0000-CA-07] the proof scene shows the test card and the square at x 198 with the third color") {
+    // The capture makes a store of its own: the one of the test stays unused.
+    Gpu gpu = StartGpu(1);
     nexum::test_support::MemoryLogSink sink;
     nexum::debug::Logger log(sink);
-    auto screen = FoundationScreen::Create(gpu.store, log, Seconds{0.0});
-    REQUIRE_MESSAGE(screen.has_value(), (screen ? "" : screen.error().message));
-    const TargetSize target{.width = 640, .height = 480};
-    RunToTheProofScene(*screen, target);
-
-    auto offscreen = nexum::render::OffscreenTarget::Create(gpu.device, target);
-    REQUIRE_MESSAGE(offscreen.has_value(), (offscreen ? "" : offscreen.error().message));
-    REQUIRE(offscreen->Draw(screen->Drawing(), gpu.store).has_value());
-    auto image = offscreen->ReadImage();
+    auto image = mu::foundation::CaptureProofScene(gpu.device, log);
     REQUIRE_MESSAGE(image.has_value(), (image ? "" : image.error().message));
+    REQUIRE(image->Width() == 640);
+    REQUIRE(image->Height() == 480);
 
     // The square covers the columns 198 to 229 and the rows 424 to 455, and nothing around them.
     const nexum::core::Rgba8 third = kSquareColors[2];

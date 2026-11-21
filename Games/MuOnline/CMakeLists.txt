@@ -6,6 +6,7 @@ nexum_add_library(MuOnline
         Private/App/ClientOptions.cpp
         Private/Foundation/FoundationScene.cpp
         Private/Foundation/FoundationScreen.cpp
+        Private/Foundation/ProofScene.cpp
         Private/Foundation/TickReportText.cpp
         Private/ModuleIdentity.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Debug Nexum::Render Nexum::Time Nexum::GridRpg)

@@ -12,6 +12,10 @@
 #include "Nexum/Debug/TerminalLogSink.hpp"
 #include "Nexum/Platform/Application.hpp"
 
+#if NEXUM_AUTHORING_ENABLED
+#include "ProofCapture.hpp"
+#endif
+
 namespace {
 
 #if NEXUM_AUTHORING_ENABLED
@@ -28,10 +32,10 @@ constexpr int kUsageError = 2;
 int main(int argc, char* argv[]) {
     const std::span<char*> given(argv, static_cast<std::size_t>(argc));
     const std::vector<std::string_view> arguments(given.begin(), given.end());
-    const auto options = mu::app::ParseClientOptions(arguments);
+    const auto options = mu::app::ParseClientOptions(arguments, kBuildKind);
     if (!options) {
         const std::string message =
-            "MuClient: " + options.error().message + "\n" + std::string(mu::app::kClientUsage);
+            "MuClient: " + options.error().message + "\n" + std::string(mu::app::ClientUsage(kBuildKind));
         std::fputs(message.c_str(), stderr);
         return kUsageError;
     }
@@ -42,6 +46,12 @@ int main(int argc, char* argv[]) {
 
     nexum::debug::TerminalLogSink terminal;
     nexum::debug::Logger log(terminal);
+#if NEXUM_AUTHORING_ENABLED
+    // The capture draws without a window, so it does not go through the main callbacks of the platform.
+    if (options->capturePath) {
+        return mu::app::RunProofCapture(*options, log);
+    }
+#endif
     return nexum::platform::RunApplication(
         argc, argv,
         [&options, &log](std::span<const std::string_view> /*arguments*/) {

@@ -35,4 +35,8 @@ add_subdirectory(Engine/Platform)
 add_subdirectory(Engine/Render)
 add_subdirectory(Kit/GridRpg)
 add_subdirectory(Games/MuOnline)
+# The tools never enter the player build (INV-02).
+if(NEXUM_AUTHORING)
+    add_subdirectory(Tools/VisualProof)
+endif()
 add_subdirectory(tests)

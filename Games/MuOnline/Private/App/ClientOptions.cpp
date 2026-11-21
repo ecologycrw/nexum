@@ -17,6 +17,15 @@ namespace {
 constexpr std::string_view kVersion = "--version";
 constexpr std::string_view kFrames = "--frames";
 constexpr std::string_view kGpuDriver = "--gpu-driver";
+constexpr std::string_view kCapture = "--capture";
+
+constexpr std::string_view kDevelopmentUsage =
+    "Usage: MuClient [--frames N] [--gpu-driver vulkan|direct3d12|metal]\n"
+    "       MuClient --capture FILE.png [--gpu-driver vulkan|direct3d12|metal]\n"
+    "       MuClient --version\n";
+constexpr std::string_view kPlayerUsage =
+    "Usage: MuClient [--frames N] [--gpu-driver vulkan|direct3d12|metal]\n"
+    "       MuClient --version\n";
 
 [[nodiscard]] core::Result<std::uint32_t> ParseFrameCount(std::string_view text) {
     std::uint32_t count = 0;
@@ -37,22 +46,21 @@ constexpr std::string_view kGpuDriver = "--gpu-driver";
     return core::Error{std::string(option) + " was given twice"};
 }
 
-// Reads the value of an option that takes one.
-[[nodiscard]] core::Result<void> ReadValue(std::string_view option, std::string_view value,
-                                           ClientOptions& options) {
-    if (option == kFrames) {
-        if (options.frameLimit) {
-            return tl::unexpected(GivenTwice(option));
-        }
-        auto count = ParseFrameCount(value);
-        if (!count) {
-            return tl::unexpected(count.error());
-        }
-        options.frameLimit = *count;
-        return {};
+[[nodiscard]] core::Result<void> ReadFrames(std::string_view value, ClientOptions& options) {
+    if (options.frameLimit) {
+        return tl::unexpected(GivenTwice(kFrames));
     }
+    auto count = ParseFrameCount(value);
+    if (!count) {
+        return tl::unexpected(count.error());
+    }
+    options.frameLimit = *count;
+    return {};
+}
+
+[[nodiscard]] core::Result<void> ReadGpuDriver(std::string_view value, ClientOptions& options) {
     if (options.gpuBackend) {
-        return tl::unexpected(GivenTwice(option));
+        return tl::unexpected(GivenTwice(kGpuDriver));
     }
     auto backend = nexum::render::ParseGpuBackend(value);
     if (!backend) {
@@ -62,9 +70,50 @@ constexpr std::string_view kGpuDriver = "--gpu-driver";
     return {};
 }
 
+[[nodiscard]] core::Result<void> ReadCapture(std::string_view value, ClientOptions& options) {
+    if (options.capturePath) {
+        return tl::unexpected(GivenTwice(kCapture));
+    }
+    if (value.empty()) {
+        return core::MakeError("--capture needs the path of a PNG file");
+    }
+    options.capturePath = std::string(value);
+    return {};
+}
+
+// Reads the value of an option that takes one.
+[[nodiscard]] core::Result<void> ReadValue(std::string_view option, std::string_view value,
+                                           ClientOptions& options) {
+    if (option == kFrames) {
+        return ReadFrames(value, options);
+    }
+    if (option == kGpuDriver) {
+        return ReadGpuDriver(value, options);
+    }
+    return ReadCapture(value, options);
+}
+
+// Refuses what is not an option of this build, before its value is read.
+[[nodiscard]] core::Result<void> CheckOption(std::string_view option, BuildKind build) {
+    if (option == kVersion) {
+        return core::MakeError("--version comes alone, without other options");
+    }
+    if (option == kCapture && build == BuildKind::Player) {
+        return core::MakeError("--capture exists only in the development build");
+    }
+    if (option != kFrames && option != kGpuDriver && option != kCapture) {
+        return core::MakeError("unknown option '" + std::string(option) + "'");
+    }
+    return {};
+}
+
 } // namespace
 
-core::Result<ClientOptions> ParseClientOptions(std::span<const std::string_view> arguments) {
+std::string_view ClientUsage(BuildKind build) noexcept {
+    return build == BuildKind::Development ? kDevelopmentUsage : kPlayerUsage;
+}
+
+core::Result<ClientOptions> ParseClientOptions(std::span<const std::string_view> arguments, BuildKind build) {
     ClientOptions options;
     const std::span<const std::string_view> given = arguments.empty() ? arguments : arguments.subspan(1);
     if (given.size() == 1 && given.front() == kVersion) {
@@ -73,11 +122,8 @@ core::Result<ClientOptions> ParseClientOptions(std::span<const std::string_view>
     }
     for (std::size_t index = 0; index < given.size(); ++index) {
         const std::string_view option = given[index];
-        if (option == kVersion) {
-            return core::MakeError("--version comes alone, without other options");
-        }
-        if (option != kFrames && option != kGpuDriver) {
-            return core::MakeError("unknown option '" + std::string(option) + "'");
+        if (auto known = CheckOption(option, build); !known) {
+            return tl::unexpected(known.error());
         }
         if (index + 1 == given.size()) {
             return core::MakeError(std::string(option) + " needs a value");
@@ -86,6 +132,9 @@ core::Result<ClientOptions> ParseClientOptions(std::span<const std::string_view>
         if (auto read = ReadValue(option, given[index], options); !read) {
             return tl::unexpected(read.error());
         }
+    }
+    if (options.capturePath && options.frameLimit) {
+        return core::MakeError("--capture draws one scene without a window, so it comes without --frames");
     }
     return options;
 }

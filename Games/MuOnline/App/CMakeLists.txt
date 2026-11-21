@@ -2,12 +2,17 @@
 # tick (specs/0000-fundacao/spec.md).
 nexum_add_program(MuClient
     SOURCES
+        Private/ClientStart.cpp
         Private/FoundationApp.cpp
         Private/Main.cpp
     DEPS MuOnline Nexum::Platform)
 
-# The player build never carries the authoring mode (INV-19). NEXUM_AUTHORING comes from the preset.
+# The player build never carries the authoring mode (INV-19). NEXUM_AUTHORING comes from the preset. The capture
+# of the proof scene (--capture, CA-07) is compiled only into the development build.
 target_compile_definitions(MuClient PRIVATE NEXUM_AUTHORING_ENABLED=$<BOOL:${NEXUM_AUTHORING}>)
+if(NEXUM_AUTHORING)
+    target_sources(MuClient PRIVATE Private/ProofCapture.cpp)
+endif()
 
 string(REPLACE "." "\\." version_pattern "${PROJECT_VERSION}")
 add_test(NAME muclient_reports_its_version COMMAND MuClient --version)
@@ -54,3 +59,19 @@ muclient_add_run_test(muclient_refuses_an_unknown_gpu_driver "--gpu-driver;glide
     "unknown GPU driver 'glide'.;Usage: MuClient")
 muclient_add_run_test(muclient_refuses_zero_frames "--frames;0" 2
     "--frames needs a whole number from 1 to 4294967295, not '0';Usage: MuClient")
+
+# CA-07: the development build writes the proof scene without a window, on every CI system; the comparison with
+# the approved image is in tests/visual. The player build refuses --capture (INV-19).
+if(NEXUM_AUTHORING)
+    muclient_add_run_test(muclient_captures_the_proof_scene
+        "--capture;${CMAKE_CURRENT_BINARY_DIR}/capture_test/proof-scene.png" 0
+        "render: GPU backend (vulkan|direct3d12|metal) on .;client: wrote the proof scene to .*proof-scene.png")
+    muclient_add_run_test(muclient_reports_a_capture_it_cannot_write
+        "--capture;${CMAKE_CURRENT_BINARY_DIR}/capture_test/missing/proof-scene.png" 1
+        "client: could not capture the proof scene: .*PNG file")
+    # The folder of the capture exists before the tests run; its "missing" subfolder never does.
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/capture_test")
+else()
+    muclient_add_run_test(muclient_player_build_refuses_capture "--capture;proof-scene.png" 2
+        "--capture exists only in the development build;Usage: MuClient")
+endif()
