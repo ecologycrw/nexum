@@ -55,6 +55,17 @@ No Linux, `--compiler gcc` troca o Clang pelo GCC: `python3 scripts/dev.py --com
 
 O `scripts/dev.py` encontra o Visual Studio sozinho, então os comandos funcionam em qualquer terminal.
 
+### Profiler
+
+O profiler (Tracy) vem desligado e só existe no build de desenvolvimento: o build de jogador recusa a opção. Para ligar, configure uma pasta de build própria com `NEXUM_PROFILER=ON`. O vcpkg instala o Tracy na primeira vez. No Windows, rode num *Developer PowerShell* do Visual Studio:
+
+```bash
+cmake --preset windows-dev -B build/windows-profiler -DNEXUM_PROFILER=ON
+cmake --build build/windows-profiler
+```
+
+No Linux e no macOS, troque o preset por `linux-dev`, `linux-gcc-dev` ou `macos-dev`. Ligado, cada programa abre uma porta de rede para o visualizador do Tracy, e o Windows pede a liberação do firewall. O código marca o trabalho com as macros de `Nexum/Debug/Profiler.hpp`, nunca com o Tracy direto. Ainda não há comando no `scripts/dev.py` ([TD-0012](../TECH_DEBT.md)).
+
 ## O que roda automaticamente
 
 | Quando | O quê | Onde |

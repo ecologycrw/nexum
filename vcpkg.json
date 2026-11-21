@@ -16,5 +16,17 @@
     },
     "tl-expected",
     "doctest"
-  ]
+  ],
+  "features": {
+    "profiler": {
+      "description": "The Tracy profiler, for the development build only; turned on by the CMake option NEXUM_PROFILER",
+      "dependencies": [
+        {
+          "name": "tracy",
+          "default-features": false,
+          "features": ["on-demand"]
+        }
+      ]
+    }
+  }
 }

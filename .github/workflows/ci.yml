@@ -24,15 +24,19 @@ jobs:
           - name: windows-msvc
             os: windows-latest
             compiler: default
+            preset: windows-dev
           - name: linux-clang
             os: ubuntu-24.04
             compiler: default
+            preset: linux-dev
           - name: linux-gcc
             os: ubuntu-24.04
             compiler: gcc
+            preset: linux-gcc-dev
           - name: macos-clang
             os: macos-latest
             compiler: default
+            preset: macos-dev
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -42,6 +46,16 @@ jobs:
         run: >-
           ${{ runner.os == 'Linux' && 'xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24"' || '' }}
           python scripts/dev.py --compiler ${{ matrix.compiler }} verify --no-static
+      # The Tracy profiler, which only the development build may turn on (specs/0000-fundacao/spec.md, CA-05): the
+      # whole project builds and links with it, and the tests of the log and the profiler run with Tracy inside.
+      # On Windows, the compiler needs the Visual Studio prompt that only scripts/dev.py loads, so MSVC is built
+      # with the profiler on the development machine (docs/TECH_DEBT.md, TD-0012).
+      - name: Build with the profiler
+        if: runner.os != 'Windows'
+        run: |
+          cmake --preset ${{ matrix.preset }} -B build/profiler -DNEXUM_PROFILER=ON
+          cmake --build build/profiler
+          ctest --test-dir build/profiler --output-on-failure --tests-regex '^nexum_debug_'
 
   # The player build: Release, without the authoring mode (INV-19).
   release:
