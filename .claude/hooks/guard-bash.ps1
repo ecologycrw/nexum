@@ -3,6 +3,19 @@
 # Exit code 2 blocks the command; the message on stderr is shown to the agent.
 # Tests: tests/hooks/guard-bash.tests.ps1. This file is a protected "trava".
 
+# A redirect (>, >>, Out-File) into the Windows temporary folder: $env:TEMP, $env:TMP or the folder's literal path.
+function Get-TemporaryRedirectPattern {
+    $roots = @('\$env:TEMP', '\$env:TMP', '\$\{env:TEMP\}', '\$\{env:TMP\}')
+    $folder = [IO.Path]::GetTempPath().TrimEnd('\', '/')
+    if ($folder) {
+        $roots += [regex]::Escape($folder)
+        $roots += [regex]::Escape($folder.Replace('\', '/'))
+    }
+    $rest = '(?:[\\/](?:(?!\.\.)[^"''\s;&|$`(){}])*)?'
+    $target = '["'']?(?:' + ($roots -join '|') + ')' + $rest + '["'']?(?=$|[\s;&|])'
+    return '(\d?>>?|\bOut-File(\s+-(FilePath|LiteralPath))?)\s*' + $target
+}
+
 function Get-GuardViolation {
     param(
         [Parameter(Mandatory = $true)] [AllowEmptyString()] [string] $Command,
@@ -73,6 +86,16 @@ function Get-GuardViolation {
     $protected = '(\.(claude|githooks|github)([/\\\s"'']|$)|\bAGENTS\.md|\bCLAUDE\.md|\bcmake[/\\]|CMakePresets\.json|vcpkg(-configuration)?\.json|\.clang-(format|tidy)|\.editorconfig|scripts[/\\]dev\.py|scripts[/\\]checks|tests[/\\]architecture|tests[/\\]hooks|tests[/\\]visual[/\\]approved|docs[/\\]referencia|docs[/\\](VISION|ROADMAP|VISUAL)\.md)'
     # Not writes: discarded output, arrows in code, and e-mail addresses such as the Co-Authored-By line.
     $withoutHarmlessRedirects = $c -replace '\d?>&\d|\d?>\s*(/dev/null|\$null|nul)\b|=>|->|<[^<>\s]+@[^<>\s]+>', ' '
+    # Not writes either: saving output in the Windows temporary folder with > or Out-File. Only a literal path is
+    # accepted, with no "..", no variable after the folder and nothing glued after it, so it cannot reach a lock.
+    # Moving, copying or deleting into that folder is still a write (P-0012).
+    $withoutHarmlessRedirects = $withoutHarmlessRedirects -replace (Get-TemporaryRedirectPattern), ' '
+    # A > inside quotes is text, such as the >= of a filter, unless the command runs another command from that text.
+    $runsInnerCommand = '(^|[\s"''])-(c|e|Command|EncodedCommand|ec|ArgumentList)\b|--eval\b|\b(eval|iex|Invoke-Expression|Start-Process)\b|\bcmd(\.exe)?\s+/c\b'
+    if ($withoutHarmlessRedirects -notmatch $runsInnerCommand) {
+        $withoutHarmlessRedirects = [regex]::Replace($withoutHarmlessRedirects, '''[^'']*''|"[^"]*"',
+            [System.Text.RegularExpressions.MatchEvaluator] { param($quoted) $quoted.Value.Replace('>', '_') })
+    }
     $write = '(>|\bsed\s[^;&|]*-i|\btee\b|\b(rm|mv|cp|truncate|del|rmdir)\s|Set-Content|Add-Content|Out-File|Remove-Item|Move-Item|Copy-Item|New-Item|Rename-Item|' + $git + '(rm|mv|checkout|restore|apply)\b)'
     if ($c -match $protected -and $withoutHarmlessRedirects -match $write) {
         return 'Protected files (travas) cannot be changed from the terminal. Use the editing tools, which ask the owner first, and explain why the change is needed.'

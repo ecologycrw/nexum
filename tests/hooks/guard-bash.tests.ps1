@@ -69,7 +69,30 @@ $blocked = @(
     'Copy-Item new.md docs\referencia\especificacao-engine-propria-caminho-b.md',
     'cp new.png tests/visual/approved/scene.png',
     'rm -rf tests/visual/approved',
-    'mv tests/hooks/guard-bash.tests.ps1 /tmp/'
+    'mv tests/hooks/guard-bash.tests.ps1 /tmp/',
+    # Escape attempts around the temporary folder and the quotes that P-0012 opened.
+    'echo x > $env:TEMP\..\AGENTS.md',
+    'echo x > "$env:TEMP\..\..\AGENTS.md"',
+    '$rest = ''\..\AGENTS.md''; echo x > $env:TEMP\a$rest',
+    'echo x > $env:TEMP\log.txt; echo y > AGENTS.md',
+    'py scripts/dev.py verify > $env:TEMP\log.txt && cp $env:TEMP\x.json vcpkg.json',
+    'mv AGENTS.md $env:TEMP\',
+    'Move-Item CLAUDE.md $env:TEMP\old.md',
+    'cp $env:TEMP\new.md AGENTS.md',
+    'echo x | Out-File -FilePath AGENTS.md',
+    'echo x | Out-File -FilePath "$env:TEMP\a.txt"AGENTS.md',
+    "echo 'x' > AGENTS.md",
+    'echo "a >= b" > docs/ROADMAP.md',
+    'bash -c "echo x > AGENTS.md"',
+    'sh -c ''echo x > .claude/settings.json''',
+    'pwsh -Command "echo x > CMakePresets.json"',
+    'powershell -c "echo x > AGENTS.md"',
+    'cmd /c "echo x > AGENTS.md"',
+    'Invoke-Expression "echo x > AGENTS.md"',
+    'iex ''echo x > AGENTS.md''',
+    'eval "echo x > AGENTS.md"',
+    'perl -e "open(F, ''>AGENTS.md'')"',
+    'Start-Process pwsh -ArgumentList "-c echo x > AGENTS.md"'
 )
 
 $allowed = @(
@@ -95,7 +118,16 @@ $allowed = @(
     'cat .claude/settings.json',
     'cat docs/referencia/README.md',
     'grep -r "CA-01" tests/',
-    'echo hello > notes.txt'
+    'echo hello > notes.txt',
+    # Writes that P-0012 freed: output saved in the temporary folder, and a > inside quotes.
+    'py scripts/dev.py verify 2>&1 | Out-File -FilePath $env:TEMP\verify.txt -Encoding utf8',
+    'py scripts/dev.py verify > $env:TEMP\verify.txt',
+    'py scripts/dev.py verify >> "$env:TEMP\claude\verify.txt"',
+    'py scripts/dev.py verify | Out-File ${env:TMP}/verify.txt',
+    "py scripts/dev.py verify > $(([IO.Path]::GetTempPath()).TrimEnd('\'))\claude\verify.txt",
+    "awk '`$2 >= 3' docs/ROADMAP.md",
+    'Select-String -Path AGENTS.md -Pattern "a > b"',
+    'git commit -m "docs: say that a >= b in AGENTS.md"'
 )
 
 $failures = 0
@@ -128,7 +160,8 @@ foreach ($command in $blockedOnMain) {
     }
 }
 
-# The local mode (docs/WORKFLOW.md): the fast-forward merge, after the owner's yes, does not commit on main.
+# On main, only these are allowed: pushing a slice branch, updating main and the fast-forward merge after the
+# owner's yes (docs/WORKFLOW.md, "O merge"), which does not commit on main.
 $allowedOnMain = @('git push -u origin fatia/0000-x', 'git pull --ff-only', 'git switch main', 'git merge --ff-only fatia/0000-x')
 foreach ($command in $allowedOnMain) {
     $reason = Get-GuardViolation -Command $command -CurrentBranch 'main'
