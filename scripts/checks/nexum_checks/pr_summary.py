@@ -60,7 +60,7 @@ def build(changes: list[tuple[str, str]], test_diff: str) -> str:
     lines = ["## Resumo de segurança do PR", "", f"### Travas alteradas ({len(protected)})", ""]
     if protected:
         lines += [f"- `{path}` ({_DESCRIPTIONS.get(status, 'alterado')})" for status, path in protected]
-        lines += ["", "> **Atenção:** mudanças em travas exigem a aprovação explícita do dono (docs/WORKFLOW.md)."]
+        lines += ["", "> **Atenção:** mudanças em travas exigem a aprovação explícita do dono (AGENTS.md)."]
     else:
         lines.append("Nenhuma.")
 

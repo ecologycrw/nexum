@@ -80,7 +80,7 @@ flowchart LR
    - A spec só vai para a aprovação do dono sem perguntas abertas para a central, e a checagem `docs` confere isso.
 4. O código e os documentos do **OpenMU** (MIT) podem ser lidos e reaproveitados, sempre com o aviso da licença.
 
-**Checklist de sala limpa** (Apêndice E da spec). Vale para cada tarefa que implementa comportamento do MU e fica registrada no `report.md`:
+**Checklist de sala limpa** (Apêndice E da spec). Esta é a versão oficial: o modelo do report e a lista do revisor apontam para cá. Vale para cada tarefa que implementa comportamento do MU e fica registrada no `report.md`:
 
 - [ ] Escrevi a partir de uma spec ou de um achado da central, e não do código do MuMain.
 - [ ] Não havia código do MuMain aberto enquanto eu escrevia este trecho.
@@ -92,7 +92,7 @@ flowchart LR
 
 ## Definição de pronto
 
-Vale para qualquer entrega (Parte V.6 da spec):
+Vale para qualquer entrega (Parte V.6 da spec). Esta é a lista oficial; o `AGENTS.md` aponta para cá e diz qual é a prova de que o código passou:
 
 1. Existe uma **spec** (da central ou desta fatia) que descreve o comportamento, com fontes.
 2. O código segue a regra de dependência e as convenções.
@@ -104,11 +104,7 @@ Vale para qualquer entrega (Parte V.6 da spec):
 
 ## O que exige aprovação do dono
 
-- Cada spec e cada PR (o merge na `main`).
-- Novas bibliotecas externas.
-- Mudanças de arquitetura (com ADR), nos formatos da engine e no contrato de rede.
-- Mudanças no [ROADMAP](ROADMAP.md), na [VISÃO](VISION.md), no [guia visual](VISUAL.md) e na [cópia da spec de referência](referencia/README.md).
-- Qualquer mudança nas **travas**: as regras dos agentes, as configurações e os hooks do Claude Code, os hooks do Git, a CI, as configurações de build e de análise, os testes de arquitetura e a ferramenta de checagens. **A IA não afrouxa as próprias garantias.**
+A lista oficial, com cada trava pelo nome, fica no [`AGENTS.md`](../AGENTS.md), que toda sessão carrega. Em resumo: as specs e os merges, as bibliotecas novas, as mudanças de arquitetura, de formato e de contrato de rede, os documentos do dono e as travas. O motivo das travas é simples: **a IA não afrouxa as próprias garantias.**
 
 ## Git
 
@@ -117,7 +113,7 @@ Vale para qualquer entrega (Parte V.6 da spec):
 - A IA faz um commit ao terminar cada tarefa, **se o build e os testes passarem**, e envia a branch automaticamente.
 - O `/fechar` abre o PR. O dono aprova e faz o **squash merge** pelo navegador.
 - Commits e PRs são feitos pela **conta de máquina** da IA, com a linha `Co-Authored-By` do Claude. Aprovações e merges são do dono.
-- Nunca: force push, reescrever o histórico, apagar branches ou pular checagens (`--no-verify`).
+- O que nunca se faz no Git e no GitHub está na lista "Proibido" do [`AGENTS.md`](../AGENTS.md).
 - **A prova é o check verde no PR**, não a mensagem da IA.
 
 ### O merge
@@ -136,7 +132,7 @@ Vale para qualquer entrega (Parte V.6 da spec):
 | 4. CI no GitHub | roda tudo de novo, fora da máquina de desenvolvimento, nos 3 sistemas |
 | 5. Regras do GitHub e acesso limitado | a `main` só aceita PR aprovado pelo dono com a CI verde; a conta da IA não consegue fazer merge nem mudar as configurações |
 
-As camadas 2 a 4 são arquivos do projeto e, por isso, são travas protegidas: mudá-las exige a aprovação do dono.
+As camadas 1 a 4 são arquivos do projeto e, por isso, são travas protegidas: mudá-las exige a aprovação do dono. A lista exata fica no [`AGENTS.md`](../AGENTS.md).
 
 ## Central de conhecimento
 

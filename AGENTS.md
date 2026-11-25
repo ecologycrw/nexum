@@ -46,9 +46,11 @@ O ciclo de cada fatia: `/planejar` → `/implementar` → `/verificar` → `/rev
 
 ## O que exige a aprovação do dono
 
+Esta lista e a de "Proibido", abaixo, são as oficiais. Os outros documentos apontam para cá em vez de repetir.
+
 - A spec de cada fatia, e o merge (decisão só do dono).
 - Bibliotecas externas novas; mudanças de arquitetura (com ADR), nos formatos da engine e no contrato de rede.
-- Mudanças no `docs/ROADMAP.md`, no `docs/VISION.md`, no `docs/VISUAL.md` e na cópia da spec em `docs/referencia/`.
+- Mudanças no `docs/ROADMAP.md`, no `docs/VISION.md` e no `docs/VISUAL.md`.
 - Mudanças nas **travas**: `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.githooks/`, `.github/`, `cmake/`, `CMakePresets.json`, `vcpkg.json`, `vcpkg-configuration.json`, `.clang-format`, `.clang-tidy`, `.editorconfig`, `scripts/dev.py`, `scripts/checks/`, `tests/architecture/`, `tests/hooks/`, `tests/visual/approved/` e `docs/referencia/`. Antes de pedir, explique por que a mudança é necessária.
 
 ## Proibido
@@ -62,9 +64,9 @@ O ciclo de cada fatia: `/planejar` → `/implementar` → `/verificar` → `/rev
 - **Ler o código do MuMain** (a pasta `Client/` da central), copiar ou adaptar qualquer código, nome de variável, comentário ou estrutura dele, e escrever qualquer coisa na central ([ADR 0027](docs/adr/0027-central-de-conhecimento-e-sala-limpa.md)).
 - Colocar no repositório qualquer asset da Webzen: modelos, texturas, sons, tabelas de dados ou imagens com a arte do jogo.
 
-## Definição de pronto
+## A prova de que passou
 
-Pronto significa que este comando rodou nesta sessão, passou, e a saída foi mostrada:
+O que uma entrega precisa ter para estar pronta está na [definição de pronto](docs/WORKFLOW.md#definição-de-pronto) do `docs/WORKFLOW.md`. A prova de que o código passou é este comando, rodado nesta sessão, com a saída mostrada:
 
 ```bash
 py scripts/dev.py verify
