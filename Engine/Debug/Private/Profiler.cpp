@@ -27,7 +27,8 @@ namespace {
 
 // The sites never move and are never destroyed, because Tracy may still read them while the program ends.
 // Both objects are trivially destructible, so they need no destructor, and both start as constants, before
-// any code. They are global because the profiling macros reach them from any function.
+// any code. They are global because Tracy keeps the address of each site until the program ends, so no object
+// of the engine can own them, and the profiling macros reach them from any function.
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::array<ProfileSite, kMaxProfileSites> sites{};
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)

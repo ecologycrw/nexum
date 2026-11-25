@@ -13,7 +13,7 @@ description: Faxina periódica da documentação do Nexum - contradições, docu
 
 1. **Branch.** `git switch main` e `git pull --ff-only`. Depois, `git switch -c consolidacao/AAAA-MM-DD`.
 2. **Auditoria.** Chame o subagente `auditor` com a ferramenta de agentes e peça a auditoria completa da documentação.
-3. **Confira os achados** no texto real. O auditor também pode errar. Confira também os destinos: se algum ADR mudou a ordem dos marcos desde a última consolidação, cada item do `docs/TECH_DEBT.md` e cada proposta aberta que cite um marco que andou precisa de um destino que ainda faça sentido (P-0013).
+3. **Confira os achados** no texto real. O auditor também pode errar. Confira também os destinos: se algum ADR mudou a ordem dos marcos desde a última consolidação, cada item do `docs/TECH_DEBT.md` e cada proposta, aberta ou aceita com o destino ainda por cumprir, que cite um marco que andou precisa de um destino que ainda faça sentido (P-0013).
 4. **Apresente ao dono,** em português simples, a limpeza proposta:
    - o que apagar;
    - o que juntar;
