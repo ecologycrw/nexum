@@ -49,6 +49,23 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
 
+### P-0014: os achados da auditoria externa que esperam a parte 1 do M2
+- Origem: feedback do dono, em 2026-11-25, na mesma conversa da P-0013
+- Tipo: decisão e regra
+- Evidência: os itens 2 e 8 da análise da auditoria externa, aprovados pelo dono junto com os da P-0013 ("Eu gostei de todos os outros pontos do 1, 2, 3, 4, 5, 7, 8, 10"). Eles não podem ser feitos numa consolidação: um é uma decisão da spec da fatia, e o outro só existe depois que a fatia acabar. O dono pediu para deixá-los aqui, em "Abertas": "mova o que não vai agora para uma P-0014 e deixe ainda no Abertas". A numeração abaixo é a da conversa.
+
+  **Para o `/planejar` da parte 1 do M2**
+
+  2. **Decidir se o TD-0015 entra na parte 1 do M2.** Com a janela minimizada e o Vulkan, o `MuClient` gasta 92% de um núcleo ([TECH_DEBT](TECH_DEBT.md)). O critério do [ADR 0032](adr/0032-rede-antes-do-importador.md) pede que o cliente entre no mundo e continue lá sem queda, o que significa longos períodos com o programa aberto, muitas vezes minimizado. **Ação:** o dono decide na spec da fatia.
+
+  **Para a `/retrospectiva` da parte 1 do M2**
+
+  8. **Medir o custo da fatia.** A auditoria concluiu que o processo pesa mais que o código, e o PR #9 (P-0012) foi a resposta. **Ação:** na retrospectiva, anotar quantas sessões e quantas correções a fatia teve, e o tamanho do `tasks.md` e do report, e comparar com a fatia 0 (`specs/0000-fundacao/`: `tasks.md` com 78 KB e report com 24 KB). Os números mostram se a P-0012 bastou.
+- Prioridade sugerida: alta para o item 2 (antes da spec da parte 1 do M2); baixa para o item 8
+- Status: aberta
+
+## Processadas
+
 ### P-0013: os achados aprovados da auditoria externa de 2026-11-25
 - Origem: feedback do dono, em 2026-11-25, depois de uma auditoria da documentação feita com outro modelo e da conferência dela contra o repositório
 - Tipo: regra, trava, doc e decisão (vários itens, cada um com o seu destino)
@@ -77,24 +94,15 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
   - **Retirados pelo dono:** o item 6 (uma auditoria externa de vez em quando, como passo do `/consolidar`) e o item 11 (uma regra na central para as specs não carregarem a estrutura do código do MuMain). O dono disse que verá o item 11 "em outro momento".
   - **Item 9, para o dono olhar com mais cuidado em outro momento:** os hooks do Claude Code chamam o `powershell`, que só existe no Windows. Em outro sistema, eles falhariam, e o Claude Code seguiria sem a guarda do terminal, a guarda da central, o aviso do início da sessão e a checagem do fim do turno, sem avisar. Continuariam valendo as listas de permissões do `.claude/settings.json`, os hooks do Git, a CI e as regras do GitHub. Enquanto o dono trabalhar só no Windows, não há efeito.
 - Prioridade sugerida: alta para o item 1 (antes da spec da parte 1 do M2); média para 3, 4, 5 e 7; baixa para 10
-- Status: aberta
-
-### P-0014: os achados da auditoria externa que esperam a parte 1 do M2
-- Origem: feedback do dono, em 2026-11-25, na mesma conversa da P-0013
-- Tipo: decisão e regra
-- Evidência: os itens 2 e 8 da análise da auditoria externa, aprovados pelo dono junto com os da P-0013 ("Eu gostei de todos os outros pontos do 1, 2, 3, 4, 5, 7, 8, 10"). Eles não podem ser feitos numa consolidação: um é uma decisão da spec da fatia, e o outro só existe depois que a fatia acabar. O dono pediu para deixá-los aqui, em "Abertas": "mova o que não vai agora para uma P-0014 e deixe ainda no Abertas". A numeração abaixo é a da conversa.
-
-  **Para o `/planejar` da parte 1 do M2**
-
-  2. **Decidir se o TD-0015 entra na parte 1 do M2.** Com a janela minimizada e o Vulkan, o `MuClient` gasta 92% de um núcleo ([TECH_DEBT](TECH_DEBT.md)). O critério do [ADR 0032](adr/0032-rede-antes-do-importador.md) pede que o cliente entre no mundo e continue lá sem queda, o que significa longos períodos com o programa aberto, muitas vezes minimizado. **Ação:** o dono decide na spec da fatia.
-
-  **Para a `/retrospectiva` da parte 1 do M2**
-
-  8. **Medir o custo da fatia.** A auditoria concluiu que o processo pesa mais que o código, e o PR #9 (P-0012) foi a resposta. **Ação:** na retrospectiva, anotar quantas sessões e quantas correções a fatia teve, e o tamanho do `tasks.md` e do report, e comparar com a fatia 0 (`specs/0000-fundacao/`: `tasks.md` com 78 KB e report com 24 KB). Os números mostram se a P-0012 bastou.
-- Prioridade sugerida: alta para o item 2 (antes da spec da parte 1 do M2); baixa para o item 8
-- Status: aberta
-
-## Processadas
+- Status: aceita
+- Destino: processada no `/consolidar` de 2026-11-25 (branch `consolidacao/2026-11-25-auditoria`), com o "Sim, consolidar" do dono. A auditoria do `auditor` ficou limitada aos arquivos desta consolidação, a pedido do dono, porque a documentação inteira tinha sido auditada no mesmo dia (P-0012). Cada item:
+  - **1:** feito (`5c12a2a`). Dos seis itens, só o TD-0015 depende da ordem nova do roteiro: ele ganhou a nota de que o `/planejar` da parte 1 do M2 decide se entra antes (P-0014). Os outros continuam com o M1 como destino, porque cada um está ligado ao que só o M1 traz: o primeiro material (TD-0017), os shaders e os modelos (TD-0019 e P-0004), o importador (TD-0020) e mais de um depósito de texturas (TD-0021).
+  - **3:** feito (`5c12a2a`). A `/retrospectiva` e o `/consolidar` passaram a conferir os destinos quando a ordem dos marcos muda. O aviso automático na checagem `docs` não foi feito.
+  - **4:** feito (`bbdefdf`). O `.clang-tidy` passou a recusar variáveis globais que podem mudar. A regra achou uma global que a conferência da auditoria não tinha visto, o `currentLaunch` de `Engine/Platform/Private/Application.cpp`: o SDL chama a primeira função do programa sem nenhum dado próprio, e ela é o único caminho até a função de início. Ela e os pontos do profiler ficaram marcados com `NOLINTNEXTLINE` e o motivo, e a [CONVENTIONS](CONVENTIONS.md) diz como uma exceção é aceita. As pastas de testes já ficavam fora da análise, então as macros do doctest não deram falsos avisos.
+  - **5:** nada a mudar. O [guia de desenvolvimento](setup/DEV.md) já dizia "`reinterpret_cast` fora de `Engine/Platform/Private`", igual à checagem; a frase "fora de um ponto só" era da auditoria externa, não dos documentos do Nexum. Nenhum código usa `reinterpret_cast` hoje. Isso corrige a evidência do item.
+  - **7:** feito (`5c12a2a`). A seção "O merge" do [WORKFLOW](WORKFLOW.md) pede que o dono leia o resumo de segurança, e diz onde ele fica: no resumo do passo `pr-summary`, na aba "Checks" do PR.
+  - **10:** feito (`5c12a2a`), como o TD-0025. O destino ficou `M2`, porque a checagem só aceita uma fatia ou um marco: a decisão é tomada na retrospectiva da parte 1 do M2 ou no próximo `/consolidar`, o que vier primeiro.
+  - **Fora desta proposta:** os itens 2 e 8 estão na P-0014, aberta; os itens 6, 9 e 11 ficam como descrito acima.
 
 ### P-0012: enxugar o ambiente da IA (menos tokens e menos texto repetido)
 - Origem: feedback do dono, em 2026-11-25, depois de duas análises do ambiente: uma sobre o consumo de tokens e outra sobre excesso nos agentes, hooks, skills e docs
