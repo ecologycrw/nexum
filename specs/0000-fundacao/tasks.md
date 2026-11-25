@@ -157,8 +157,8 @@ Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a 
 
 - [x] Revisão (`/revisar`): 2026-11-21, commit `3444b67`
 - [x] Fechamento (`/fechar`): 2026-11-21
-- [ ] Teste do dono
-- [ ] Retrospectiva (`/retrospectiva`)
+- [x] Teste do dono: 2026-11-21. Tudo certo pelo passo a passo do report (o cartão, o quadrado, mudar o tamanho, minimizar, restaurar e fechar). O dono notou a janela preta por uns 0,7 s no início, que virou a proposta P-0010
+- [x] Retrospectiva (`/retrospectiva`): 2026-11-25
 
 ## Bloqueios
 
@@ -284,8 +284,8 @@ O `/fechar` copia esta lista para a seção de mesmo nome do report, junto com a
 
 ## Notas para a próxima sessão
 
-- **Onde parou:** as 17 tarefas, a revisão e o fechamento estão concluídos. O [report](report.md) tem a prova de cada critério e o passo a passo do teste do dono. O próximo passo é o teste do dono; depois, a `/retrospectiva`, na mesma branch. A etapa e o próximo passo vêm do hook do início da sessão, a partir da lista "Etapas" acima (P-0006): cada etapa marca a sua linha ao terminar.
-- O PR #5 saiu do rascunho no fechamento e está pronto para o teste do dono. O merge é só dele, depois da retrospectiva.
+- **Onde parou:** a fatia está concluída: as 17 tarefas, a revisão, o fechamento, o teste do dono e a retrospectiva. Falta só o merge do PR #5, que é do dono. A retrospectiva mudou a ordem do roteiro: a próxima fatia é a parte 1 do M2, a rede sem mapa ([ADR 0032](../../docs/adr/0032-rede-antes-do-importador.md)).
+- O PR #5 saiu do rascunho no fechamento. O merge é só do dono.
 - O aviso automático da CI (Auto-fix) no PR #5 vale só para a sessão que o ligou. Numa sessão nova, ligue de novo: a permissão `mcp__ccd_pr__set_monitor` está no `.claude/settings.local.json` deste computador.
 - O `CMakePresets.json` tira dos testes os que têm a etiqueta `gpu`. A fatia não usa essa etiqueta: o plano manda os testes da placa de vídeo rodarem em todo `verify` e na CI, que usa placas por software. Mexer no filtro é mudar uma trava.
 - No commit `29fb789` (T03), o `git add -A` levou junto uma mudança do dono no `.claude/settings.json`, que é uma trava. A IA não tinha visto a mudança. Daqui em diante, cada commit adiciona só os caminhos da tarefa, nunca `-A`. Esta é a primeira ocorrência, para o report.

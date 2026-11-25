@@ -22,7 +22,7 @@ As provas automáticas rodam em todo `py scripts/dev.py verify` e na CI. A últi
 | CA-08 | testes com a etiqueta `[0000-CA-08]` em `Tools/VisualProof/Tests/ImageComparisonTest.cpp`: iguais, dentro da tolerância, tamanhos diferentes, um pixel acima da tolerância, arquivo ilegível e imagem de uma cor só, cada um com a sua mensagem | passou |
 | CA-09 | teste com a etiqueta `[0000-CA-09]` em `Games/MuOnline/Tests/FrameAllocationTest.cpp` (programa `muonline_frame_allocation_tests`): zero pedidos de memória em 1.000 quadros, depois de 3 de aquecimento | passou nos 3 sistemas. A prova vale para o `new` e o `new[]` da linha do quadro; a memória que o SDL pede por `malloc` não é contada ([TD-0019](../../docs/TECH_DEBT.md)) |
 | CA-10 | teste do CTest `muclient_draws_300_frames_and_closes` e o teste com a etiqueta `[0000-CA-10]` em `Engine/Render/Tests/WindowTargetTest.cpp`. No Linux, o teste exige `platform: video driver x11`, dentro do Xvfb | passou nos 3 sistemas da CI |
-| CA-11 | verificação manual do dono, pelo passo a passo de "O que você deve testar". Antes, na T13, a IA abriu a janela aqui, com o Vulkan na GTX 1060: as fotos mostraram o cartão certo e o quadrado andando; mudar o tamanho, minimizar e restaurar não distorceu o cartão; fechar terminou o programa com o código 0; e o log disse `vulkan` | aguarda o teste do dono |
+| CA-11 | verificação manual do dono, pelo passo a passo de "O que você deve testar". Antes, na T13, a IA abriu a janela aqui, com o Vulkan na GTX 1060: as fotos mostraram o cartão certo e o quadrado andando; mudar o tamanho, minimizar e restaurar não distorceu o cartão; fechar terminou o programa com o código 0; e o log disse `vulkan`. No teste do dono, em 2026-11-21, tudo correu bem; ele notou só a janela preta por uns 0,7 s no início, que não quebra o critério e virou a proposta P-0010 | confirmado pelo dono |
 | CA-12 | verificação manual da IA nesta sessão, nos três pontos do critério de pronto do M0: (1) a CI verde nos 3 sistemas, na execução citada acima; (2) o CA-01 passou; (3) um `#include "Mu/Foundation/FoundationScene.hpp"` posto de propósito num arquivo novo em `Engine/Core/Private/` foi reprovado pela checagem `architecture` com o código 1 e a mensagem `this code must not depend on the MU module: the dependencies only go down (INV-02)`. O arquivo foi apagado logo depois, e a checagem voltou a passar. Os testes automáticos da checagem (`scripts/checks/tests/test_architecture_check.py`) também rodam em todo `verify` | confirmado |
 | CA-13 | verificação manual dos documentos na T16, aprovada pelo dono, e a checagem `docs`: a [VISÃO](../../docs/VISION.md#piso-de-hardware) lista os requisitos do SDL GPU 3.4.20; o TD-0005 ficou só com o defeito do Direct3D 12, com destino M14; o TD-0003 e o TD-0006 saíram, e o que sobrou deles virou o TD-0010 e o TD-0016; o Tracy está no [THIRD_PARTY](../../docs/THIRD_PARTY.md) | confirmado |
 
@@ -207,7 +207,10 @@ Lições técnicas, sem erro da IA, que ficam para as próximas fatias:
 - **P-0007:** os testes sem as janelas de falha do Windows, e um tempo limite geral. Aceita e aplicada nesta branch.
 - **P-0008:** a prova visual do M3 com as placas de vídeo por software da CI. Aberta, para decidir antes do M3.
 - **P-0009:** as opções para a CI ter uma placa de vídeo de verdade. Aberta, para rever no M3 e no M7.
-- **P-0010:** a janela do `MuClient` sem a tela preta no início. Aberta, vinda do teste do dono, para o M1.
+- **P-0010:** a janela do `MuClient` sem a tela preta no início. Vinda do teste do dono; aceita na retrospectiva, para o M1.
+- **P-0011:** trocar a cópia da spec de referência pela versão nova da central. Vinda do hook do início da sessão; aceita e aplicada na retrospectiva.
+
+Na retrospectiva (2026-11-25), a P-0004 e a P-0005 também foram aceitas, para o M1. A P-0008 e a P-0009 continuam abertas até o M3. O roteiro mudou de ordem: a parte 1 do M2 vem antes do M1 ([ADR 0032](../../docs/adr/0032-rede-antes-do-importador.md)).
 
 O detalhe de cada uma está em [PROPOSALS.md](../../docs/PROPOSALS.md).
 

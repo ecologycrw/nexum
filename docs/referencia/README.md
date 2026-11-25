@@ -10,10 +10,10 @@ A cópia não é editada. Ela é a fonte das decisões que o projeto adotou, e m
 | Item | Valor |
 |---|---|
 | Origem | central de conhecimento do dono, `docs/specs/arquitetura/especificacao-engine-propria-caminho-b.md` |
-| Data da cópia | 2026-11-20 |
-| Versão na central | versão de 2026-11-20 com a reescrita do Enhanced (IV.9.7), front matter `atualizado: 2026-11-20`. O hash abaixo identifica o texto |
+| Data da cópia | 2026-11-20, trocada em 2026-11-25 |
+| Versão na central | versão de 2026-11-22, com as correções do `.att` e do A\* (I.3.2, I.3.3 e IV.15.1). O front matter da central continua dizendo `atualizado: 2026-11-20`; o hash abaixo identifica o texto |
 | Base analisada pela spec | Server (OpenMU) `b53c704c6` e Client (MuMain) `c405ae907` |
-| SHA-256 do texto (finais de linha LF) | `3e78fa0b436d7c6e89f31ad6b18c1119a01d6bb8e5498c7ae47d8c70ac31da75` |
+| SHA-256 do texto (finais de linha LF) | `b3aacf28fd879c8e1e1692e487b4856a66a4b171bb56004348937382af47b0be` |
 | Status na central | proposta |
 
 O hook do início da sessão compara este hash com a versão atual da spec na central. Se forem diferentes, ele avisa, e a atualização da cópia vira uma proposta para o dono decidir.
@@ -25,6 +25,7 @@ Quando a spec muda na central e o dono aprova, a cópia é trocada inteira, sem 
 | Data | O que mudou na spec | Efeito no Nexum |
 |---|---|---|
 | 2026-11-20 | O Enhanced foi reescrito a partir da doc oficial do MuMain: os 7 recursos, os ambientes por mapa, o defeito do D3D12, o Classic sem MSAA e o áudio 3D como opção à parte (0.3, I.5, I.12, D-04, D-09, D-12, IV.9.1, IV.9.7, IV.13, IV.17, V.2.3, M14, Partes VII e VIII, Apêndice A) | Os ADRs [0029](../adr/0029-sdl3-e-sdl-gpu.md), [0030](../adr/0030-render-forward-classic-e-enhanced.md) e [0031](../adr/0031-audio-paridade-primeiro-e-audio-3d.md) substituem os 0004, 0009 e 0012 |
+| 2026-11-25 | A central corrigiu, em 2026-11-22, o que a spec dizia do `.att` (1 ou 2 bytes por célula) e da regra de bloqueio do A\* (I.3.2 e I.3.3), e ligou a IV.15.1 à spec de protocolo nova, com uma nota sobre os 13 passos | Nenhuma decisão mudou, e nenhum ADR novo foi preciso. A cópia foi trocada pela proposta P-0011 |
 
 ## Como ler a cópia
 
@@ -42,7 +43,7 @@ As decisões D-01 a D-20 da Parte II foram adotadas uma por uma, como os ADRs [0
 | Parte II, decisões D-01 a D-20 | [ADRs 0001 a 0020](../adr/README.md); D-04, D-09 e D-12 nos ADRs 0029 a 0031 |
 | Parte III, Arquitetura | [ARCHITECTURE.md](../ARCHITECTURE.md) |
 | Parte V, Qualidade e paridade | [ADR 0014](../adr/0014-qualidade-e-paridade-medida.md), [WORKFLOW.md](../WORKFLOW.md#definição-de-pronto) e [VISUAL.md](../VISUAL.md) |
-| Parte VI, Roteiro | [ROADMAP.md](../ROADMAP.md) |
+| Parte VI, Roteiro | [ROADMAP.md](../ROADMAP.md), com a ordem do [ADR 0032](../adr/0032-rede-antes-do-importador.md) |
 | Parte VII e VIII, Riscos e Lacunas | consultadas pelo `/planejar` antes de cada marco |
 | Apêndice D, Dependências | [THIRD_PARTY.md](../THIRD_PARTY.md) |
 | Apêndice E, Sala limpa | [WORKFLOW.md](../WORKFLOW.md#sala-limpa) e o modelo de relatório |
@@ -61,3 +62,4 @@ Pontos em que o Nexum escolheu um caminho que a spec deixava em aberto, ou em qu
 | Alvos do build | `Nexum::<Módulo>` | alvo real `nexum_<módulo>`, com o alias `Nexum::<Módulo>` | O CMake reserva nomes com `::` para alias |
 | Módulos do kit e do jogo | subpastas `Grid/`, `Protocol/`... | um alvo por camada; as áreas ficam em subpastas de `Public/` e `Private/` | Mantém a convenção `Public/` e `Private/` |
 | Teste de mutação | não fala | fica de fora | Ferramenta extra do Lemuria; pode voltar por proposta |
+| Ordem do roteiro | o M1 antes do M2 (Parte VI) | o M2 dividido: a parte 1 (a rede sem mapa) antes do M1, e a parte 2 (a grade e o andar) depois dele | A rede é o maior risco do produto, e só a segunda metade do M2 depende do ImGui e do importador do M1 ([ADR 0032](../adr/0032-rede-antes-do-importador.md)) |

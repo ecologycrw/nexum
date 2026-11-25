@@ -95,11 +95,11 @@ Pastas que ainda não existem e quando entram:
 
 | Pasta | O que vai guardar | Marco |
 |---|---|---|
+| `Engine/Net`, `Tools/PacketGen`, `Tools/CaptureReplay` | transporte TCP; o gerador do codec; gravação `.mucap` | M2, parte 1 (antes do M1, [ADR 0032](adr/0032-rede-antes-do-importador.md)) |
+| `third_party/openmu` | os XML de pacotes do OpenMU, com o aviso MIT | M2, parte 1 |
 | `Engine/Jobs`, `Engine/Assets` | workers; VFS e cache | M1 |
 | `Tools/MuImport` (programa `muimport`) | o conversor offline | M1 |
-| `Engine/Animation`, `Engine/World` | esqueletos e clipes; a fachada sobre o EnTT | M1 |
-| `Engine/Net`, `Tools/PacketGen`, `Tools/CaptureReplay` | transporte TCP; o gerador do codec; gravação `.mucap` | M2 |
-| `third_party/openmu` | os XML de pacotes do OpenMU, com o aviso MIT | M2 |
+| `Engine/Animation`, `Engine/World` | esqueletos e clipes; a fachada sobre o EnTT | M1 (o `World` chega antes, na parte 1 do M2, se ela precisar dele) |
 | `Tools/Parity`, `Content/` | cenas de referência; conteúdo próprio de teste, sem nada da Webzen | M3 |
 | `Engine/Vfx`, `Engine/Ui`, `Engine/Audio` | partículas e rastros; host do RmlUi; miniaudio | M5 a M7 |
 

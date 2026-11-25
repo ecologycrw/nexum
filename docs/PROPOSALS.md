@@ -21,20 +21,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Evidência: o dono perguntou "Games deveria ficar onde está por enquanto e no futuro fazer um Documents/Nexum Projects ?" e, depois da explicação, pediu "Sim, registre". Hoje a spec põe as três camadas num repositório só ([ADR 0002](adr/0002-tres-camadas.md)), o que permite mudar a engine e o módulo MU na mesma fatia enquanto a API da engine ainda muda muito. A ideia é revisar isso no ponto de decisão depois do M7 (pergunta 4 do [ROADMAP](ROADMAP.md#-ponto-de-decisão)): o Nexum (Engine, Kit e Tools) viraria uma biblioteca com versão, e cada jogo teria o próprio repositório, por exemplo numa pasta `Nexum Projects`. A separação já é barata, porque a Engine e o Kit nunca incluem nada de `Games/` e o CMake só expõe as pastas `Public/`. Exigiria um ADR com as regras de versão, a forma de o jogo instalar a engine e a CI de cada lado
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
-
-### P-0004: o contador de alocações ver também a memória que o SDL pede
-- Origem: fatia 0, T15 (os 35 pedidos de memória do macOS)
-- Tipo: trava (o contador fica em `tests/architecture/frame_allocations/`)
-- Evidência: o teste do quadro (CA-09) só conta os pedidos feitos por `new`. O SDL pede memória por `malloc`, que o contador não vê. Por isso, a fila sem limite do desenho sem janela só apareceu no macOS, onde o driver da Apple pede memória por `new`. No Windows e no Linux, a mesma fila pode ter crescido sem que o teste visse. O SDL permite trocar as suas funções de memória (`SDL_SetMemoryFunctions`) antes do primeiro pedido. Com isso, o contador veria os pedidos do SDL nos 3 sistemas. A troca seria feita só nos programas de teste e precisa respeitar a INV-10 (cada biblioteca externa atrás de um único módulo).
-- Prioridade sugerida: média
-- Status: aberta
-
-### P-0005: a checagem `structure` conferir também as bibliotecas opcionais do vcpkg
-- Origem: fatia 0, T16 (o registro do Tracy no THIRD_PARTY)
-- Tipo: trava (a checagem fica em `scripts/checks/`)
-- Evidência: a checagem compara o THIRD_PARTY só com as bibliotecas principais do `vcpkg.json`. O Tracy fica numa opção (*feature*) do `vcpkg.json` e, por isso, não é conferido: ele foi registrado numa lista à parte, fora da tabela que a checagem lê. Uma biblioteca opcional nova poderia entrar sem registro e sem licença conferida.
-- Prioridade sugerida: baixa
-- Status: aberta
+- Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o ponto de decisão.
 
 ### P-0008: a prova visual do M3 com as placas de vídeo por software da CI
 - Origem: feedback do dono, depois da revisão da fatia 0 (a pergunta sobre placa de vídeo nas máquinas do GitHub)
@@ -47,6 +34,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
   As opções de ter uma placa de verdade na CI estão na P-0009.
 - Prioridade sugerida: média (decidir antes do M3)
 - Status: aberta
+- Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o planejamento do M3.
 
 ### P-0009: as opções para a CI ter uma placa de vídeo de verdade
 - Origem: feedback do dono, na mesma conversa da P-0008
@@ -59,6 +47,17 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
   A recomendação dada ao dono foi continuar como hoje até o M3, e decidir junto com a P-0008 e com a medição do piso de hardware (TD-0018, M7).
 - Prioridade sugerida: baixa (rever no M3 e no M7)
 - Status: aberta
+- Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
+
+## Processadas
+
+### P-0011: trocar a cópia da spec de referência pela versão de 2026-11-22 da central
+- Origem: o hook do início da sessão, em 2026-11-25 ("a spec de referencia mudou na central")
+- Tipo: doc (a cópia em `docs/referencia/` é uma trava)
+- Evidência: ao responder às perguntas do M2, a central corrigiu 3 trechos da spec em 2026-11-22: o `.att` tem 1 ou 2 bytes por célula (I.3.2 e I.3.3); a regra de bloqueio do A\* não é a que a doc do editor descreve (I.3.2); e a IV.15.1 passou a apontar para a spec de protocolo nova, com uma nota sobre os 13 passos. O front matter da central continua dizendo `atualizado: 2026-11-20`.
+- Prioridade sugerida: alta (as correções valem para o M2)
+- Status: aceita
+- Destino: aplicada na retrospectiva da fatia 0, com o "sim" do dono ("Sim, aplicar"). A cópia ficou idêntica à da central, o que o hook do início da sessão confirmou, e o [README da referência](referencia/README.md) ganhou o hash novo e a linha da atualização. Nenhuma decisão mudou, e nenhum ADR novo foi preciso.
 
 ### P-0010: a janela do `MuClient` sem a tela preta no início
 - Origem: feedback do dono, no teste da fatia 0
@@ -86,9 +85,24 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
     - a solução 5 também no M1, quando o `MuClient` começar a carregar arquivos de verdade. O quadro nunca espera por disco (INV-06), então a tela de carregamento vai ser necessária de qualquer jeito;
     - a solução 3 só se o início passar de 1 a 2 segundos antes de qualquer coisa aparecer.
 - Prioridade sugerida: baixa (é só aparência e dura menos de 1 segundo; fazer no M1, junto com o início do visualizador)
-- Status: aberta
+- Status: aceita
+- Destino: o M1, junto com o início do visualizador: as soluções 1 e 2, e a 5 com a tela de carregamento. Decidido na retrospectiva da fatia 0 (2026-11-25).
 
-## Processadas
+### P-0005: a checagem `structure` conferir também as bibliotecas opcionais do vcpkg
+- Origem: fatia 0, T16 (o registro do Tracy no THIRD_PARTY)
+- Tipo: trava (a checagem fica em `scripts/checks/`)
+- Evidência: a checagem compara o THIRD_PARTY só com as bibliotecas principais do `vcpkg.json`. O Tracy fica numa opção (*feature*) do `vcpkg.json` e, por isso, não é conferido: ele foi registrado numa lista à parte, fora da tabela que a checagem lê. Uma biblioteca opcional nova poderia entrar sem registro e sem licença conferida.
+- Prioridade sugerida: baixa
+- Status: aceita
+- Destino: trava, antes da próxima biblioteca opcional do `vcpkg.json`, provavelmente o ImGui do modo de autoria, no M1. Decidido na retrospectiva da fatia 0 (2026-11-25).
+
+### P-0004: o contador de alocações ver também a memória que o SDL pede
+- Origem: fatia 0, T15 (os 35 pedidos de memória do macOS)
+- Tipo: trava (o contador fica em `tests/architecture/frame_allocations/`)
+- Evidência: o teste do quadro (CA-09) só conta os pedidos feitos por `new`. O SDL pede memória por `malloc`, que o contador não vê. Por isso, a fila sem limite do desenho sem janela só apareceu no macOS, onde o driver da Apple pede memória por `new`. No Windows e no Linux, a mesma fila pode ter crescido sem que o teste visse. O SDL permite trocar as suas funções de memória (`SDL_SetMemoryFunctions`) antes do primeiro pedido. Com isso, o contador veria os pedidos do SDL nos 3 sistemas. A troca seria feita só nos programas de teste e precisa respeitar a INV-10 (cada biblioteca externa atrás de um único módulo).
+- Prioridade sugerida: média
+- Status: aceita
+- Destino: trava, na primeira fatia do M1, junto com o [TD-0019](TECH_DEBT.md), quando os shaders e os modelos trouxerem mais trabalho do SDL para dentro do quadro. Decidido na retrospectiva da fatia 0 (2026-11-25).
 
 ### P-0007: o `MuClient` nos testes sem as janelas de falha do Windows, e um tempo limite geral para os testes
 - Origem: feedback do dono na fatia 0, depois da P-0006, comparando com uma proposta de outro projeto dele
