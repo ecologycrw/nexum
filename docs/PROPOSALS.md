@@ -64,6 +64,18 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: alta para o item 2 (antes da spec da parte 1 do M2); baixa para o item 8
 - Status: aberta
 
+### P-0015: uma trava que confira os `NOLINT` novos
+- Origem: achado 5 do `auditor`, na consolidação de 2026-11-25 (P-0013), deixado fora dela por ser escopo novo
+- Tipo: trava
+- Evidência: um comentário `NOLINT` ou `NOLINTNEXTLINE` desliga uma regra do clang-tidy naquela linha, e nada no Nexum confere quando um deles entra. A [CONVENTIONS](CONVENTIONS.md) pede que cada exceção tenha o motivo escrito no código, mas isso é só texto: um `NOLINT` novo apaga a checagem em silêncio, e só a revisão o vê. Hoje existem três, todos com motivo: o `currentLaunch` de `Engine/Platform/Private/Application.cpp` e os dois pontos do profiler em `Engine/Debug/Private/Profiler.cpp`. Depois da explicação, o dono disse "Sim, registre". Opções a comparar:
+  - **o resumo de segurança do PR contar os `NOLINT` acrescentados** e listar cada um, como já faz com os testes removidos. É o mais barato: não bloqueia nada e põe cada exceção nova diante do dono antes do merge. Trava: `scripts/checks/` (o `pr_summary.py` e os testes dele);
+  - **a checagem `cpp-rules` exigir um comentário com o motivo logo acima** de cada `NOLINT`, e que ele cite a regra desligada, sem `NOLINT` genérico. Trava: `scripts/checks/`;
+  - **uma lista fixa de arquivos onde o `NOLINT` é aceito**: a mais rígida, e cada exceção nova pediria uma mudança de trava.
+
+  A recomendação é a primeira, talvez junto com a segunda: a primeira mostra, a segunda impede o `NOLINT` sem motivo.
+- Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
+- Status: aberta
+
 ## Processadas
 
 ### P-0013: os achados aprovados da auditoria externa de 2026-11-25
