@@ -29,6 +29,10 @@ struct Launch {
     std::unique_ptr<Application> application;
 };
 
+// The one mutable global of the platform: SDL_RunApp calls MainFunction with only argc and argv, so the
+// launch can reach InitCallback through nothing else. RunApplication sets it, clears it and refuses a second
+// run.
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 Launch* currentLaunch = nullptr;
 
 [[nodiscard]] SDL_AppResult ToSdl(AppStatus status) noexcept {

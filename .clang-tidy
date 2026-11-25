@@ -6,6 +6,7 @@ Checks: >
   -bugprone-easily-swappable-parameters,
   -bugprone-exception-escape,
   clang-analyzer-*,
+  cppcoreguidelines-avoid-non-const-global-variables,
   cppcoreguidelines-no-malloc,
   cppcoreguidelines-owning-memory,
   cppcoreguidelines-pro-type-reinterpret-cast,

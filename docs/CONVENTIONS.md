@@ -79,7 +79,7 @@ Formato: `tipo(escopo): descrição curta em inglês`
 - **Buffers com tamanho:** use `std::span`, `std::string_view` e `std::array`. Funções de C sem limite de tamanho, como `strcpy` e `sprintf`, são proibidas.
 - **Conversões explícitas:** nada de conversão de inteiros que possa perder valor sem checar.
 - **Dados externos passam por um leitor com limites.** Nunca transforme bytes de rede ou de arquivo em struct com `reinterpret_cast` ou `memcpy` direto.
-- **Sem estado global mutável.**
+- **Sem estado global mutável.** O clang-tidy recusa variáveis globais que podem mudar (`cppcoreguidelines-avoid-non-const-global-variables`) no código da engine, do kit, dos jogos e das ferramentas; as pastas de testes ficam de fora da análise. Uma exceção só existe quando uma biblioteca de fora não deixa outro caminho, com um `NOLINTNEXTLINE` e o motivo escrito no código, como o `currentLaunch` de `Engine/Platform/Private/Application.cpp` (o SDL chama a primeira função do programa sem nenhum dado próprio) e os pontos do profiler em `Engine/Debug/Private/Profiler.cpp`.
 - **Tempo e sorteios** vêm das fontes da engine. Relógios do sistema só em `Engine/Time` e nas ferramentas de `Tools/`; `rand` e `srand` são proibidos em todo lugar ([ADR 0015](adr/0015-aleatoriedade-deterministica.md)).
 - **O caminho quente não pede memória.** Arenas por quadro e por tick; reserve ao criar e reutilize.
 
