@@ -18,7 +18,10 @@ Usage: py scripts/dev.py [--compiler gcc] <command>  (use python3 on Linux and m
 
 --compiler gcc uses GCC instead of Clang on Linux.
 
-This file is a protected "trava" (see docs/WORKFLOW.md).
+Outside the CI, each command's output goes to build/dev-last.log and only its numbers are shown: tests passed, build
+steps, lines with warnings. A command that fails is shown in full. --full shows everything, as the CI always does.
+
+This file is a protected "trava" (see AGENTS.md).
 """
 
 from __future__ import annotations
@@ -28,6 +31,7 @@ import concurrent.futures
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -111,8 +115,65 @@ def build_environment() -> dict[str, str]:
     return environment
 
 
+class Output:
+    """Where the output of the commands goes. In summary mode, it is saved to a log and only its numbers are shown."""
+
+    def __init__(self, summary: bool, log: Path | None = None) -> None:
+        self.summary = summary
+        self.log = log
+        self.log_started = False
+
+    def save(self, command: Sequence[str], text: str) -> None:
+        if self.log is None:
+            return
+        self.log.parent.mkdir(parents=True, exist_ok=True)
+        with self.log.open("a" if self.log_started else "w", encoding="utf-8") as log:
+            log.write(f"$ {' '.join(command)}\n{text}\n")
+        self.log_started = True
+
+
+OUTPUT = Output(summary=False)
+LOG_PATH = ROOT / "build" / "dev-last.log"
+
+_SUMMARY_LINES = (
+    re.compile(r"tests passed"),  # CTest
+    re.compile(r"^Ran \d+ tests? in "),  # unittest
+    re.compile(r"tests: \d+ of \d+ passed"),  # the PowerShell tests of the hooks
+    re.compile(r"^OK: "),  # the repository checks
+    re.compile(r"^ninja: no work to do"),
+)
+_BUILD_PROGRESS = re.compile(r"^\[\d+/(?P<total>\d+)\]")
+_WARNING = re.compile(r"\bwarning\b", re.IGNORECASE)
+
+
+def summarize(text: str) -> list[str]:
+    """The numbers of a command that passed: tests passed, build steps and lines with warnings."""
+    lines = text.splitlines()
+    summary = [line.strip() for line in lines if any(pattern.search(line) for pattern in _SUMMARY_LINES)]
+    progress = [match for line in lines if (match := _BUILD_PROGRESS.match(line))]
+    if progress:
+        summary.append(f"compiled: {progress[-1].group('total')} build step(s)")
+    warnings = sum(1 for line in lines if _WARNING.search(line))
+    if warnings:
+        summary.append(f"{warnings} line(s) with a warning: see {LOG_PATH.relative_to(ROOT).as_posix()}")
+    return summary
+
+
 def run(command: Sequence[str], environment: dict[str, str] | None = None) -> None:
-    completed = subprocess.run(list(command), cwd=ROOT, env=environment, check=False)
+    if not OUTPUT.summary:
+        completed = subprocess.run(list(command), cwd=ROOT, env=environment, check=False)
+    else:
+        completed = subprocess.run(
+            list(command), cwd=ROOT, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, errors="replace", check=False,
+        )
+        text = completed.stdout or ""
+        OUTPUT.save(command, text)
+        if completed.returncode != 0:
+            print(text, end="" if text.endswith("\n") else "\n", flush=True)
+        else:
+            for line in summarize(text):
+                print(f"  {line}", flush=True)
     if completed.returncode != 0:
         raise StepFailed(f"Command failed with exit code {completed.returncode}: {' '.join(command)}")
 
@@ -145,15 +206,22 @@ class Builder:
 
     def __init__(self, compiler: str) -> None:
         self.compiler = compiler
+        self.configured: set[str] = set()
 
     def preset(self, kind: str) -> str:
         return preset_name(SYSTEM, self.compiler, kind)
 
     def configure(self, kind: str = "dev") -> None:
         run(["cmake", "--preset", self.preset(kind)], build_environment())
+        self.configured.add(kind)
+
+    def configure_once(self, kind: str = "dev") -> None:
+        """One command configures each kind of build only once; CMake itself notices later changes while building."""
+        if kind not in self.configured:
+            self.configure(kind)
 
     def build(self, kind: str = "dev") -> None:
-        self.configure(kind)
+        self.configure_once(kind)
         run(["cmake", "--build", "--preset", self.preset(kind)], build_environment())
 
     def test(self, kind: str = "dev") -> None:
@@ -174,7 +242,7 @@ class Builder:
 
     def tidy(self) -> None:
         environment = build_environment()
-        self.configure("dev")
+        self.configure_once("dev")
         tool = find_llvm_tool("clang-tidy", environment)
         build_folder = ROOT / "build" / self.preset("dev")
         files = [path for path in cpp_files(TIDY_FOLDERS, sources_only=True) if "/Tests/" not in path]
@@ -234,11 +302,15 @@ def run_steps(steps: Sequence[tuple[str, Callable[[], None]]]) -> int:
             step()
         except StepFailed as failure:
             print(f"\nFAILED: {name}\n{failure}")
+            if OUTPUT.log_started and OUTPUT.log is not None:
+                print(f"Full output: {OUTPUT.log.relative_to(ROOT).as_posix()}")
             return 1
         finished.append((name, time.monotonic() - started))
     print("\nResult:")
     for name, seconds in finished:
         print(f"  OK  {name} ({seconds:.1f}s)")
+    if OUTPUT.log_started and OUTPUT.log is not None:
+        print(f"Full output: {OUTPUT.log.relative_to(ROOT).as_posix()}")
     return 0
 
 
@@ -283,9 +355,13 @@ def main(arguments: Sequence[str]) -> int:
                         help="gcc: use GCC instead of Clang (Linux only)")
     parser.add_argument("--fix", action="store_true", help="format: correct the files")
     parser.add_argument("--no-static", action="store_true", help="verify: skip formatting, analysis and release")
+    parser.add_argument("--full", action="store_true", help="show the whole output of every command, as in the CI")
     parser.add_argument("names", nargs="*", help="checks: which checks to run")
     options = parser.parse_args(arguments)
     builder = Builder(options.compiler)
+    if not options.full and not os.environ.get("CI"):
+        OUTPUT.summary = True
+        OUTPUT.log = LOG_PATH
 
     simple: dict[str, Callable[[], None]] = {
         "configure": builder.configure, "build": builder.build, "test": builder.test, "sanitize": builder.sanitize,
