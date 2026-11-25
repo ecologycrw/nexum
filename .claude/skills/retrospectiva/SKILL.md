@@ -23,6 +23,7 @@ description: Processa o que a fatia do Nexum ensinou - aplica a escada de erros,
 5. **Pergunte ao dono:** qual a próxima fatia e o que fazer com cada proposta. Apresente em português simples.
 6. **Depois das respostas:**
    - `docs/ROADMAP.md`: ajuste as fatias e os horizontes (o Claude Code vai pedir a confirmação do dono);
+   - se a ordem dos marcos mudou: confira o destino de cada item do `docs/TECH_DEBT.md` e de cada proposta aberta que cite um marco que andou, e corrija o que não fizer mais sentido (P-0013);
    - `docs/PROPOSALS.md`: mova as propostas decididas para "Processadas", com o destino;
    - `docs/STATUS.md`: `spec-atual` vazio, fase `entre-fatias`, próxima ação `/planejar`. Com o `spec-atual` vazio na branch da fatia, o hook do início da sessão passa a dizer que a fatia espera o merge do dono;
    - `tasks.md`: marque a etapa Retrospectiva na lista "Etapas", com a data;
