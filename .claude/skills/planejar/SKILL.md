@@ -14,7 +14,9 @@ Transforma o próximo item do roadmap numa spec e num plano aprovados. **Não im
 
 ## Passos
 
-1. **Contexto.** Leia `docs/ROADMAP.md`, `docs/STATUS.md`, as propostas abertas em `docs/PROPOSALS.md`, `docs/TECH_DEBT.md`, o report da última fatia e as seções de `docs/ARCHITECTURE.md` que a fatia toca. Leia também, na cópia da spec em `docs/referencia/`, a seção do marco na Parte VI, os subsistemas da Parte IV que ele toca e as lacunas da Parte VIII.
+1. **Contexto.** Leia `docs/ROADMAP.md`, `docs/STATUS.md`, as propostas abertas em `docs/PROPOSALS.md` (só a seção "Abertas", até o título "Processadas"), `docs/TECH_DEBT.md`, o report da última fatia e as seções de `docs/ARCHITECTURE.md` que a fatia toca.
+   - **Na cópia da spec em `docs/referencia/`,** leia estas seções: a do marco na Parte VI; os subsistemas da Parte IV que ele toca; os riscos da Parte VII; as lacunas da Parte VIII; e os apêndices que a fatia usar (o B, com os pacotes essenciais, numa fatia de rede; o C, com os números de referência, quando a fatia usar algum deles).
+   - **Leia por seção, nunca o arquivo inteiro:** a spec tem mais de 3.000 linhas. Ache os títulos com a busca (`^#{1,3} ` no arquivo) e leia só o trecho de cada seção, do título dela até o título seguinte. Se o trecho citar outra seção ("ver IV.14", "D-10"), leia também essa.
 2. **Escolha da fatia.** É a próxima de "Próximas" no ROADMAP, a menos que a última retrospectiva tenha decidido outra. Um marco grande pode virar várias fatias: proponha um pedaço que termine em algo que roda e se mede. Se ela depender de algo que ainda não existe, proponha antes uma fatia de fundação e pergunte ao dono.
 3. **Investigar antes (sala limpa).** Para cada comportamento do original que a fatia vai reproduzir, e para cada item da coluna "Investigar antes" do marco, use `/consultar-central`.
    - **Confira se a descrição basta**, sem confiar na impressão de que ela parece completa. Para cada comportamento, preencha a checklist da seção "Suficiência das descrições" de `templates/plan.md`:

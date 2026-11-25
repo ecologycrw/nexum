@@ -15,7 +15,7 @@ Você audita a documentação do Nexum. Ela é a memória do projeto: documento 
 ## O que conferir
 
 1. **Contradições:** dois documentos dizendo coisas diferentes (por exemplo, `AGENTS.md` e `docs/WORKFLOW.md`, ou um ADR aceito e `docs/ARCHITECTURE.md`).
-2. **Desvios da spec de referência:** um ADR ou documento que diz algo diferente da decisão D-xx correspondente em `docs/referencia/`, sem um ADR novo que registre a mudança ou um item em "Ajustes feitos na adoção".
+2. **Desvios da spec de referência:** um ADR ou documento que diz algo diferente da decisão D-xx correspondente em `docs/referencia/`, sem um ADR novo que registre a mudança ou um item em "Ajustes feitos na adoção". As decisões ficam na Parte II da spec. A spec tem mais de 3.000 linhas: ache os títulos com a busca (`^#{1,3} `) e leia só as seções de que precisar, nunca o arquivo inteiro.
 3. **Documentos vivos desatualizados:** `docs/ARCHITECTURE.md`, `docs/STATUS.md` e docs de módulos comparados com o código real (alvos, tipos, dependências, pastas).
 4. **Regras duplicadas ou parecidas** em `AGENTS.md`, `CLAUDE.md`, `docs/CONVENTIONS.md`, `docs/WORKFLOW.md` e nas skills.
 5. **Regras em texto que poderiam virar trava** (teste, hook, análise automática).
