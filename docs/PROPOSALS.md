@@ -49,6 +49,8 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
 
+## Processadas
+
 ### P-0012: enxugar o ambiente da IA (menos tokens e menos texto repetido)
 - Origem: feedback do dono, em 2026-11-25, depois de duas análises do ambiente: uma sobre o consumo de tokens e outra sobre excesso nos agentes, hooks, skills e docs
 - Tipo: regra, trava, skill, agente, doc e decisão (vários itens, para processar juntos no `/consolidar`)
@@ -74,9 +76,20 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
   **O que não muda:** os arquivos da fatia 0 (`specs/0000-fundacao/`), por pedido do dono ("como a spec da fatia 0 já está feita, então não acho que seria legal mexer nos conteúdos internos dela"); os ADRs existentes; e a cópia da spec em `docs/referencia/`. As regras novas valem a partir da próxima fatia.
   **Regra geral:** cada item vem com uma condição para não perder qualidade, e o `/consolidar` só aplica o item se puder cumprir essa condição.
 - Prioridade sugerida: alta para os itens 1, 2 e 8; média para 3, 4, 7 e 10; baixa para 6, 9 e 11 (o item 5 foi retirado)
-- Status: aberta
-
-## Processadas
+- Status: aceita
+- Destino: processada no `/consolidar` de 2026-11-25 (branch `consolidacao/2026-11-25-ambiente`), com o "Aprovo tudo" do dono para a limpeza proposta depois da auditoria. A auditoria corrigiu três pontos da evidência: o modelo do report tinha 14 seções, não 15; a checagem `docs` nunca exigiu as seções de travas e de testes removidos, então o item 7 passou a acrescentar essa exigência em vez de "manter"; e o resumo do item 1 não pode valer na CI, que não guarda o log. Cada item:
+  - **1:** feito (`ff3b4ee`). Fora da CI, o `scripts/dev.py` mostra só os números de cada passo e grava a saída completa em `build/dev-last.log`; uma falha aparece inteira, e `--full` ou a CI mostram tudo. Cada tipo de build é configurado uma vez por comando, e o vcpkg não imprime mais o aviso de uso. Medido no `quick`: cerca de 700 caracteres, contra cerca de 17 mil no `verify` de antes.
+  - **2:** feito (`d9231a9`). O `/implementar` e o `templates/tasks.md` pedem no máximo 2 linhas depois da primeira linha de cada tarefa, que o hook lê, e o modelo ganhou a seção "Decisões do dono".
+  - **3:** feito (`2b35510`). O `/planejar`, o `auditor` e o `/consultar-central` leem as specs longas por seção. O `/planejar` passou a ler também a Parte VII, como o README da referência já dizia, e os apêndices B e C quando a fatia os usar.
+  - **4:** feito do jeito mais barato (`2b35510`). As processadas ficam no mesmo arquivo; o `/planejar` lê só até "Processadas", e o `/situacao` usa a contagem do hook.
+  - **5:** retirado pelo dono antes da consolidação.
+  - **6:** fica com o dono, fora do repositório: desligar no app os conectores que o Nexum não usa.
+  - **7:** feito (`ba65502` e `9a5cd3b`). O modelo do report juntou as travas com os testes removidos e os itens provisórios criados com os resolvidos. A checagem `docs` passou a exigir a seção de travas e testes removidos; os reports antigos, como o da fatia 0, podem manter as duas seções separadas. O resumo do PR passou a contar as linhas removidas dos testes em PowerShell.
+  - **8:** feito (`35d38ea`). O `AGENTS.md` ficou dono do que exige aprovação e do que é proibido; o `WORKFLOW.md`, da checklist de sala limpa e da definição de pronto. A seção do `AGENTS.md` virou "A prova de que passou", e o `WORKFLOW.md` corrigiu as camadas de travas para "1 a 4".
+  - **9:** feito (`ba65502`). O `docs/adr/README.md` diz quando criar um ADR, e o `/fechar` aponta para ele. Os ADRs existentes não mudaram.
+  - **10:** feito (`c63959b`). A guarda libera só a saída gravada na pasta temporária do Windows e o `>` entre aspas, quando o comando não roda outro comando por dentro. Os 98 casos continuam, com 30 novos, 22 deles tentativas de escapar. Continua bloqueada uma mensagem de commit que cite um comando de escrita (como `cp` ou `Out-File`) junto com o nome de uma trava; isso não estava no item e fica como está.
+  - **11:** fica para medir quando a demora dos hooks incomodar; nada mudou.
+  - **Também nesta consolidação:** a linha da INV-05 no `ARCHITECTURE.md` (`5730a9d`), e um passo novo no `/consolidar` e no `/propor` para as propostas tratadas numa consolidação.
 
 ### P-0011: trocar a cópia da spec de referência pela versão de 2026-11-22 da central
 - Origem: o hook do início da sessão, em 2026-11-25 ("a spec de referencia mudou na central")
