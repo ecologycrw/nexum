@@ -108,8 +108,7 @@
       "hidden": true,
       "output": { "outputOnFailure": true },
       "execution": { "noTestsAction": "error", "timeout": 300 },
-      "environment": { "NEXUM_FAILURES_AS_TEXT": "1" },
-      "filter": { "exclude": { "label": "gpu" } }
+      "environment": { "NEXUM_FAILURES_AS_TEXT": "1" }
     },
     { "name": "windows-dev", "inherits": "base", "configurePreset": "windows-dev" },
     { "name": "windows-asan", "inherits": "base", "configurePreset": "windows-asan" },

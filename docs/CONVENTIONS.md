@@ -80,7 +80,7 @@ Formato: `tipo(escopo): descrição curta em inglês`
 - **Conversões explícitas:** nada de conversão de inteiros que possa perder valor sem checar.
 - **Dados externos passam por um leitor com limites.** Nunca transforme bytes de rede ou de arquivo em struct com `reinterpret_cast` ou `memcpy` direto.
 - **Sem estado global mutável.**
-- **Tempo e sorteios** vêm das fontes da engine. Relógios do sistema só em `Engine/Platform` e `Engine/Time`; `rand` e `srand` são proibidos em todo lugar ([ADR 0015](adr/0015-aleatoriedade-deterministica.md)).
+- **Tempo e sorteios** vêm das fontes da engine. Relógios do sistema só em `Engine/Time` e nas ferramentas de `Tools/`; `rand` e `srand` são proibidos em todo lugar ([ADR 0015](adr/0015-aleatoriedade-deterministica.md)).
 - **O caminho quente não pede memória.** Arenas por quadro e por tick; reserve ao criar e reutilize.
 
 ## Antipadrões proibidos

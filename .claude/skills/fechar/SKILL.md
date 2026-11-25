@@ -1,6 +1,6 @@
 ---
 name: fechar
-description: Fecha a fatia do Nexum - escreve o report com a prova de cada critério e a checklist de sala limpa, atualiza a documentação viva e abre o Pull Request (ou prepara a revisão local) para o dono testar. Use depois do /revisar.
+description: Fecha a fatia do Nexum - escreve o report com a prova de cada critério e a checklist de sala limpa, atualiza a documentação viva e abre o Pull Request (ou tira do rascunho o que já existe) para o dono testar. Use depois do /revisar.
 ---
 
 # /fechar
@@ -23,19 +23,21 @@ description: Fecha a fatia do Nexum - escreve o report com a prova de cada crit�
    - `docs/ARCHITECTURE.md`, se algo do que ele descreve mudou (inclusive a linha "Como é agora").
    - Documentação de módulo para cada sistema novo, a partir de `templates/module.md`.
    - "Código de referência" em `docs/CONVENTIONS.md`, se surgiu um bom exemplo.
-   - `docs/TECH_DEBT.md`: tire os itens resolvidos e inclua os novos.
+   - `docs/TECH_DEBT.md`: tire os itens resolvidos e inclua os novos. Os dois vão para o report, em "Itens provisórios criados" e "Itens provisórios resolvidos".
    - ADR para cada decisão nova, a partir de `templates/adr.md`, com a linha no índice `docs/adr/README.md`.
 3. **Status.** Mude a spec para `concluida`. Atualize o `docs/STATUS.md`: a fatia aguarda o teste do dono, com uma linha no "Histórico". Marque a etapa Fechamento na lista "Etapas" do `tasks.md`, com a data: `` - [x] Fechamento (`/fechar`): AAAA-MM-DD ``.
 4. **Verifique.** Rode `/verificar`. A checagem de docs confere que todo critério tem prova e que o report tem a sala limpa.
 5. **Commit e revisão do dono.**
    - Commit `docs(NNNN): close slice N`.
-   - **Com remoto:** `git push`. Escreva a descrição do PR num arquivo temporário, em português, com: resumo, o que testar, critérios e provas, sala limpa, travas alteradas. Termine com a linha de atribuição do Claude Code. Rode `gh pr create --base main --head fatia/NNNN-nome --title "Fatia N: <título>" --body-file <arquivo>`.
-   - **Sem remoto (modo local):** mostre ao dono o resumo do que mudou (`git log --oneline main..HEAD` e `git diff --stat main...HEAD`) e o caminho do report.
+   - `git push`. Escreva a descrição do PR num arquivo temporário, em português, com: resumo, o que testar, critérios e provas, sala limpa, travas alteradas. Termine com a linha de atribuição do Claude Code.
+   - Confira se a branch já tem um PR: `gh pr view fatia/NNNN-nome --json number,state,isDraft`. Uma fatia pode ter aberto o PR em rascunho antes, por exemplo para testar a CI.
+     - **Sem PR:** `gh pr create --base main --head fatia/NNNN-nome --title "Fatia N: <título>" --body-file <arquivo>`.
+     - **Com PR aberto:** `gh pr edit <número> --title "Fatia N: <título>" --body-file <arquivo>` e, se ele estiver em rascunho, `gh pr ready <número>`. Nunca abra um segundo PR para a mesma branch.
 6. **Avise o dono:**
-   - o link do PR (ou o resumo local) e o passo a passo do que testar;
-   - que, com o GitHub, o check verde no PR é a prova de que tudo passou nos 3 sistemas; no modo local, a prova é a saída do `verify` desta sessão;
+   - o link do PR e o passo a passo do que testar;
+   - que o check verde no PR é a prova de que tudo passou nos 3 sistemas;
    - que, depois do teste, o dono conta o que achou e a `/retrospectiva` roda na mesma branch, antes da aprovação.
 
 ## Nunca
 
-- Fazer merge. No GitHub, o merge é do dono, pelo navegador. No modo local, só com o "sim" explícito do dono, e só `git merge --ff-only`.
+- Fazer merge. O merge é do dono, pelo navegador.

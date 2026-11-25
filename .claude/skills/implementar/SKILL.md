@@ -19,8 +19,8 @@ description: Implementa a fatia aprovada do Nexum, uma tarefa por vez, com teste
    3. Implemente seguindo `docs/CONVENTIONS.md` e o código de referência citado lá. Respeite as invariantes de `docs/ARCHITECTURE.md`.
    4. **Sala limpa.** Se a tarefa reproduz um comportamento do original, escreva a partir da spec ou do achado listado em "Fontes da central usadas" do `plan.md`, nunca de memória e nunca do código do MuMain. Toda constante (tamanho, offset, tempo, código de pacote) vem de uma spec que cita a origem. Confira a checklist de `docs/WORKFLOW.md` (seção "Sala limpa"). Se a descrição não bastar, pare: use `/consultar-central`, marque a tarefa `[!]` e espere a central.
    5. Rode as verificações da skill `/verificar`.
-   6. Se a tarefa mudou o que aparece na tela, gere a imagem da cena de prova, abra o arquivo e compare com `docs/VISUAL.md`. Anote no `tasks.md` o que viu. Uma imagem errada impede o commit, como um teste que falha.
-   7. Se tudo passou: marque `[x]` e faça o commit `tipo(NNNN): Txx descrição`. Se houver remoto, `git push`.
+   6. Se a tarefa mudou o que aparece na tela, gere a imagem da cena de prova, abra o arquivo e compare com `docs/VISUAL.md`. Anote no `tasks.md` o que viu. Uma imagem errada impede o commit, como um teste que falha. Se a cena é nova, o teste da prova visual só passa com a imagem aprovada em `tests/visual/approved/`: mostre a imagem ao dono e, se ele aprovar, entregue o comando pronto para ele mesmo copiar o arquivo. A IA nunca copia nem altera essas imagens. A imagem precisa estar lá antes do `/fechar`, para a CI do PR ficar verde.
+   7. Se tudo passou: marque `[x]` e faça o commit `tipo(NNNN): Txx descrição` e o `git push`.
    8. Se não passar depois de tentativas razoáveis: marque `[!]`, descreva o bloqueio em "Bloqueios" no `tasks.md`, pare e pergunte ao dono.
 3. **Ao terminar todas as tarefas,** diga ao dono que a próxima etapa é `/revisar`.
 

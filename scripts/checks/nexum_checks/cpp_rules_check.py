@@ -46,7 +46,7 @@ _OTHER_RULES = (
     Rule(
         re.compile(r"\b(system_clock|steady_clock|high_resolution_clock)\b"),
         "time must come from the engine's clocks (INV-05)",
-        ("Engine/Platform/Private/", "Engine/Time/Private/", "Tools/"),
+        ("Engine/Time/Private/", "Tools/"),
     ),
     Rule(
         re.compile(r"\breinterpret_cast\b"),
@@ -61,6 +61,8 @@ _OTHER_RULES = (
 )
 
 _DELETE = re.compile(r"\bdelete\b")
+# The standard header <new> brings std::launder and the cache line sizes; including it allocates nothing.
+_INCLUDE_NEW = re.compile(r"^[ \t]*#[ \t]*include[ \t]*<new>", re.MULTILINE)
 _CODE_PARTS = re.compile(
     r"""
     (?P<raw>R"(?P<delimiter>[^()\s]{0,16})\(.*?\)(?P=delimiter)")
@@ -96,8 +98,12 @@ def _rules_for(where: str) -> tuple[Rule, ...]:
     return tuple(rule for rule in rules if not any(where.startswith(place) for place in rule.allowed_in))
 
 
+def _without_include_new(code: str) -> str:
+    return _INCLUDE_NEW.sub(lambda match: " " * len(match.group(0)), code)
+
+
 def check_file(where: str, text: str) -> list[Finding]:
-    code = strip_comments_and_strings(text)
+    code = _without_include_new(strip_comments_and_strings(text))
     findings = [
         Finding(NAME, where, f"line {_line_of(code, match.start())}: {rule.message}")
         for rule in _rules_for(where)

@@ -40,7 +40,7 @@ function Get-GuardViolation {
         @{ Pattern = $git + 'clean\b[^;&|]*\s-[a-zA-Z]*f'
            Reason  = 'git clean -f deletes untracked files and is forbidden. Ask the owner.' },
         @{ Pattern = $git + 'merge(?=\s|$)(?![^;&|]*--ff-only\b)'
-           Reason  = 'Only a fast-forward merge is allowed (git merge --ff-only), and only after an explicit yes from the owner (docs/WORKFLOW.md, "Modo local").' },
+           Reason  = 'Only a fast-forward merge is allowed (git merge --ff-only), and only after an explicit yes from the owner (docs/WORKFLOW.md, "O merge").' },
         @{ Pattern = '\bgh\s+(auth|api|secret|variable|ruleset)\b'
            Reason  = 'gh auth, gh api, secrets, variables and rulesets are reserved for the owner.' },
         @{ Pattern = '\bgh\s+pr\s+(merge|review)\b'

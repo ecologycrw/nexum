@@ -65,10 +65,10 @@ As regras que nunca mudam estão em [ARCHITECTURE.md](ARCHITECTURE.md#invariante
 | | Mínimo |
 |---|---|
 | Sistema | Windows 10/11 64 bits, Linux 64 bits ou macOS (Apple Silicon) |
-| GPU | com suporte a Direct3D 12, Vulkan ou Metal, com os requisitos exatos da tabela abaixo |
+| GPU | com suporte a Direct3D 12, Vulkan ou Metal, com os requisitos exatos da tabela abaixo. No macOS, só Apple Silicon, mesmo que o SDL aceite também alguns Macs com Intel |
 | Meta | Classic a 1080p numa GPU integrada recente, com folga para 144 Hz |
 
-O que o SDL GPU 3.4.20, a versão adotada, exige em cada sistema (conferido no `SDL_gpu.h`, na fatia 0):
+O que o SDL GPU 3.4.20, a versão adotada, exige em cada sistema (conferido no `SDL_gpu.h`, na fatia 0). É o limite da biblioteca, não o piso do Nexum, que é a tabela acima:
 
 | Sistema | Requisitos do SDL GPU |
 |---|---|

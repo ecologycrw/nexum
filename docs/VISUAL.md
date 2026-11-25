@@ -71,6 +71,8 @@ Metas da spec (V.5), medidas a partir do M3:
 | Memória do processo (mapa grande, 100 entidades) | até 1,5 GB |
 | Atraso entre o clique e o envio do comando | até 1 tick + 1 quadro |
 
+O tempo da GPU e o do processador não se somam, porque os dois trabalham ao mesmo tempo. E o tick não roda em todo quadro: a 144 Hz, roda em cerca de 1 quadro a cada 6. Ainda falta uma meta para o tempo do processador por quadro, que decide se a folga para 144 Hz vale também nos quadros com tick ([TD-0024](TECH_DEBT.md)).
+
 Mede-se o tempo médio e o do pior 1% dos quadros, porque a média sozinha esconde os engasgos. O computador de desenvolvimento mostra a tendência, mas não comprova o piso de hardware ([TD-0018](TECH_DEBT.md)).
 
 ## Quando cada parte chega

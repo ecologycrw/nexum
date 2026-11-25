@@ -29,6 +29,6 @@ Se a fatia toca um nível de paridade, mostre o resultado do teste que o mede. S
 ## Resultado
 
 - **Verde** só se o comando passou nesta execução. Numa fatia que muda a tela, a imagem também precisa ter sido gerada e conferida nesta execução.
-- Linux, GCC e macOS só são conferidos pela CI. Sem remoto (modo local), diga isso ao dono.
+- Linux, GCC e macOS só são conferidos pela CI do PR. Diga isso ao dono.
 - Se algo falhar, mostre o erro, explique em linguagem simples e corrija (dentro do escopo da tarefa).
 - Nunca diga que passou sem ter rodado.

@@ -120,17 +120,11 @@ Vale para qualquer entrega (Parte V.6 da spec):
 - Nunca: force push, reescrever o histórico, apagar branches ou pular checagens (`--no-verify`).
 - **A prova é o check verde no PR**, não a mensagem da IA.
 
-### Modo local (enquanto o repositório não está no GitHub)
+### O merge
 
-O Nexum começou com o Git só neste computador ([ADR 0024](adr/0024-fluxo-git.md)). Enquanto não houver um repositório remoto:
-
-- As skills pulam `git pull`, `git push` e os comandos do `gh`. A prova é a saída do `py scripts/dev.py verify` mostrada no chat.
-- O "PR" é a branch da fatia, que o dono revisa pelo resumo da IA e pelo `report.md`.
-- O merge é decisão do dono. Com um "sim" explícito dele no chat, a IA roda `git switch main` e `git merge --ff-only <branch>`. O Claude Code pede a confirmação do dono antes desse comando, e um merge que não seja `--ff-only` é bloqueado.
-- Nesse modo, o histórico da `main` fica commit por commit, sem squash e sem assinatura.
-- **A fatia 0 só fecha com o GitHub publicado**, porque o M0 exige a CI verde nos 3 sistemas.
-
-O passo a passo para publicar está em [docs/setup/GITHUB.md](setup/GITHUB.md).
+- O merge é sempre do dono, pelo navegador. A IA nunca faz merge de um PR.
+- O `git merge` no terminal continua vigiado: só com `--ff-only` e só com um "sim" explícito do dono no chat. O Claude Code pede a confirmação dele, e um merge que não seja `--ff-only` é bloqueado.
+- O Nexum começou com o Git só neste computador, num "modo local" que acabou com a publicação no GitHub ([ADR 0024](adr/0024-fluxo-git.md)). Os primeiros commits da `main`, sem assinatura, vêm desse período. O passo a passo da publicação está em [docs/setup/GITHUB.md](setup/GITHUB.md).
 
 ## Proteções em camadas
 
