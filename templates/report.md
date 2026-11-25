@@ -53,7 +53,11 @@ Testes apagados ou enfraquecidos e o motivo de cada um. Se nenhum: "nenhum".
 
 ## Itens provisórios criados
 
-Itens registrados em `docs/TECH_DEBT.md` nesta fatia.
+Itens registrados em `docs/TECH_DEBT.md` nesta fatia. Se nenhum: "nenhum".
+
+## Itens provisórios resolvidos
+
+Itens que saíram de `docs/TECH_DEBT.md` nesta fatia, cada um com o que o resolveu. Itens que só mudaram de destino também entram aqui, com o motivo. Se nenhum: "nenhum".
 
 ## Erros e lições
 

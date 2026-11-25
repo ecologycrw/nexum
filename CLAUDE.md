@@ -29,6 +29,6 @@ Abra o Nexum sozinho numa sessão. A central de conhecimento e o Lemuria têm sk
 
 ## Commits e PRs
 
-- Enquanto o repositório não está no GitHub, os commits usam a identidade já configurada neste PC. Depois da publicação, a identidade é a da conta de máquina ([docs/setup/GITHUB.md](docs/setup/GITHUB.md)). Nunca mude o `git config`.
+- Os commits usam a identidade da conta de máquina, já configurada neste PC ([docs/setup/GITHUB.md](docs/setup/GITHUB.md); por enquanto, a conta provisória do [TD-0009](docs/TECH_DEBT.md)). Nunca mude o `git config`.
 - Termine cada mensagem de commit com a linha `Co-Authored-By` indicada pelo Claude Code.
 - A descrição do PR é em português e termina com a linha de atribuição do Claude Code.

@@ -26,7 +26,7 @@ Transforma o próximo item do roadmap numa spec e num plano aprovados. **Não im
    - **Escreva 2 ou 3 exemplos de entrada e resultado esperado** usando só a descrição. Se não conseguir chegar ao valor, a descrição não basta. Nos casos delicados (fórmulas, bytes de pacote, visual), peça os exemplos à central.
    - Se tudo estiver descrito, siga.
    - Se faltar algo, **pare**: entregue ao dono as perguntas prontas para a central, registre-as em "Bloqueios" no `docs/STATUS.md` e não escreva a spec ainda. O código nunca nasce sem a descrição. A checagem `docs` recusa um plano aprovado que ainda tenha "Perguntas abertas para a central".
-4. **Branch.** Rode `git switch main`. Se houver remoto (`git remote`), rode `git pull --ff-only`. Depois, `git switch -c fatia/NNNN-nome`. A fatia N usa o número N com quatro dígitos; o nome é curto, em kebab-case.
+4. **Branch.** Rode `git switch main` e `git pull --ff-only`. Depois, `git switch -c fatia/NNNN-nome`. A fatia N usa o número N com quatro dígitos; o nome é curto, em kebab-case.
 5. **Spec.** Crie `specs/NNNN-nome/spec.md` a partir de `templates/spec.md`, com `status: rascunho` e o `marco`. Os critérios de aceitação são verificáveis: cada um é provado por um teste automático ou por uma verificação manual descrita. Preencha "Paridade" (o nível P0 a P3 que a fatia toca, ou "não se aplica"). Escreva "Como o dono testa" com passos que ele consiga seguir sozinho. Se a fatia mudar o que aparece na tela, leia `docs/VISUAL.md` e preencha a seção "Prova visual"; se não mudar, escreva "não se aplica".
 6. **Plano.** Crie `plan.md` a partir de `templates/plan.md`. Preencha com cuidado a "Visão de destino" e as "Simplificações provisórias" (ver "interface pensa no destino, implementação no agora" em `docs/CONVENTIONS.md`). Liste bibliotecas novas, ADRs necessários e mudanças nos formatos da engine ou no contrato de rede. **Preencha "Fontes da central usadas"** com cada spec, achado e documento do OpenMU, e a base de commits, e **"Suficiência das descrições"** com a checklist e os exemplos do passo 3; a checagem `docs` exige as duas seções.
 7. **Checagem.** Rode `py scripts/checks/run.py docs terms`.
@@ -42,8 +42,8 @@ Transforma o próximo item do roadmap numa spec e num plano aprovados. **Não im
 9. **Só depois de um "sim" explícito:**
    - mude o status da spec para `aprovada` e preencha `aprovada-em`;
    - no `docs/ROADMAP.md`, ponha a fatia em "Agora", com o link da spec, e a anterior em "Concluídas", se ainda não estiver lá. A aprovação da spec vale para essa mudança; qualquer outra mudança no ROADMAP continua precisando de aprovação própria;
-   - atualize o STATUS (`spec-atual: NNNN`, `branch`, "Agora", "Próxima ação" e uma linha no "Histórico": spec aprovada);
-   - commit `docs(NNNN): plan slice N`. Se houver remoto, `git push -u origin fatia/NNNN-nome`.
+   - atualize o STATUS (fase `em-andamento`, `spec-atual: NNNN`, `branch`, "Agora", "Próxima ação" e uma linha no "Histórico": spec aprovada);
+   - commit `docs(NNNN): plan slice N` e `git push -u origin fatia/NNNN-nome`.
 
 Se o dono pedir mudanças, ajuste a spec e o plano e volte ao passo 8.
 

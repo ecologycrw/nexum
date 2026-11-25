@@ -11,4 +11,4 @@
 | [Render](render.md) | Engine | placa de vídeo pelo SDL GPU, texturas, lista de desenho e alvos | fatia 0 |
 | [VisualProof](visualproof.md) | Tools | compara a captura com a imagem aprovada | fatia 0 |
 
-O módulo MU (`Games/MuOnline`) ainda só tem a tela da fundação, que é provisória ([TD-0014](../TECH_DEBT.md)). A página dele nasce quando a primeira peça de verdade do jogo chegar.
+O módulo MU (`Games/MuOnline`) ainda só tem a tela da fundação, que é provisória ([TD-0014](../TECH_DEBT.md)). A página dele nasce quando a primeira peça de verdade do jogo chegar. O kit (`Kit/GridRpg`, alvo `nexum_gridrpg`) está no mesmo caso: hoje ele só tem a identificação do kit (`KitIdentity`), que o "outro jogo" dos testes de arquitetura usa, e a página dele nasce com o primeiro sistema do gênero.

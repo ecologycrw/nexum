@@ -130,8 +130,10 @@ flowchart TB
 |---|---|---|
 | Principal | eventos do SDL, ticks, desenho e envio à GPU, UI, comandos de áudio | bloquear em disco ou rede |
 | Rede (uma por conexão) | ler e escrever no socket, enquadrar, cifrar e decifrar | tocar no estado do jogo |
-| Workers (N = núcleos − 1, de 1 a 8), a partir do M1 | ler, descompactar, decodificar texturas, montar malhas | enviar dados para a GPU |
+| Workers (N = núcleos − 1, de 1 a 8), a partir do M1 | ler, descompactar, decodificar texturas, montar malhas; avaliar poses em paralelo quando há muitos personagens | enviar dados para a GPU |
 | Áudio (interna do miniaudio) | mixagem | — |
+
+As poses dos esqueletos são avaliadas na fase de desenho do quadro, com o α ([ADR 0005](adr/0005-tick-fixo-de-25-hz.md)): a principal pode dividir esse trabalho entre os workers e espera o resultado antes de enviar o quadro à GPU. O que os workers calculam é só do desenho e nunca muda o estado do jogo (INV-04).
 
 A rede entrega à principal uma fila de mensagens já decifradas. A principal entrega à rede **uma única fila de saída**: a cifra e o contador são aplicados só na thread de rede. Não existe thread de simulação até que uma medição mostre o tick passando de 8 ms com frequência ([ADR 0006](adr/0006-modelo-de-threads.md)).
 
@@ -174,12 +176,12 @@ Regras que nunca mudam sem um ADR. A coluna **Garantia** diz quem confere cada u
 | INV-02 | **Três camadas, dependência só desce:** Games → Kit → Engine. A Engine funciona sem o Kit, e o Kit sem o módulo MU. Tools usam as três e nunca entram no build de jogador | checagem `architecture` (includes e CMake) e o "outro jogo" de `tests/architecture/OtherGame` |
 | INV-03 | **Linha vermelha:** Engine e Kit não sabem o que é MU (nomes, números, códigos de pacote, o namespace `mu`). Os significados são injetados | checagem `terms` e revisão |
 | INV-04 | **O desenho só lê:** nada que acontece durante o desenho muda o estado do jogo | revisão; checagem de escrita no build Dev (M3) |
-| INV-05 | **Tempo fixo:** a lógica anda em ticks de 40 ms, sem fator por quadro; o desenho interpola; relógios de parede são monotônicos e independentes de quadros e ticks | testes do laço (`Engine/Time/Tests/TickClockTest.cpp`); checagem `cpp-rules` (relógios só em Platform e Time) |
+| INV-05 | **Tempo fixo:** a lógica anda em ticks de 40 ms, sem fator por quadro; o desenho interpola; relógios de parede são monotônicos e independentes de quadros e ticks | testes do laço (`Engine/Time/Tests/TickClockTest.cpp`); checagem `cpp-rules` (relógios do sistema só em `Engine/Platform/Private`, `Engine/Time/Private` e `Tools/`) |
 | INV-06 | **O quadro nunca espera** por rede ou disco | testes e revisão |
 | INV-07 | **Aleatoriedade determinística:** gerador próprio, com fluxos separados para simulação, desenho e UI; o `rand()` do sistema é proibido | checagem `cpp-rules` e testes |
 | INV-08 | **O jogo nunca abre um arquivo original:** só os formatos da engine, pelo VFS. Só o `muimport` lê os originais | checagem `terms` (nomes de formato só em `Tools/`) e revisão |
 | INV-09 | **Rede em ordem:** os eventos recebidos são aplicados um a um, na ordem de chegada, com a época; toda saída passa por uma única fila, e a cifra e o contador só existem na thread de rede | testes e replay (M2) |
-| INV-10 | **Cada biblioteca externa fica atrás de um único módulo** da engine (SDL em Platform e Render; Asio em Net; EnTT em World; RmlUi em Ui; ImGui e Tracy em Debug; miniaudio em Audio; GLM no Core), e os cabeçalhos públicos não a expõem | checagem `architecture` |
+| INV-10 | **Cada biblioteca externa tem um dono declarado** e só aparece nele: SDL em Platform e Render (o SDL GPU só no Render); Asio em Net; EnTT em World; RmlUi em Ui; ImGui e Tracy em Debug; miniaudio em Audio. Os cabeçalhos públicos não a expõem. A exceção são os **tipos de vocabulário** (`tl::expected` e GLM): eles aparecem num único cabeçalho do Core, que lhes dá nomes da engine. Os donos das bibliotecas planejadas estão no [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md) | checagem `architecture` |
 | INV-11 | **Memória com dono claro:** RAII; handles geracionais para tudo o que pode morrer; sem `new` e `delete` soltos | checagem `cpp-rules`, clang-tidy e sanitizers |
 | INV-12 | **Dados de fora não são confiáveis:** todo dado de rede ou de arquivo é validado, com limites, antes do uso; leitores e decodificadores passam por fuzzing | testes com dados inválidos, sanitizers e fuzzing (M1 e M2) |
 | INV-13 | **Caminho quente sem alocação solta:** arenas por quadro e por tick; pools com orçamento | teste de alocação do quadro (`Games/MuOnline/Tests/FrameAllocationTest.cpp`, com o contador de `tests/architecture/frame_allocations`) e revisão |

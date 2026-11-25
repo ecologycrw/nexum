@@ -7,7 +7,7 @@ description: Processa o que a fatia do Nexum ensinou - aplica a escada de erros,
 
 ## Pré-condições
 
-- A fatia está fechada (PR aberto ou, no modo local, a branch pronta) e o dono já testou.
+- A fatia está fechada (PR aberto) e o dono já testou.
 - A branch atual é a da fatia.
 
 ## Passos
@@ -26,10 +26,8 @@ description: Processa o que a fatia do Nexum ensinou - aplica a escada de erros,
    - `docs/PROPOSALS.md`: mova as propostas decididas para "Processadas", com o destino;
    - `docs/STATUS.md`: `spec-atual` vazio, fase `entre-fatias`, próxima ação `/planejar`. Com o `spec-atual` vazio na branch da fatia, o hook do início da sessão passa a dizer que a fatia espera o merge do dono;
    - `tasks.md`: marque a etapa Retrospectiva na lista "Etapas", com a data;
-   - imagens que o dono aprovou no teste: entregue a ele o comando pronto para copiar cada imagem para `tests/visual/approved/`. A IA nunca copia nem altera essas imagens. Depois que o dono rodar o comando, inclua as imagens no commit;
+   - imagens novas da prova visual: em geral, o dono já as aprovou durante o `/implementar`, porque o teste da CI precisa delas antes do `/fechar`. Se o teste do dono pediu uma imagem nova, entregue a ele o comando pronto para copiá-la para `tests/visual/approved/`. A IA nunca copia nem altera essas imagens. Depois que o dono rodar o comando, inclua a imagem no commit;
    - mudanças em travas que o dono aprovou: aplique (cada edição pede a confirmação do dono).
-7. **Commit.** Commit `docs(NNNN): retrospective of slice N`. Se houver remoto, `git push`. Rode `/verificar`.
-8. **Avise o dono** que a fatia está pronta para a aprovação:
-   - com o GitHub: aprovação e squash merge pelo navegador;
-   - no modo local: quando o dono disser "sim", rode `git switch main` e `git merge --ff-only fatia/NNNN-nome` (o Claude Code pede a confirmação dele) e acrescente no STATUS a linha do merge no "Histórico".
+7. **Verifique e faça o commit.** Rode `/verificar`. Se passar, faça o commit `docs(NNNN): retrospective of slice N` e o `git push`.
+8. **Avise o dono** que a fatia está pronta para a aprovação e o squash merge pelo navegador.
 9. **A cada cerca de 5 fatias,** sugira um `/consolidar` depois do merge.

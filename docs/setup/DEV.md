@@ -6,7 +6,7 @@ No Windows:
 
 - Windows 10/11 64 bits.
 - Visual Studio 2022 ou 2026, com a carga de trabalho **Desenvolvimento para desktop com C++** e o componente **Ferramentas do C++ Clang** (traz o `clang-format` e o `clang-tidy`).
-- CMake 3.28 ou mais novo e Ninja.
+- CMake 3.28 ou mais novo e Ninja. O mínimo do projeto é o 3.28, mas o build com os detectores de erro de memória no Linux exige o 3.29 (veja abaixo). Num computador novo, instale logo o 3.29 ou mais novo.
 - vcpkg, com a variável de ambiente `VCPKG_ROOT` apontando para a pasta dele.
 - Python 3.12 ou mais novo.
 - Git e GitHub CLI (`gh`).
@@ -111,7 +111,7 @@ O `scripts/checks` confere o que o compilador não confere:
 | `docs` | links quebrados, specs incompletas, critério de aceitação sem prova, seções "Prova visual", "Fontes da central usadas", "Suficiência das descrições" e "Sala limpa" ausentes, plano aprovado com perguntas abertas para a central, ADRs fora de sequência, item provisório sem destino |
 | `structure` | arquivos obrigatórios faltando, módulos fora do padrão, nomes de arquivo errados, biblioteca sem licença registrada, arquivos originais do jogo no repositório |
 | `architecture` | dependência proibida entre camadas, e bibliotecas externas ou o sistema operacional fora do módulo dono |
-| `cpp-rules` | `new` e `delete` soltos, funções perigosas de C, `rand`, relógios fora de Platform e Time, `reinterpret_cast`, `throw` no runtime. A troca do `operator new` global só é aceita no contador de `tests/architecture/frame_allocations/` |
+| `cpp-rules` | `new` e `delete` soltos (o `#include <new>` é aceito), funções perigosas de C, `rand`, relógios do sistema fora de `Engine/Time/Private` e de `Tools/`, `reinterpret_cast` fora de `Engine/Platform/Private`, `throw` no runtime. A troca do `operator new` global só é aceita no contador de `tests/architecture/frame_allocations/` |
 | `terms` | a linha vermelha: nomes do MU em `Engine/` e `Kit/`, e nomes dos formatos originais fora de `Tools/` |
 
 ## Central de conhecimento

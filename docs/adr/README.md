@@ -2,7 +2,7 @@
 
 Cada ADR registra uma decisão importante, o motivo e as alternativas. Um ADR aceito não é editado: se a decisão mudar, um ADR novo o substitui e diz isso no front matter (`substitui` / `substituida-por`). O modelo fica em `templates/adr.md`.
 
-Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referência](../referencia/README.md), adotadas uma por uma. Os ADRs 0021 a 0028 são decisões do Nexum, a maioria sobre o ambiente de desenvolvimento. Os ADRs 0029 a 0031 trazem as versões novas de D-04, D-09 e D-12, depois que a spec reescreveu o Enhanced. O ADR 0032 muda a ordem do roteiro da Parte VI: a rede do M2 vem antes do M1.
+Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referência](../referencia/README.md), adotadas uma por uma. Os ADRs 0021 a 0028 são decisões do Nexum, a maioria sobre o ambiente de desenvolvimento. Os ADRs 0029 a 0031 trazem as versões novas de D-04, D-09 e D-12, depois que a spec reescreveu o Enhanced. O ADR 0032 muda a ordem do roteiro da Parte VI: a rede do M2 vem antes do M1. O ADR 0033 dá um dono a cada biblioteca externa.
 
 | ADR | Decisão | Status |
 |---|---|---|
@@ -38,3 +38,4 @@ Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referê
 | [0030](0030-render-forward-classic-e-enhanced.md) | Render forward com passes fixos, Classic em espaço gama e o Enhanced do MuMain como referência | aceita |
 | [0031](0031-audio-paridade-primeiro-e-audio-3d.md) | Áudio com paridade primeiro e o Áudio 3D como opção à parte | aceita |
 | [0032](0032-rede-antes-do-importador.md) | A rede antes do importador, com o M2 dividido em duas partes | aceita |
+| [0033](0033-dono-de-cada-biblioteca-externa.md) | O módulo dono de cada biblioteca externa e os tipos de vocabulário | aceita |

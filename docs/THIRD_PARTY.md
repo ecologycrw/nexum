@@ -18,7 +18,7 @@ Ficam numa opção (*feature*) do `vcpkg.json` e só entram no build quando ela 
 
 ## Planejadas
 
-Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licença é conferida na versão adotada antes de entrar.
+Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licença é conferida na versão adotada antes de entrar. O módulo dono de cada uma está no [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md).
 
 - SDL_ttf e SDL_shadercross (zlib): texto e compilação de shaders. Entram no M1.
 - KTX-Software (Apache 2.0), stb_image ou libjpeg-turbo, cgltf (MIT) e meshoptimizer (MIT): o importador. Entram no M1.
@@ -26,7 +26,7 @@ Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licen�
 - EnTT (MIT): o armazenamento das entidades, atrás da fachada `World`. Entra no M1 ou no M2.
 - Asio standalone (BSL-1.0): os sockets. Entra no M2.
 - Uma biblioteca JSON (nlohmann/json ou simdjson, MIT ou Apache 2.0): dados e configuração.
-- GLM (MIT): matemática, atrás do Core.
+- GLM (MIT): matemática, com os tipos apelidados num único cabeçalho do Core. Entra no M1.
 - RmlUi (MIT) e FreeType (FTL, que pede crédito): a interface. Entram no M6.
 - HarfBuzz ("Old MIT"), se o texto precisar de montagem: M6.
 - miniaudio (domínio público ou MIT-0): o áudio. Entra no M7.

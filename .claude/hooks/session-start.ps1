@@ -264,7 +264,7 @@ if ($MyInvocation.InvocationName -ne '.') {
         Write-Output 'Repositorio: publicado (com remoto).'
     }
     else {
-        Write-Output 'Repositorio: modo local, sem remoto (docs/WORKFLOW.md, "Modo local").'
+        Write-Output 'Atencao: o repositorio esta sem remoto, mas o Nexum vive no GitHub (docs/setup/GITHUB.md). Avise o dono antes de seguir.'
     }
     Write-Output 'Ultimos commits:'
     $log | ForEach-Object { Write-Output "  $_" }

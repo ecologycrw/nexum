@@ -17,6 +17,8 @@ if(NEXUM_SANITIZE)
             message(FATAL_ERROR "The sanitizer build needs CMake 3.29 or newer to give the tests "
                                 "the environment of the leak check.")
         endif()
+        # Today only Linux with Clang reaches this branch: macOS has no sanitizer build. A macOS sanitizer build
+        # must keep the lavapipe requirement below to Linux, because macOS has no lavapipe and no LD_PRELOAD.
         # The GPU tests run on the Vulkan driver without a graphics card (Mesa lavapipe), as on the CI. Each test
         # loads the driver from its start, so the driver is still loaded when LeakSanitizer looks for leaks at the
         # end: unloaded before that, its own memory looked like leaks with no names (specs/0000-fundacao/tasks.md,

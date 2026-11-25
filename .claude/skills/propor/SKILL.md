@@ -19,6 +19,6 @@ Registra; **não implementa.**
    - **Status:** `aberta`.
 3. **Checagem.** Rode `py scripts/checks/run.py docs terms`.
 4. **Commit.**
-   - Com uma fatia em andamento: commit na branch dela, `docs(NNNN): add proposal P-NNNN`.
+   - Com uma fatia em andamento: commit na branch dela, `docs(NNNN): add proposal P-NNNN`, e `git push`.
    - Sem fatia em andamento: deixe a mudança só em `docs/PROPOSALS.md`, sem commit. O `/planejar` aceita essa exceção e leva a proposta no primeiro commit da próxima fatia. Avise o dono.
 5. **Confirme ao dono** em uma linha: o número da proposta e quando ela será analisada (na próxima `/retrospectiva`).

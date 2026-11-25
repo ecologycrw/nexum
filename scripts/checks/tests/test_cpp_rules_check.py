@@ -15,6 +15,12 @@ class CppRulesTests(TempRepositoryTest):
     def test_loose_new_is_refused(self) -> None:
         self.assert_refused(self.findings_for("int* a = new int(1);\n"), "'new' is forbidden")
 
+    def test_including_the_standard_header_new_is_allowed(self) -> None:
+        self.assertEqual(self.findings_for("#include <new>\n#  include<new>\n"), [])
+
+    def test_placement_new_is_still_refused_after_including_new(self) -> None:
+        self.assert_refused(self.findings_for("#include <new>\nauto a = new (where) int(1);\n"), "line 2")
+
     def test_loose_delete_is_refused(self) -> None:
         self.assert_refused(self.findings_for("void f(int* a) { delete a; }\n"), "'delete' is forbidden")
 
@@ -49,21 +55,23 @@ class CppRulesTests(TempRepositoryTest):
         self.assertEqual(self.findings_for(code, "Engine/Platform/Private/A.cpp"), [])
         self.assert_refused(self.findings_for(code, "Kit/GridRpg/Private/A.cpp"), "INV-07")
 
-    def test_system_clocks_are_refused_outside_platform_time_and_tools(self) -> None:
-        for code in ("std::chrono::steady_clock::now()", "std::chrono::system_clock::now()"):
-            with self.subTest(code=code):
-                self.assert_refused(self.findings_for(f"void f() {{ {code}; }}\n"), "INV-05")
+    def test_system_clocks_are_refused_outside_time_and_tools(self) -> None:
+        for path in ("Engine/Core/Private/A.cpp", "Engine/Platform/Private/A.cpp"):
+            for code in ("std::chrono::steady_clock::now()", "std::chrono::system_clock::now()"):
+                with self.subTest(path=path, code=code):
+                    self.assert_refused(self.findings_for(f"void f() {{ {code}; }}\n", path), "INV-05")
+                    (self.root / path).unlink()
 
-    def test_platform_time_and_tools_may_read_the_system_clock(self) -> None:
+    def test_time_and_tools_may_read_the_system_clock(self) -> None:
         code = "auto Now() { return std::chrono::steady_clock::now(); }\n"
-        for path in ("Engine/Platform/Private/A.cpp", "Engine/Time/Private/A.cpp", "Tools/MuImport/Private/A.cpp"):
+        for path in ("Engine/Time/Private/A.cpp", "Tools/MuImport/Private/A.cpp"):
             with self.subTest(path=path):
                 self.assertEqual(self.findings_for(code, path), [])
                 (self.root / path).unlink()
 
-    def test_the_tests_of_the_platform_module_cannot_read_the_system_clock(self) -> None:
+    def test_the_tests_of_the_time_module_cannot_read_the_system_clock(self) -> None:
         code = "auto Now() { return std::chrono::steady_clock::now(); }\n"
-        self.assert_refused(self.findings_for(code, "Engine/Platform/Tests/ATest.cpp"), "INV-05")
+        self.assert_refused(self.findings_for(code, "Engine/Time/Tests/ATest.cpp"), "INV-05")
 
     def test_reinterpreting_bytes_is_refused(self) -> None:
         for path in ("Engine/Core/Private/A.cpp", "Games/MuOnline/Private/A.cpp", "Tools/MuImport/Private/A.cpp"):
