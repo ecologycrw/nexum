@@ -57,6 +57,8 @@ Tudo passa por um comando só. No Linux e no macOS, use `python3` no lugar de `p
 
 No Linux, `--compiler gcc` troca o Clang pelo GCC: `python3 scripts/dev.py --compiler gcc test`.
 
+Fora da CI, os comandos mostram só um resumo de cada passo: os testes que passaram, os passos de compilação e as linhas com aviso. A saída completa fica em `build/dev-last.log`, e um comando que falha aparece inteiro na tela. Para ver tudo, como a CI sempre mostra, use `--full`: `py scripts/dev.py --full verify`.
+
 O `scripts/dev.py` encontra o Visual Studio sozinho, então os comandos funcionam em qualquer terminal.
 
 ### Profiler

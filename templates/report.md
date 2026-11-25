@@ -21,7 +21,7 @@ As imagens da cena de prova, os números medidos, o tempo de quadro e o que a IA
 
 ## Sala limpa
 
-Seção obrigatória. A checklist do Apêndice E da spec, conferida para as tarefas que implementaram comportamento do MU. Se nenhuma implementou: "não se aplica: a fatia não implementa comportamento do MU".
+Seção obrigatória. A checklist de sala limpa, conferida para as tarefas que implementaram comportamento do MU; o texto oficial de cada item fica no [WORKFLOW](../docs/WORKFLOW.md#sala-limpa). Se nenhuma implementou: "não se aplica: a fatia não implementa comportamento do MU".
 
 - [ ] Escrito a partir de specs e achados da central, listados no `plan.md`, e não do código do MuMain.
 - [ ] Nenhum código do MuMain aberto durante a escrita.
@@ -43,21 +43,17 @@ O que saiu diferente do `plan.md`, e por quê.
 
 Achados do revisor e o que foi feito com cada um.
 
-## Travas alteradas
+## Travas alteradas e testes removidos
 
-Arquivos de trava que mudaram nesta fatia e a aprovação do dono para cada mudança. Se nenhum: "nenhuma".
+Seção obrigatória, com as duas listas, mesmo quando vazias.
 
-## Testes removidos
+- **Travas alteradas:** os arquivos de trava que mudaram nesta fatia e a aprovação do dono para cada mudança. Se nenhum: "nenhuma".
+- **Testes removidos:** os testes apagados ou enfraquecidos e o motivo de cada um. Se nenhum: "nenhum".
 
-Testes apagados ou enfraquecidos e o motivo de cada um. Se nenhum: "nenhum".
+## Itens provisórios
 
-## Itens provisórios criados
-
-Itens registrados em `docs/TECH_DEBT.md` nesta fatia. Se nenhum: "nenhum".
-
-## Itens provisórios resolvidos
-
-Itens que saíram de `docs/TECH_DEBT.md` nesta fatia, cada um com o que o resolveu. Itens que só mudaram de destino também entram aqui, com o motivo. Se nenhum: "nenhum".
+- **Criados:** os itens registrados em `docs/TECH_DEBT.md` nesta fatia. Se nenhum: "nenhum".
+- **Resolvidos:** os itens que saíram de `docs/TECH_DEBT.md` nesta fatia, cada um com o que o resolveu. Os que só mudaram de destino também entram aqui, com o motivo. Se nenhum: "nenhum".
 
 ## Erros e lições
 

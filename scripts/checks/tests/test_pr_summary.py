@@ -53,6 +53,23 @@ class PrSummaryTests(unittest.TestCase):
                 self.assertIn("Arquivos de teste apagados: 1", summary)
                 self.assertIn(f"`{path}`", summary)
 
+    def test_removed_lines_of_the_powershell_tests_are_counted(self) -> None:
+        diff = ("--- a/tests/hooks/guard-bash.tests.ps1\n+++ b/tests/hooks/guard-bash.tests.ps1\n"
+                "-    'git push --force',\n-\n-# a comment\n+    'git push -f',\n"
+                "--- a/tests/hooks/test_git_hooks.py\n+++ b/tests/hooks/test_git_hooks.py\n-x = 1\n")
+        summary = pr_summary.build([], diff)
+        self.assertIn("Linhas removidas dos testes em PowerShell (os casos dos hooks): 1", summary)
+        self.assertIn("linhas saíram dos testes em PowerShell", summary)
+
+    def test_a_change_without_powershell_removals_has_no_warning(self) -> None:
+        summary = pr_summary.build([], "--- a/tests/hooks/a.tests.ps1\n+++ b/tests/hooks/a.tests.ps1\n+    'new case',\n")
+        self.assertIn("(os casos dos hooks): 0", summary)
+        self.assertNotIn("linhas saíram", summary)
+
+    def test_deleted_powershell_test_files_are_listed(self) -> None:
+        summary = pr_summary.build([("D", "tests/hooks/guard-bash.tests.ps1")], "")
+        self.assertIn("Arquivos de teste apagados: 1", summary)
+
     def test_the_diff_of_tests_includes_the_tests_of_the_modules_and_of_the_checks(self) -> None:
         self.assertIn(":(glob)**/Tests/**", pr_summary.TEST_PATHSPECS)
         self.assertIn("scripts/checks/tests/", pr_summary.TEST_PATHSPECS)

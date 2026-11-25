@@ -10,7 +10,7 @@ A central de conhecimento é um projeto separado, só no computador do dono, com
 ## Passos
 
 1. **Onde está a central.** Leia `.claude/central.local.json` (campo `path`). Se o arquivo não existir, diga ao dono que a central não está disponível nesta máquina e pare. Nunca tente adivinhar o caminho.
-2. **Procure a descrição,** nesta ordem, com as ferramentas de leitura e de busca (o terminal não alcança a central):
+2. **Procure a descrição,** nesta ordem, com as ferramentas de leitura e de busca (o terminal não alcança a central). As specs da central são longas: ache os títulos com a busca (`^#{1,3} `) e leia só o trecho de cada seção que interessa, nunca o arquivo inteiro.
    1. `<path>/docs/specs/`: as specs consolidadas (comece pelo `README.md` da pasta);
    2. `<path>/knowledge/INDEX.md` e os achados que ele lista, com o status de cada um (`valido`, `revisar`, `obsoleto`, `consolidado`);
    3. `<path>/licoes/INDEX.md`: as lições genéricas;

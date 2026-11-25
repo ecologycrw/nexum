@@ -2,6 +2,13 @@
 
 Cada ADR registra uma decisão importante, o motivo e as alternativas. Um ADR aceito não é editado: se a decisão mudar, um ADR novo o substitui e diz isso no front matter (`substitui` / `substituida-por`). O modelo fica em `templates/adr.md`.
 
+**Quando criar um ADR:**
+
+- para cada decisão do próprio Nexum (o ambiente, o fluxo, a ordem do roteiro, uma escolha que a spec não faz);
+- para cada desvio da [especificação de referência](../referencia/README.md): o Nexum decidiu diferente de uma D-xx;
+- quando a spec muda uma decisão que já tem ADR aqui: um ADR novo substitui o antigo, como os 0029 a 0031;
+- uma decisão nova da spec que o Nexum só segue não ganha ADR: os documentos a citam pelo número (D-xx).
+
 Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referência](../referencia/README.md), adotadas uma por uma. Os ADRs 0021 a 0028 são decisões do Nexum, a maioria sobre o ambiente de desenvolvimento. Os ADRs 0029 a 0031 trazem as versões novas de D-04, D-09 e D-12, depois que a spec reescreveu o Enhanced. O ADR 0032 muda a ordem do roteiro da Parte VI: a rede do M2 vem antes do M1. O ADR 0033 dá um dono a cada biblioteca externa.
 
 | ADR | Decisão | Status |

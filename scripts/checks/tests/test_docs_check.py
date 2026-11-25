@@ -16,6 +16,7 @@ CHECKED_PLAN = (
     "| Ordem dos passos | um passo por vez |\n\n{questions}\n\n## Riscos\n\nNenhum.\n"
 )
 CLEAN_ROOM = "\n## Sala limpa\n\nNão se aplica.\n"
+LOCKS_AND_TESTS = "\n## Travas alteradas e testes removidos\n\n- Travas alteradas: nenhuma.\n- Testes removidos: nenhum.\n"
 
 
 class DocsCheckTests(TempRepositoryTest):
@@ -31,8 +32,9 @@ class DocsCheckTests(TempRepositoryTest):
         for name in extra:
             self.write(f"specs/0001-first/{name}", "# File\n")
 
-    def report(self, text: str, visual_proof: str = VISUAL_PROOF, clean_room: str = CLEAN_ROOM) -> None:
-        self.write("specs/0001-first/report.md", f"{text}{visual_proof}{clean_room}")
+    def report(self, text: str, visual_proof: str = VISUAL_PROOF, clean_room: str = CLEAN_ROOM,
+               locks_and_tests: str = LOCKS_AND_TESTS) -> None:
+        self.write("specs/0001-first/report.md", f"{text}{visual_proof}{clean_room}{locks_and_tests}")
 
     def adr(self, number: str, status: str = "aceita", by: str = "") -> None:
         name = f"{number}-decision.md"
@@ -228,6 +230,28 @@ class DocsCheckTests(TempRepositoryTest):
         self.spec("concluida", extra=("tasks.md",))
         self.report("| CA-01 | verificação manual: abri a janela |\n", clean_room="")
         self.assert_refused(self.run_check(), "report.md: needs a '## Sala limpa' section")
+
+    def test_a_finished_report_needs_the_locks_and_the_removed_tests(self) -> None:
+        self.spec("concluida", extra=("tasks.md",))
+        self.report("| CA-01 | verificação manual: abri a janela |\n", locks_and_tests="")
+        self.assert_refused(self.run_check(), "report.md: needs a '## Travas alteradas e testes removidos' section")
+
+    def test_an_empty_section_of_locks_and_tests_is_refused(self) -> None:
+        self.spec("concluida", extra=("tasks.md",))
+        self.report("| CA-01 | verificação manual: abri a janela |\n",
+                    locks_and_tests="\n## Travas alteradas e testes removidos\n\n## Outra\n\nTexto.\n")
+        self.assert_refused(self.run_check(), "Travas alteradas e testes removidos")
+
+    def test_an_older_report_may_keep_the_locks_and_the_tests_apart(self) -> None:
+        self.spec("concluida", extra=("tasks.md",))
+        apart = "\n## Travas alteradas\n\nNenhuma.\n\n## Testes removidos\n\nNenhum.\n"
+        self.report("| CA-01 | verificação manual: abri a janela |\n", locks_and_tests=apart)
+        self.assertEqual(self.run_check(), [])
+
+    def test_an_older_report_needs_both_sections(self) -> None:
+        self.spec("concluida", extra=("tasks.md",))
+        self.report("| CA-01 | verificação manual: abri a janela |\n", locks_and_tests="\n## Travas alteradas\n\nNenhuma.\n")
+        self.assert_refused(self.run_check(), "Travas alteradas e testes removidos")
 
     def test_status_needs_a_phase(self) -> None:
         self.write("docs/STATUS.md", "---\nspec-atual:\n---\n")

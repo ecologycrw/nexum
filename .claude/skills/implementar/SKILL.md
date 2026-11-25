@@ -13,14 +13,16 @@ description: Implementa a fatia aprovada do Nexum, uma tarefa por vez, com teste
 ## Passos
 
 1. **Lista de tarefas.** Se `tasks.md` não existe, crie a partir de `templates/tasks.md`. Divida o plano em tarefas pequenas (T01, T02...), cada uma com o critério que atende e como verificar. Mude a spec para `em-andamento`. Commit `docs(NNNN): add task list`.
+   - **O `tasks.md` é curto,** porque toda sessão nova o lê inteiro. Cada tarefa tem a primeira linha do modelo e, no máximo, mais 2 linhas: o resultado em uma frase e o commit. O detalhe (o que foi testado, os números, o que se aprendeu) vai para a mensagem do commit; as provas, os desvios do plano e as travas alteradas vão para o report.
+   - **Nunca encurte o que é memória:** as decisões do dono vão para "Decisões do dono", com as palavras dele e a tarefa; os bloqueios, para "Bloqueios"; e o contexto que a próxima sessão precisa, para "Notas para a próxima sessão".
 2. **Uma tarefa por vez,** sempre a próxima pendente:
    1. Marque `[~]` no `tasks.md`.
    2. Escreva o teste primeiro, quando possível. O teste que prova um critério leva a etiqueta no começo do nome: `TEST_CASE("[NNNN-CA-xx] ...")`. Os exemplos esperados da seção "Suficiência das descrições" do `plan.md` viram testes.
    3. Implemente seguindo `docs/CONVENTIONS.md` e o código de referência citado lá. Respeite as invariantes de `docs/ARCHITECTURE.md`.
    4. **Sala limpa.** Se a tarefa reproduz um comportamento do original, escreva a partir da spec ou do achado listado em "Fontes da central usadas" do `plan.md`, nunca de memória e nunca do código do MuMain. Toda constante (tamanho, offset, tempo, código de pacote) vem de uma spec que cita a origem. Confira a checklist de `docs/WORKFLOW.md` (seção "Sala limpa"). Se a descrição não bastar, pare: use `/consultar-central`, marque a tarefa `[!]` e espere a central.
    5. Rode as verificações da skill `/verificar`.
-   6. Se a tarefa mudou o que aparece na tela, gere a imagem da cena de prova, abra o arquivo e compare com `docs/VISUAL.md`. Anote no `tasks.md` o que viu. Uma imagem errada impede o commit, como um teste que falha. Se a cena é nova, o teste da prova visual só passa com a imagem aprovada em `tests/visual/approved/`: mostre a imagem ao dono e, se ele aprovar, entregue o comando pronto para ele mesmo copiar o arquivo. A IA nunca copia nem altera essas imagens. A imagem precisa estar lá antes do `/fechar`, para a CI do PR ficar verde.
-   7. Se tudo passou: marque `[x]` e faça o commit `tipo(NNNN): Txx descrição` e o `git push`.
+   6. Se a tarefa mudou o que aparece na tela, gere a imagem da cena de prova, abra o arquivo e compare com `docs/VISUAL.md`. Anote em uma linha, na seção "Prova visual" do `tasks.md`, o que viu; a descrição completa vai para o report. Uma imagem errada impede o commit, como um teste que falha. Se a cena é nova, o teste da prova visual só passa com a imagem aprovada em `tests/visual/approved/`: mostre a imagem ao dono e, se ele aprovar, entregue o comando pronto para ele mesmo copiar o arquivo. A IA nunca copia nem altera essas imagens. A imagem precisa estar lá antes do `/fechar`, para a CI do PR ficar verde.
+   7. Se tudo passou: marque `[x]`, escreva o resultado em uma frase e faça o commit `tipo(NNNN): Txx descrição`, com o detalhe da tarefa no corpo da mensagem, e o `git push`.
    8. Se não passar depois de tentativas razoáveis: marque `[!]`, descreva o bloqueio em "Bloqueios" no `tasks.md`, pare e pergunte ao dono.
 3. **Ao terminar todas as tarefas,** diga ao dono que a próxima etapa é `/revisar`.
 

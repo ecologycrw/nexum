@@ -12,6 +12,7 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "VCPKG_INSTALLED_DIR": "${sourceDir}/vcpkg_installed",
+        "VCPKG_INSTALL_OPTIONS": "--no-print-usage",
         "NEXUM_AUTHORING": "ON"
       }
     },

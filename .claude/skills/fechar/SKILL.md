@@ -18,13 +18,13 @@ description: Fecha a fatia do Nexum - escreve o report com a prova de cada crit�
    - **a "Sala limpa":** a checklist conferida tarefa a tarefa (a checagem `docs` exige a seção);
    - **"O que você deve testar":** passo a passo para o dono, com comandos prontos e o que deve aparecer;
    - desvios do plano, revisão, itens provisórios e propostas geradas;
-   - travas alteradas (`git diff --name-only main...HEAD`, comparando com a lista de travas do `AGENTS.md`) e testes removidos, com o motivo.
+   - **"Travas alteradas e testes removidos":** as travas que mudaram (`git diff --name-only main...HEAD`, comparando com a lista de travas do `AGENTS.md`) e os testes removidos ou enfraquecidos, com o motivo (a checagem `docs` exige a seção, com as duas listas).
 2. **Documentação viva.**
    - `docs/ARCHITECTURE.md`, se algo do que ele descreve mudou (inclusive a linha "Como é agora").
    - Documentação de módulo para cada sistema novo, a partir de `templates/module.md`.
    - "Código de referência" em `docs/CONVENTIONS.md`, se surgiu um bom exemplo.
-   - `docs/TECH_DEBT.md`: tire os itens resolvidos e inclua os novos. Os dois vão para o report, em "Itens provisórios criados" e "Itens provisórios resolvidos".
-   - ADR para cada decisão nova, a partir de `templates/adr.md`, com a linha no índice `docs/adr/README.md`.
+   - `docs/TECH_DEBT.md`: tire os itens resolvidos e inclua os novos. Os dois vão para a seção "Itens provisórios" do report, em "Criados" e "Resolvidos".
+   - ADR para cada decisão nova do Nexum e para cada desvio da spec de referência, a partir de `templates/adr.md`, com a linha no índice `docs/adr/README.md`. Uma decisão que só segue a spec é citada pelo número (D-xx), sem ADR próprio; a regra completa fica no `docs/adr/README.md`.
 3. **Status.** Mude a spec para `concluida`. Atualize o `docs/STATUS.md`: a fatia aguarda o teste do dono, com uma linha no "Histórico". Marque a etapa Fechamento na lista "Etapas" do `tasks.md`, com a data: `` - [x] Fechamento (`/fechar`): AAAA-MM-DD ``.
 4. **Verifique.** Rode `/verificar`. A checagem de docs confere que todo critério tem prova e que o report tem a sala limpa.
 5. **Commit e revisão do dono.**

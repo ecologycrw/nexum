@@ -47,28 +47,48 @@ def _count_tests(diff: str) -> tuple[int, int]:
     return added, removed
 
 
+def _count_powershell_lines_removed(diff: str) -> int:
+    """The PowerShell tests of the hooks list their cases as lines, with no marker; every removed line is counted."""
+    current = ""
+    removed = 0
+    for line in diff.splitlines():
+        if line.startswith(("--- a/", "+++ b/")):
+            current = line[6:]
+            continue
+        if line.startswith(("---", "+++")) or not line.startswith("-") or not current.endswith(".ps1"):
+            continue
+        code = line[1:].strip()
+        removed += bool(code) and not code.startswith("#")
+    return removed
+
+
 def _is_test_file(path: str) -> bool:
     is_in_tests = path.startswith("tests/") or "/Tests/" in path
-    return is_in_tests and PurePosixPath(path).suffix in (".cpp", ".py")
+    return is_in_tests and PurePosixPath(path).suffix in (".cpp", ".py", ".ps1")
 
 
 def build(changes: list[tuple[str, str]], test_diff: str) -> str:
     protected = [change for change in changes if is_protected(change[1])]
     deleted_tests = [path for status, path in changes if status == "D" and _is_test_file(path)]
     added, removed = _count_tests(test_diff)
+    powershell_removed = _count_powershell_lines_removed(test_diff)
 
     lines = ["## Resumo de segurança do PR", "", f"### Travas alteradas ({len(protected)})", ""]
     if protected:
         lines += [f"- `{path}` ({_DESCRIPTIONS.get(status, 'alterado')})" for status, path in protected]
-        lines += ["", "> **Atenção:** mudanças em travas exigem a aprovação explícita do dono (docs/WORKFLOW.md)."]
+        lines += ["", "> **Atenção:** mudanças em travas exigem a aprovação explícita do dono (AGENTS.md)."]
     else:
         lines.append("Nenhuma.")
 
     lines += ["", "### Testes", "", f"- Testes adicionados: {added}", f"- Testes removidos: {removed}",
               f"- Arquivos de teste apagados: {len(deleted_tests)}"]
     lines += [f"  - `{path}`" for path in deleted_tests]
+    lines.append(f"- Linhas removidas dos testes em PowerShell (os casos dos hooks): {powershell_removed}")
     if removed or deleted_tests:
         lines += ["", "> **Atenção:** testes foram removidos. O report da fatia precisa explicar o motivo de cada remoção."]
+    if powershell_removed:
+        lines += ["", "> **Atenção:** linhas saíram dos testes em PowerShell. Confira se algum caso de teste foi removido "
+                      "ou enfraquecido; se foi, o report precisa explicar o motivo."]
     return "\n".join(lines) + "\n"
 
 

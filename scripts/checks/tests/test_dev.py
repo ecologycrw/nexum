@@ -1,5 +1,9 @@
+import contextlib
 import importlib.util
+import io
 import json
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -65,6 +69,70 @@ class PresetTests(unittest.TestCase):
         self.assertTrue(dev.has_sanitizers("linux", "default"))
         self.assertFalse(dev.has_sanitizers("macos", "default"))
         self.assertFalse(dev.has_sanitizers("linux", "gcc"))
+
+    def test_vcpkg_does_not_print_its_usage_notes(self) -> None:
+        presets = json.loads((ROOT / "CMakePresets.json").read_text(encoding="utf-8"))
+        base = next(preset for preset in presets["configurePresets"] if preset["name"] == "base")
+        self.assertIn("--no-print-usage", base["cacheVariables"]["VCPKG_INSTALL_OPTIONS"])
+
+
+class SummaryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.log = Path(self.folder.name) / "dev-last.log"
+        self.previous = dev.OUTPUT
+        dev.OUTPUT = dev.Output(summary=True, log=self.log)
+        self.addCleanup(setattr, dev, "OUTPUT", self.previous)
+
+    def run_python(self, code: str) -> str:
+        shown = io.StringIO()
+        with contextlib.redirect_stdout(shown):
+            dev.run([sys.executable, "-c", code])
+        return shown.getvalue()
+
+    def test_the_summary_keeps_the_numbers_of_each_kind_of_step(self) -> None:
+        text = "\n".join([
+            "-- Running vcpkg install", "[1/3] Building CXX object a.obj", "[3/3] Linking CXX executable a.exe",
+            "      Start  1: core", " 1/2 Test  #1: core .... Passed", "100% tests passed, 0 tests failed out of 2",
+            "Ran 160 tests in 7.156s", "guard-bash tests: 98 of 98 passed.", "OK: docs, terms",
+            "a.cpp(3): warning C4100: unreferenced parameter",
+        ])
+        self.assertEqual(dev.summarize(text), [
+            "100% tests passed, 0 tests failed out of 2", "Ran 160 tests in 7.156s",
+            "guard-bash tests: 98 of 98 passed.", "OK: docs, terms", "compiled: 3 build step(s)",
+            "1 line(s) with a warning: see build/dev-last.log",
+        ])
+
+    def test_a_command_that_passes_shows_only_its_numbers_and_saves_the_rest(self) -> None:
+        shown = self.run_python("print('noise line'); print('100% tests passed, 0 tests failed out of 4')")
+        self.assertEqual(shown, "  100% tests passed, 0 tests failed out of 4\n")
+        self.assertIn("noise line", self.log.read_text(encoding="utf-8"))
+
+    def test_a_command_that_fails_is_shown_in_full(self) -> None:
+        shown = io.StringIO()
+        code = "import sys; print('first line'); print('a.cpp(9): error C2065: undeclared', file=sys.stderr); sys.exit(3)"
+        with contextlib.redirect_stdout(shown), self.assertRaises(dev.StepFailed) as failure:
+            dev.run([sys.executable, "-c", code])
+        self.assertIn("first line", shown.getvalue())
+        self.assertIn("error C2065", shown.getvalue())
+        self.assertIn("exit code 3", str(failure.exception))
+
+    def test_the_log_holds_every_command_of_one_run(self) -> None:
+        self.run_python("print('one')")
+        self.run_python("print('two')")
+        log = self.log.read_text(encoding="utf-8")
+        self.assertIn("one", log)
+        self.assertIn("two", log)
+
+    def test_each_kind_of_build_is_configured_once(self) -> None:
+        builder = dev.Builder("default")
+        configured = []
+        builder.configure = lambda kind="dev": (configured.append(kind), builder.configured.add(kind))
+        builder.configure_once("dev")
+        builder.configure_once("dev")
+        builder.configure_once("release")
+        self.assertEqual(configured, ["dev", "release"])
 
 
 if __name__ == "__main__":
