@@ -11,7 +11,17 @@ No Windows:
 - Python 3.12 ou mais novo.
 - Git e GitHub CLI (`gh`).
 
-No Linux (usado na CI): Clang, GCC, CMake, Ninja, vcpkg e Python 3.
+No Windows, as bibliotecas do vcpkg entram dentro dos próprios programas (o triplet `x64-windows-static-md`), e não existe nenhuma DLL para copiar. Por isso, os presets desligam o passo do vcpkg que copia as DLLs para perto de cada programa (`VCPKG_APPLOCAL_DEPS=OFF`): ele não fazia nada e, na CI, às vezes parava o build com um arquivo em uso. Se um dia uma biblioteca vier como DLL, o programa nem abre e os testes falham; aí é preciso copiar essa DLL pelo CMake ou religar a opção.
+
+No Linux (usado na CI): Clang, GCC, CMake, Ninja, vcpkg e Python 3. O SDL precisa também das bibliotecas de janela (X11 e Wayland) e de um driver Vulkan. Sem placa de vídeo, o driver por software (lavapipe) serve. Sem tela, os testes rodam dentro do Xvfb, como na CI:
+
+```bash
+sudo apt-get install ninja-build clang g++ libvulkan1 mesa-vulkan-drivers \
+  libx11-dev libxext-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev xvfb
+xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" python3 scripts/dev.py verify
+```
+
+O build com os detectores de erro de memória no Linux exige o CMake 3.29 ou mais novo e o lavapipe (`libvulkan_lvp.so`, do pacote `mesa-vulkan-drivers`). Sem o lavapipe, a configuração para com um erro, para a checagem de vazamentos nunca passar em silêncio. No Linux, os testes abrem janelas só no X11 ([TD-0010](../TECH_DEBT.md)), e o teste `muclient_draws_300_frames_and_closes` confere isso no log (CA-10 da fatia 0). Numa sessão Wayland, o SDL pode escolher o Wayland mesmo dentro do Xvfb: rode os testes sem a variável `WAYLAND_DISPLAY` (`env -u WAYLAND_DISPLAY xvfb-run ...`).
 
 No macOS (usado na CI): as ferramentas de linha de comando do Xcode (Clang), CMake, Ninja, vcpkg e Python 3.
 
@@ -49,6 +59,40 @@ No Linux, `--compiler gcc` troca o Clang pelo GCC: `python3 scripts/dev.py --com
 
 O `scripts/dev.py` encontra o Visual Studio sozinho, então os comandos funcionam em qualquer terminal.
 
+### Profiler
+
+O profiler (Tracy) vem desligado e só existe no build de desenvolvimento: o build de jogador recusa a opção. Para ligar, configure uma pasta de build própria com `NEXUM_PROFILER=ON`. O vcpkg instala o Tracy na primeira vez. No Windows, rode num *Developer PowerShell* do Visual Studio:
+
+```bash
+cmake --preset windows-dev -B build/windows-profiler -DNEXUM_PROFILER=ON
+cmake --build build/windows-profiler
+```
+
+No Linux e no macOS, troque o preset por `linux-dev`, `linux-gcc-dev` ou `macos-dev`. Ligado, cada programa abre uma porta de rede para o visualizador do Tracy, e o Windows pede a liberação do firewall. O código marca o trabalho com as macros de `Nexum/Debug/Profiler.hpp`, nunca com o Tracy direto. Ainda não há comando no `scripts/dev.py` ([TD-0012](../TECH_DEBT.md)).
+
+### O MuClient e a prova visual
+
+O programa fica na pasta de build do preset, como `build/windows-dev/Games/MuOnline/App/MuClient.exe`:
+
+| O quê | Opção |
+|---|---|
+| Ver a versão e o tipo de build | `--version` |
+| Desenhar N quadros e fechar sozinho | `--frames N` |
+| Escolher o backend da placa de vídeo (no Windows, o padrão é o Vulkan) | `--gpu-driver vulkan`, `direct3d12` ou `metal` |
+| Gravar a cena de prova sem janela (só no build de desenvolvimento) | `--capture ARQUIVO.png` |
+
+O teste `visual_proof_0000_test_card` faz a captura e a compara com `tests/visual/approved/0000-test-card.png`: `ctest --preset windows-dev -R visual_proof`. A captura fica em `build/windows-dev/tests/visual/0000-test-card.png`. A comparação sozinha é `visualproof CAPTURA.png APROVADA.png --tolerance NÍVEIS`, que termina com 0 quando aprova, 1 quando recusa e 2 quando a linha de comando está errada. Só o dono põe imagens em `tests/visual/approved/` ([VISUAL](../VISUAL.md#prova-visual)).
+
+### Testes sem as janelas de falha do Windows
+
+No Windows, um assert da biblioteca do C++, um `abort` ou uma queda abrem uma janela que deixa o programa parado até alguém clicar. Nos testes, isso nunca acontece:
+
+- **Os programas de teste** escrevem essas falhas como texto e terminam na hora, sempre, pelo `main` comum (`tests/support/DoctestMain.cpp`) e pelo doctest.
+- **O `MuClient` e o `visualproof`** fazem o mesmo quando a variável de ambiente `NEXUM_FAILURES_AS_TEXT` está ligada (`Nexum/Platform/FailureReports.hpp`). Os presets de teste a ligam. Rodando o `MuClient` à mão, a janela continua aparecendo, porque ela ajuda a investigar.
+- **Tempo limite:** os presets de teste dão a cada teste no máximo 300 segundos. Um teste que travar por outro motivo é encerrado e aparece como falha, em vez de parar a verificação e a CI.
+
+Os dois valores ficam no `CMakePresets.json`, que é uma trava.
+
 ## O que roda automaticamente
 
 | Quando | O quê | Onde |
@@ -67,7 +111,7 @@ O `scripts/checks` confere o que o compilador não confere:
 | `docs` | links quebrados, specs incompletas, critério de aceitação sem prova, seções "Prova visual", "Fontes da central usadas", "Suficiência das descrições" e "Sala limpa" ausentes, plano aprovado com perguntas abertas para a central, ADRs fora de sequência, item provisório sem destino |
 | `structure` | arquivos obrigatórios faltando, módulos fora do padrão, nomes de arquivo errados, biblioteca sem licença registrada, arquivos originais do jogo no repositório |
 | `architecture` | dependência proibida entre camadas, e bibliotecas externas ou o sistema operacional fora do módulo dono |
-| `cpp-rules` | `new` e `delete` soltos, funções perigosas de C, `rand`, relógios fora de Platform e Time, `reinterpret_cast`, `throw` no runtime |
+| `cpp-rules` | `new` e `delete` soltos, funções perigosas de C, `rand`, relógios fora de Platform e Time, `reinterpret_cast`, `throw` no runtime. A troca do `operator new` global só é aceita no contador de `tests/architecture/frame_allocations/` |
 | `terms` | a linha vermelha: nomes do MU em `Engine/` e `Kit/`, e nomes dos formatos originais fora de `Tools/` |
 
 ## Central de conhecimento

@@ -1,21 +1,28 @@
 ---
 fase: entre-fatias
 spec-atual:
-branch:
-atualizado-em: 2026-11-20
+branch: fatia/0000-fundacao
+atualizado-em: 2026-11-25
 ---
 
 # Status
 
 ## Agora
 
-**Preparação concluída e na `main`.** O repositório `ecologycrw/nexum` está público, com a `main` protegida, e a CI do PR #2 passou nos 10 checks em Windows, Linux (Clang e GCC) e macOS. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)). Nenhuma fatia está em andamento.
+**Fatia 0 (Fundação, marco M0) concluída, esperando o merge do dono.** O dono testou, e a retrospectiva foi feita. O [report](../specs/0000-fundacao/report.md) tem a prova de cada critério, e o [PR #5](https://github.com/ecologycrw/nexum/pull/5) está pronto para a aprovação.
+
+A retrospectiva mudou a ordem do roteiro ([ADR 0032](adr/0032-rede-antes-do-importador.md)): a próxima fatia é a **parte 1 do M2, a rede sem mapa**, antes do M1. O que o marco manda investigar antes já está na central: a spec de protocolo do cliente 106.3 e a spec dos atributos de terreno, ambas de 2026-11-22. A cópia da spec de referência foi trocada pela versão nova da central (P-0011). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. O dono revisa e faz o merge do PR da atualização da spec (o Enhanced reescrito). Ele muda o que o M0 confere antes: o defeito do D3D12 e o Vulkan como padrão no Windows.
-2. Numa sessão nova, aberta só no Nexum: `/planejar` da fatia 0 (o resto do M0).
-3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
+1. O dono aprova e faz o squash merge do PR #5 pelo navegador.
+2. `/planejar` da parte 1 do M2, numa branch nova a partir da `main`. Ele lê as specs novas da central e decide com o dono três pontos que a conferência das specs levantou:
+   - a imagem do OpenMU para os testes (`0.10.1`) e a impressão digital dela;
+   - se as capturas reais do laboratório da central entram no repositório como vetores;
+   - o número de série próprio no login, sem usar o do MuMain.
+3. Depois do merge, apagar o contêiner e o volume `nexum-linux-ci` do Docker ([tasks.md](../specs/0000-fundacao/tasks.md), "Notas para a próxima sessão").
+4. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
+5. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
 ## Bloqueios
 
@@ -35,3 +42,10 @@ Nenhum.
 | 2026-11-20 | CI do PR #2 verde nos 10 checks, pela primeira vez em Linux (Clang e GCC) e macOS; o dono aprovou e fez o squash merge na `main` |
 | 2026-11-20 | Propostas P-0001 (separar os jogos em repositórios próprios) e P-0002 (conferir se a descrição da central basta) registradas a pedido do dono; a P-0002 foi adotada logo em seguida |
 | 2026-11-20 | A central reescreveu o Enhanced da spec a partir da doc oficial do MuMain. A pedido do dono, a cópia em `docs/referencia/` foi trocada inteira, os ADRs 0029 a 0031 substituíram os 0004, 0009 e 0012, e o VISUAL, a VISÃO, o ROADMAP, o glossário e o TD-0005 foram atualizados |
+| 2026-11-20 | O dono fez o merge do PR #3 (proposta P-0002) e do PR #4 (a spec com o Enhanced reescrito) |
+| 2026-11-20 | Spec da fatia 0 (Fundação) aprovada pelo dono, com o Tracy, as mudanças nas travas e a lista de requisitos do SDL GPU na VISÃO. O SDL 3.4.20 ainda tem o defeito do D3D12 (SDL #16369, correção prevista para o 3.6.0), e o Vulkan segue como padrão no Windows |
+| 2026-11-21 | Fatia 0: as 17 tarefas concluídas e a revisão independente feita, sem achados críticos, com 2 importantes e 9 menores. As correções vão até o commit `3444b67` |
+| 2026-11-21 | Fatia 0 fechada: report com a prova dos 13 critérios, as páginas dos módulos em `docs/modules`, e o PR #5 pronto para o teste do dono |
+| 2026-11-21 | Teste do dono: tudo certo. A janela preta por uns 0,7 s no início virou a proposta P-0010 |
+| 2026-11-22 | A central escreveu a spec de protocolo do cliente 106.3 e a spec dos atributos de terreno, a pedido do dono, e corrigiu 3 trechos da spec de referência |
+| 2026-11-25 | Retrospectiva da fatia 0: o M2 foi dividido, e a parte 1 vem antes do M1 (ADR 0032); a cópia da spec foi trocada (P-0011); as propostas P-0004, P-0005, P-0010 e P-0011 foram aceitas |

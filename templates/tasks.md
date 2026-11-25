@@ -7,6 +7,15 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
 - [ ] T01: O que fazer (CA-01). Verificação: como saber que terminou.
 - [ ] T02: O que fazer (CA-02). Verificação: como saber que terminou.
 
+## Etapas
+
+Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a data e, na revisão, o commit. O hook do início da sessão lê esta lista para dizer a etapa e o próximo passo (`docs/WORKFLOW.md`).
+
+- [ ] Revisão (`/revisar`)
+- [ ] Fechamento (`/fechar`)
+- [ ] Teste do dono
+- [ ] Retrospectiva (`/retrospectiva`)
+
 ## Bloqueios
 
 *(nenhum)*

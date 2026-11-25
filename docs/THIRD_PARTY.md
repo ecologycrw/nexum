@@ -6,16 +6,21 @@ Toda biblioteca do `vcpkg.json` fica registrada aqui com a licença dela ([ADR 0
 
 | Biblioteca | Licença | Para quê | Entra no jogo distribuído |
 |---|---|---|---|
-| `sdl3` | zlib; um cabeçalho do OpenGL ES usa Apache-2.0 | janela, entrada, placa de vídeo e pastas do usuário | sim |
+| `sdl3` | zlib; um cabeçalho do OpenGL ES usa Apache-2.0 | janela, entrada, placa de vídeo (o SDL GPU, com Vulkan, Direct3D 12 e Metal), leitura e gravação de PNG e pastas do usuário | sim |
 | `tl-expected` | CC0-1.0 | devolver erros por valor (`Result<T>`) | sim |
 | `doctest` | MIT | testes automáticos | não |
+
+## Opcionais
+
+Ficam numa opção (*feature*) do `vcpkg.json` e só entram no build quando ela é ligada. A checagem `structure` ainda não confere esta lista: ela lê só as bibliotecas principais do `vcpkg.json`.
+
+- **Tracy 0.15.0** (BSD-3-Clause, BSD-2-Clause e MIT): o profiler, atrás do `Engine/Debug`. Entra só no build de desenvolvimento e só com `NEXUM_PROFILER=ON` (a opção `profiler` do `vcpkg.json`), no modo "sob demanda", sem as ferramentas gráficas e sem o tratador de falhas. Não entra no jogo distribuído. Aprovado pelo dono na fatia 0.
 
 ## Planejadas
 
 Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licença é conferida na versão adotada antes de entrar.
 
-- SDL_ttf e SDL_shadercross (zlib): texto e compilação de shaders. Entram no M0 ou no M1.
-- Tracy (BSD-3): profiler, só no build de desenvolvimento. Entra no M0.
+- SDL_ttf e SDL_shadercross (zlib): texto e compilação de shaders. Entram no M1.
 - KTX-Software (Apache 2.0), stb_image ou libjpeg-turbo, cgltf (MIT) e meshoptimizer (MIT): o importador. Entram no M1.
 - Dear ImGui (MIT, ramo docking): o modo de autoria. Entra no M1.
 - EnTT (MIT): o armazenamento das entidades, atrás da fachada `World`. Entra no M1 ou no M2.

@@ -7,12 +7,15 @@ runs:
     - uses: actions/setup-python@v7
       with:
         python-version: '3.13'
+    # Besides the compilers: the Vulkan software driver (lavapipe), the X11 and Wayland libraries that SDL
+    # needs to open windows (docs/setup/DEV.md), and Xvfb, a virtual screen for the tests.
     - name: Install the Linux packages
       if: runner.os == 'Linux'
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build clang g++ libvulkan1 mesa-vulkan-drivers
+        sudo apt-get install -y ninja-build clang g++ libvulkan1 mesa-vulkan-drivers \
+          libx11-dev libxext-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev xvfb
     - name: Install the macOS packages
       if: runner.os == 'macOS'
       shell: bash

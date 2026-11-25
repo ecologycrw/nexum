@@ -13,4 +13,16 @@ core::Version SdlVersion() noexcept {
                          static_cast<std::uint32_t>(SDL_VERSIONNUM_MICRO(version))};
 }
 
+OperatingSystem CurrentOperatingSystem() noexcept {
+#if defined(SDL_PLATFORM_WINDOWS)
+    return OperatingSystem::Windows;
+#elif defined(SDL_PLATFORM_MACOS)
+    return OperatingSystem::MacOs;
+#elif defined(SDL_PLATFORM_LINUX)
+    return OperatingSystem::Linux;
+#else
+#error "The engine runs only on Windows, Linux and macOS (INV-15)."
+#endif
+}
+
 } // namespace nexum::platform

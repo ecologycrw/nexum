@@ -12,7 +12,7 @@ description: Processa o que a fatia do Nexum ensinou - aplica a escada de erros,
 
 ## Passos
 
-1. **Feedback do dono.** Se houve problemas ou pedidos no teste, registre cada um com `/propor`, usando as palavras do dono. Um bug que impede a fatia de cumprir um critério de aceitação não é proposta: corrija na própria fatia (`/implementar`, `/verificar`) e atualize o report.
+1. **Feedback do dono.** Se houve problemas ou pedidos no teste, registre cada um com `/propor`, usando as palavras do dono. Um bug que impede a fatia de cumprir um critério de aceitação não é proposta: corrija na própria fatia (`/implementar`, `/verificar`) e atualize o report. Se a etapa Teste do dono ainda não estiver marcada na lista "Etapas" do `tasks.md`, marque com a data e uma linha sobre o que o dono achou.
 2. **Escada de erros.** Leia "Erros e lições" deste report e dos reports das fatias anteriores. Um erro que apareceu pela segunda vez vira proposta de regra; se puder ser verificado por máquina, a proposta é de teste, hook ou análise automática.
 3. **Organize as propostas abertas.** Para cada uma, recomende: fatia nova, ADR, regra, trava, skill, agente ou descartar, com o motivo.
 4. **Próxima fatia.** Proponha de 1 a 3 opções, com uma recomendação. Pese:
@@ -24,7 +24,8 @@ description: Processa o que a fatia do Nexum ensinou - aplica a escada de erros,
 6. **Depois das respostas:**
    - `docs/ROADMAP.md`: ajuste as fatias e os horizontes (o Claude Code vai pedir a confirmação do dono);
    - `docs/PROPOSALS.md`: mova as propostas decididas para "Processadas", com o destino;
-   - `docs/STATUS.md`: `spec-atual` vazio, fase `entre-fatias`, próxima ação `/planejar`;
+   - `docs/STATUS.md`: `spec-atual` vazio, fase `entre-fatias`, próxima ação `/planejar`. Com o `spec-atual` vazio na branch da fatia, o hook do início da sessão passa a dizer que a fatia espera o merge do dono;
+   - `tasks.md`: marque a etapa Retrospectiva na lista "Etapas", com a data;
    - imagens que o dono aprovou no teste: entregue a ele o comando pronto para copiar cada imagem para `tests/visual/approved/`. A IA nunca copia nem altera essas imagens. Depois que o dono rodar o comando, inclua as imagens no commit;
    - mudanças em travas que o dono aprovou: aplique (cada edição pede a confirmação do dono).
 7. **Commit.** Commit `docs(NNNN): retrospective of slice N`. Se houver remoto, `git push`. Rode `/verificar`.

@@ -21,8 +21,146 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Evidência: o dono perguntou "Games deveria ficar onde está por enquanto e no futuro fazer um Documents/Nexum Projects ?" e, depois da explicação, pediu "Sim, registre". Hoje a spec põe as três camadas num repositório só ([ADR 0002](adr/0002-tres-camadas.md)), o que permite mudar a engine e o módulo MU na mesma fatia enquanto a API da engine ainda muda muito. A ideia é revisar isso no ponto de decisão depois do M7 (pergunta 4 do [ROADMAP](ROADMAP.md#-ponto-de-decisão)): o Nexum (Engine, Kit e Tools) viraria uma biblioteca com versão, e cada jogo teria o próprio repositório, por exemplo numa pasta `Nexum Projects`. A separação já é barata, porque a Engine e o Kit nunca incluem nada de `Games/` e o CMake só expõe as pastas `Public/`. Exigiria um ADR com as regras de versão, a forma de o jogo instalar a engine e a CI de cada lado
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
+- Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o ponto de decisão.
+
+### P-0008: a prova visual do M3 com as placas de vídeo por software da CI
+- Origem: feedback do dono, depois da revisão da fatia 0 (a pergunta sobre placa de vídeo nas máquinas do GitHub)
+- Tipo: decisão
+- Evidência: o dono perguntou "o Github tem GPU para o meu plano free ? Tanto windows quanto linux ? E o que essa resposta impacta em nosso projeto ?" e, depois da resposta, pediu "Sim, registrar". As máquinas gratuitas do GitHub não têm placa de vídeo: a CI desenha com placas feitas por software, o lavapipe no Linux, o WARP no Windows e a placa virtual do macOS ([TD-0018](TECH_DEBT.md)). Na fatia 0, a imagem aprovada foi tirada no computador do dono (NVIDIA, Vulkan), e a captura da CI bateu com ela, com no máximo 1 nível de diferença, porque o cartão de teste só copia pixels. A partir do M3, com luz, névoa, texturas suavizadas e shaders, uma placa por software e uma placa de verdade podem desenhar pixels um pouco diferentes, e a mesma imagem aprovada pode não servir para as duas. Nem o [VISUAL](VISUAL.md) nem o TD-0016 (a comparação perceptual, M3) dizem onde a imagem aprovada é gerada, nem qual tolerância vale entre uma placa de verdade e uma por software. A decisão cabe no que o M3 manda investigar antes. Opções a comparar:
+  - a imagem aprovada gerada na CI e conferida pelo dono;
+  - uma imagem aprovada por tipo de placa;
+  - a comparação perceptual com uma tolerância por cena, medida nas duas placas.
+
+  As opções de ter uma placa de verdade na CI estão na P-0009.
+- Prioridade sugerida: média (decidir antes do M3)
+- Status: aberta
+- Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o planejamento do M3.
+
+### P-0009: as opções para a CI ter uma placa de vídeo de verdade
+- Origem: feedback do dono, na mesma conversa da P-0008
+- Tipo: decisão
+- Evidência: o dono pediu "Deixe registrado em algum lugar que você ache melhor, algo sobre a seção ali 'Se um dia a CI precisar de uma placa de verdade' também." Hoje a CI só confere se o desenho está certo. A fluidez e os orçamentos são medidos no computador do dono, e nenhuma placa mais fraca é testada (TD-0018, M7). Em 2026-11-21, as opções eram três:
+  - **O computador do dono como máquina da CI** (o *runner* próprio do GitHub): sem custo, com a GTX 1060 de verdade. O repositório é público, então um PR de outra pessoa poderia rodar código no computador do dono. A máquina precisaria aceitar só os PRs do próprio projeto, e isso pede um ADR e mudanças nas travas (`.github/`).
+  - **As máquinas do GitHub com placa de vídeo** (NVIDIA T4, no Windows e no Linux): existem só para organizações nos planos pagos Team ou Enterprise Cloud, e são cobradas por minuto mesmo em repositório público. Em 2024, eram cerca de US$ 0,05 por minuto no Linux e US$ 0,10 no Windows, e o GitHub anunciou mudanças de preço em 2026 ([GPU hosted runners](https://github.blog/changelog/2024-07-08-github-actions-gpu-hosted-runners-are-now-generally-available/), [preços dos runners](https://docs.github.com/en/billing/reference/actions-runner-pricing)).
+  - **Continuar como hoje:** a correção na CI, e a fluidez e o desempenho no computador do dono.
+
+  A recomendação dada ao dono foi continuar como hoje até o M3, e decidir junto com a P-0008 e com a medição do piso de hardware (TD-0018, M7).
+- Prioridade sugerida: baixa (rever no M3 e no M7)
+- Status: aberta
+- Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
 
 ## Processadas
+
+### P-0011: trocar a cópia da spec de referência pela versão de 2026-11-22 da central
+- Origem: o hook do início da sessão, em 2026-11-25 ("a spec de referencia mudou na central")
+- Tipo: doc (a cópia em `docs/referencia/` é uma trava)
+- Evidência: ao responder às perguntas do M2, a central corrigiu 3 trechos da spec em 2026-11-22: o `.att` tem 1 ou 2 bytes por célula (I.3.2 e I.3.3); a regra de bloqueio do A\* não é a que a doc do editor descreve (I.3.2); e a IV.15.1 passou a apontar para a spec de protocolo nova, com uma nota sobre os 13 passos. O front matter da central continua dizendo `atualizado: 2026-11-20`.
+- Prioridade sugerida: alta (as correções valem para o M2)
+- Status: aceita
+- Destino: aplicada na retrospectiva da fatia 0, com o "sim" do dono ("Sim, aplicar"). A cópia ficou idêntica à da central, o que o hook do início da sessão confirmou, e o [README da referência](referencia/README.md) ganhou o hash novo e a linha da atualização. Nenhuma decisão mudou, e nenhum ADR novo foi preciso.
+
+### P-0010: a janela do `MuClient` sem a tela preta no início
+- Origem: feedback do dono, no teste da fatia 0
+- Tipo: fatia (o começo do programa, no M1)
+- Evidência: no teste, o dono viu a janela preta antes do cartão e escreveu: "O timing entre o [info] platform: video driver windows e o [info] render: GPU backend vulkan on NVIDIA GeForce GTX 1060 6GB (driver NVIDIA 582.78.0.0) gera esse delay inicial que faz com que a primeira tela fique preta". Depois, perguntou "quais são as soluções pra isso, ou o que engines ou jogos fazem" e escolheu "Virar proposta".
+  - **A causa:** o `MuClient` abre a janela antes de ligar a placa de vídeo (`Games/MuOnline/App/Private/FoundationApp.cpp`). Até o primeiro quadro, a janela não tem nada para mostrar, e o Windows a pinta de preto. Não quebra nenhum critério da fatia 0: acontece uma vez, no início, e o ritmo do laço segue normal depois.
+  - **A medição** em 2026-11-21, no computador do dono, com `--frames 1` e a hora de cada linha do log, em 5 execuções:
+
+    | Passo | Vulkan | Direct3D 12 |
+    |---|---|---|
+    | o vídeo ligado e a janela aberta | 0,07 s | 0,06 s |
+    | a placa de vídeo ligada (a linha `GPU backend ...`) | 0,44 s | 0,69 s |
+    | o primeiro quadro desenhado (a imagem da janela preparada, o cartão enviado à placa e o primeiro desenho) | 0,75 s | 0,72 s |
+
+    A janela fica preta por uns 0,7 s. A maior parte do tempo é o driver da placa começando, e o Nexum não controla isso.
+  - **As soluções** levadas ao dono:
+    1. a janela criada escondida e mostrada só depois do primeiro quadro;
+    2. a placa de vídeo ligada antes de abrir a janela (o preto cairia para uns 0,3 s);
+    3. uma tela de abertura com um logo, desenhada pelo sistema, sem a placa;
+    4. a janela pintada com a cor de fundo do jogo no lugar do preto;
+    5. uma tela de carregamento, com o resto carregando em paralelo pelos *workers*.
+  - **O que as engines e os jogos fazem:** Unity, Unreal e Godot mostram uma tela de abertura configurável enquanto a engine começa (a solução 3). Os programas de desktop feitos com o Electron criam a janela escondida e a mostram quando ela está pronta (a solução 1). Os jogos grandes cobrem o começo com logos e vídeos e depois usam telas de carregamento (as soluções 3 e 5).
+  - **A recomendação dada ao dono:**
+    - as soluções 1 e 2 juntas, no M1. São simples, tiram o preto e não mudam a arquitetura. Pedem uma opção nova na `Window` (`Engine/Platform`) para abrir escondida e mostrar depois, e a ordem nova no início do `MuClient`;
+    - a solução 5 também no M1, quando o `MuClient` começar a carregar arquivos de verdade. O quadro nunca espera por disco (INV-06), então a tela de carregamento vai ser necessária de qualquer jeito;
+    - a solução 3 só se o início passar de 1 a 2 segundos antes de qualquer coisa aparecer.
+- Prioridade sugerida: baixa (é só aparência e dura menos de 1 segundo; fazer no M1, junto com o início do visualizador)
+- Status: aceita
+- Destino: o M1, junto com o início do visualizador: as soluções 1 e 2, e a 5 com a tela de carregamento. Decidido na retrospectiva da fatia 0 (2026-11-25).
+
+### P-0005: a checagem `structure` conferir também as bibliotecas opcionais do vcpkg
+- Origem: fatia 0, T16 (o registro do Tracy no THIRD_PARTY)
+- Tipo: trava (a checagem fica em `scripts/checks/`)
+- Evidência: a checagem compara o THIRD_PARTY só com as bibliotecas principais do `vcpkg.json`. O Tracy fica numa opção (*feature*) do `vcpkg.json` e, por isso, não é conferido: ele foi registrado numa lista à parte, fora da tabela que a checagem lê. Uma biblioteca opcional nova poderia entrar sem registro e sem licença conferida.
+- Prioridade sugerida: baixa
+- Status: aceita
+- Destino: trava, antes da próxima biblioteca opcional do `vcpkg.json`, provavelmente o ImGui do modo de autoria, no M1. Decidido na retrospectiva da fatia 0 (2026-11-25).
+
+### P-0004: o contador de alocações ver também a memória que o SDL pede
+- Origem: fatia 0, T15 (os 35 pedidos de memória do macOS)
+- Tipo: trava (o contador fica em `tests/architecture/frame_allocations/`)
+- Evidência: o teste do quadro (CA-09) só conta os pedidos feitos por `new`. O SDL pede memória por `malloc`, que o contador não vê. Por isso, a fila sem limite do desenho sem janela só apareceu no macOS, onde o driver da Apple pede memória por `new`. No Windows e no Linux, a mesma fila pode ter crescido sem que o teste visse. O SDL permite trocar as suas funções de memória (`SDL_SetMemoryFunctions`) antes do primeiro pedido. Com isso, o contador veria os pedidos do SDL nos 3 sistemas. A troca seria feita só nos programas de teste e precisa respeitar a INV-10 (cada biblioteca externa atrás de um único módulo).
+- Prioridade sugerida: média
+- Status: aceita
+- Destino: trava, na primeira fatia do M1, junto com o [TD-0019](TECH_DEBT.md), quando os shaders e os modelos trouxerem mais trabalho do SDL para dentro do quadro. Decidido na retrospectiva da fatia 0 (2026-11-25).
+
+### P-0007: o `MuClient` nos testes sem as janelas de falha do Windows, e um tempo limite geral para os testes
+- Origem: feedback do dono na fatia 0, depois da P-0006, comparando com uma proposta de outro projeto dele
+- Tipo: trava (os presets de teste ficam no `CMakePresets.json`)
+- Evidência: o dono mandou a proposta de outro projeto, em que um programa de teste abriu a janela "Debug Assertion Failed" do Windows e ficou parado até alguém clicar, e pediu: "Verifique pra mim, se o que a proposta propõe já existe funcionando ou documentado no Nexum Project". No Nexum, o `main` comum dos programas de teste (`tests/support/DoctestMain.cpp`, desde o commit `739471f`) já escreve essas falhas como texto (`_set_abort_behavior` e `_CrtSetReportMode`), com um teste em `nexum_test_main_tests`, e o doctest já transforma em texto as quedas graves no Windows. Ficam de fora:
+  1. o `MuClient` não usa esse `main`. Os testes do CTest que rodam o `MuClient` do build de desenvolvimento (a versão, os argumentos, os 300 quadros e a captura) abririam a janela se um assert do C++ ou o `NEXUM_ASSERT`, que chama `std::abort`, disparasse dentro do jogo, e o teste ficaria parado;
+  2. não há tempo limite geral para os testes: nem os presets, nem o `scripts/dev.py`, nem a CI definem um. Os testes `muclient_reports_its_version`, `muclient_reports_the_build_kind` e `muclient_refuses_unknown_arguments` rodam o `MuClient` direto, sem limite; os outros passam por scripts com 120 ou 300 segundos. Na CI, um teste parado só seria cortado pelo limite do GitHub, de 6 horas;
+  3. a regra não está escrita em nenhum documento, só no comentário do código e no teste.
+
+  Sugestão: um tempo limite geral nos presets de teste, como rede de segurança para qualquer travamento; o `MuClient` de desenvolvimento escrever as falhas como texto quando roda dentro de um teste, mas continuar abrindo a janela quando um desenvolvedor o roda à mão, porque ela ajuda a investigar; e uma linha no `docs/setup/DEV.md`
+- Prioridade sugerida: média
+- Status: aceita
+- Destino: trava e código da engine, aplicados na própria branch `fatia/0000-fundacao`, antes do `/revisar`, a pedido do dono ("Mas quero que você já analise a proposta P-0007 agora."). Mudaram:
+  - o `CMakePresets.json`: os presets de teste dão a cada teste no máximo 300 segundos e ligam a variável `NEXUM_FAILURES_AS_TEXT`;
+  - o `Engine/Platform` ganhou o `Nexum/Platform/FailureReports.hpp`, que, com a variável ligada, desliga as janelas do `abort` e dos asserts da biblioteca do C, encerra na hora quando uma função da biblioteca do C recebe um argumento inválido e desliga a janela de queda do Windows. Um teste novo (`FailureReportsTest.cpp`) confere a variável e o modo das falhas;
+  - o `MuClient` e o `visualproof` chamam essa função na primeira linha do `main`. Ela não ficou no `RunApplication`, porque a versão, os argumentos e a captura do `MuClient` terminam antes dele;
+  - o `docs/setup/DEV.md` e o `docs/ARCHITECTURE.md` explicam a regra.
+
+  Provas com uma falha de propósito no `MuClient`, desfeita depois. Um índice fora de uma lista saiu como texto ("Assertion failed: vector subscript out of range") em 0,5 s, sem janela; sem a janela de queda desligada, o mesmo teste levou 4 a 5 s, e 28 s na primeira vez. Uma string nula passada ao `fputs` saiu como "a function of the C runtime received an invalid parameter" em 1 s. Nos programas de teste comuns, a mesma falha já terminava em 0,2 s, porque o doctest desliga a janela de queda sozinho. O tempo limite aparece no CTest como "Test timeout computed to be: 300"
+
+### P-0006: a etapa da fatia calculada a partir do tasks.md, para o ciclo inteiro
+- Origem: feedback do dono na fatia 0, depois da T17
+- Tipo: trava (o hook do início da sessão, as skills do ciclo e os testes dos hooks)
+- Evidência: nas palavras do dono, "quando todas as tarefas da fatia são concluídas, uma nova sessão quando chamado o /situacao só sabe que tem o /revisar pendente por causa das tarefas concluídas", "assim como para o restante do fluxo que aparece no WORKFLOW". Depois da última tarefa, nenhuma etapa deixa uma marca que o hook leia: a revisão, o fechamento, o teste do dono, a retrospectiva e o merge. O hook só diz "Todas as tarefas estao feitas". Uma sessão nova depois do `/revisar` não saberia que a revisão já foi feita. O campo `fase` do STATUS, que ninguém atualiza, ainda diz `em-andamento`, com a data de 2026-11-20. Proposta, seguindo a ideia da P-0003 (o estado calculado, não copiado):
+  1. o `tasks.md` (e o modelo dele) ganha, depois das tarefas, uma lista de etapas: Revisão, Fechamento, Teste do dono e Retrospectiva. Cada skill marca a sua ao terminar, com a data e o commit; o teste do dono é marcado quando ele conta o resultado;
+  2. o hook do início da sessão lê essa lista, a spec e as tarefas, e mostra a etapa, o próximo passo e quem age (o dono ou a IA), para o ciclo inteiro do WORKFLOW: sem fatia, spec em rascunho, tarefas, tarefa bloqueada, revisão, fechamento, teste do dono, retrospectiva, merge e a branch já na `main`;
+  3. o hook avisa quando algo não bate: o fechamento marcado sem o `report.md`, uma mudança no código depois da revisão, ou a branch já na `main` com o STATUS ainda apontando para a fatia;
+  4. o `/situacao` usa essa linha, em vez de deduzir a etapa;
+  5. o campo `fase` sai do STATUS, pelo mesmo motivo da P-0003;
+  6. um teste por etapa nos testes dos hooks, e uma linha no WORKFLOW dizendo onde a etapa fica.
+  Até a mudança, a linha "Onde parou" das notas do `tasks.md` serve de apoio, atualizada por cada etapa.
+- Prioridade sugerida: alta (processar na `/retrospectiva` da fatia 0, no mesmo PR, para a fatia 1 já começar com isso)
+- Status: aceita
+- Destino: trava e skill, aplicadas na própria branch `fatia/0000-fundacao`, antes do `/revisar`, a pedido do dono ("Faça melhor, já analise essa proposta agora e aqui nessa sessão. Assim na nova sessão as coisas vão funcionar corretamente desde já."). Mudaram:
+  - o hook `session-start`, que escreve a etapa, o próximo passo e quem age, com os avisos dos itens 2 e 3;
+  - os testes dos hooks (`tests/hooks/session-start.tests.ps1`), com um caso por etapa e por aviso;
+  - o modelo `templates/tasks.md` e o `tasks.md` da fatia 0, que ganharam a lista "Etapas";
+  - as skills `/revisar`, `/fechar` e `/retrospectiva`, que marcam a sua etapa, e a `/situacao`, que usa a linha do hook;
+  - o `docs/WORKFLOW.md`, que diz onde fica a etapa.
+
+  O item 5 ficou de fora: o campo `fase` do STATUS só diz se há uma fatia em andamento, muda só no `/planejar` e na `/retrospectiva`, e a checagem `docs` exige o campo. Ele não estava errado; a etapa fina é que não tinha onde ficar, e agora fica no `tasks.md`.
+
+### P-0003: o estado da fatia calculado a partir do tasks.md, sem repetição
+- Origem: feedback do dono na fatia 0, depois da T03
+- Tipo: trava
+- Evidência: depois das tarefas T01 a T03, o `tasks.md` estava certo, mas o STATUS ainda dizia que a próxima ação "começa pela sondagem", e a memória da IA também. Nenhum lugar dizia que o aviso automático da CI vale só para a sessão que o ligou. Tudo foi corrigido à mão no commit `0e51420`, e a própria correção repetiu no STATUS "3 de 17 tarefas feitas" e "a partir da T04", que vão envelhecer de novo. O dono perguntou "Acha que devemos ter uma skil ou alguma mudança nos docs para quando por exemplo, isso acontecer ? exemplo, uma tarefa é terminada aqui, mas não tenho certeza que existem arquivos desatualizados que fará com que a nova sessão não reconheça as coisas corretamente.", depois "Você acha que as suas 3 sugestões seria melhor que do jeito que está ?" e, com a versão menor, "Sim, registrar". A proposta:
+  1. o hook do início da sessão lê o `tasks.md` da fatia atual e mostra quantas tarefas estão feitas, em andamento, bloqueadas e pendentes, e qual é a próxima, com um teste nos testes dos hooks;
+  2. uma regra: o STATUS aponta para o `tasks.md` e não repete números de tarefa nem contagens. O "3 de 17" e o "a partir da T04" saem do STATUS;
+  3. uma linha no `/situacao`: dizer se o PR está em rascunho e lembrar que o aviso automático da CI vale só para a sessão que o ligou.
+
+  Fica de fora uma checagem da fase do STATUS contra o status da spec: ela não teria pegado este caso, porque o erro estava numa frase. Muda travas: o hook `session-start`, os testes dos hooks e a skill `/situacao`
+- Prioridade sugerida: média (aplicar antes de muitas sessões novas na fatia 0)
+- Status: aceita
+- Destino: trava, regra e skill, aplicadas na branch `consolidacao/proposta-p-0003` a pedido do dono ("Bom, quero que você adiante assim como foi com a P-0002"). A branch sai da `fatia/0000-fundacao`, e o PR dela entra nessa branch, para as sessões da fatia 0 já terem o resumo novo. Mudaram:
+  - o hook `session-start`, que conta as tarefas e mostra a próxima;
+  - os testes dos hooks (`tests/hooks/session-start.tests.ps1`);
+  - a skill `/situacao` (o andamento vem do `tasks.md`; o PR em rascunho e o aviso automático por sessão);
+  - o `docs/WORKFLOW.md` (a regra) e o STATUS, que deixou de repetir números de tarefa.
 
 ### P-0002: conferir se a descrição da central basta antes de aprovar a spec
 - Origem: feedback do dono, depois do merge da preparação

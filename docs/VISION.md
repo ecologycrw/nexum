@@ -65,10 +65,18 @@ As regras que nunca mudam estão em [ARCHITECTURE.md](ARCHITECTURE.md#invariante
 | | Mínimo |
 |---|---|
 | Sistema | Windows 10/11 64 bits, Linux 64 bits ou macOS (Apple Silicon) |
-| GPU | com suporte a Direct3D 12, Vulkan ou Metal |
+| GPU | com suporte a Direct3D 12, Vulkan ou Metal, com os requisitos exatos da tabela abaixo |
 | Meta | Classic a 1080p numa GPU integrada recente, com folga para 144 Hz |
 
-**Proposta, ainda não comprovada.** Máquinas que só têm OpenGL ficam de fora. A lista exata de requisitos do SDL GPU é conferida no M0 ([TD-0005](TECH_DEBT.md)).
+O que o SDL GPU 3.4.20, a versão adotada, exige em cada sistema (conferido no `SDL_gpu.h`, na fatia 0):
+
+| Sistema | Requisitos do SDL GPU |
+|---|---|
+| Windows | Windows 10 ou mais novo, com uma placa de Direct3D 12 de nível 11_0 e *Resource Binding Tier 2*, ou com Vulkan |
+| Linux | Vulkan 1.0 com `VK_KHR_swapchain`, `VK_KHR_maintenance1`, *independent blend*, *image cube array*, *depth clamp*, *shader clip distance*, *draw indirect first instance* e *sample rate shading* |
+| macOS | macOS 10.14 ou mais novo, com Apple Silicon ou uma placa Intel da família *Mac2* |
+
+**Proposta, ainda não medida em máquinas reais** ([TD-0018](TECH_DEBT.md)). Máquinas que só têm OpenGL ficam de fora. O defeito do Direct3D 12 com muitos samplers por quadro está no [TD-0005](TECH_DEBT.md).
 
 ## Não-objetivos
 

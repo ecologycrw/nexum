@@ -313,15 +313,22 @@ ADR 0001 deixam de existir: cada lógica "por frame" do original vira "por tick"
 | 0x0100 | `TW_NOATTACKZONE` | Zona sem ataque. Não cabe no arquivo (ver abaixo) |
 | 0x0200–0x8000 | `TW_ATT1` a `TW_ATT7` | *Lacuna:* uso não investigado |
 
-- **Fato:** o arquivo `EncTerrain{N}.att` guarda **1 byte por célula**. Flags acima de 0x80 não podem
-  vir do arquivo (ME:127-131).
+- **Fato** (corrigido em 2026-11-22): o arquivo `EncTerrain{N}.att` guarda **1 ou 2 bytes por célula**.
+  O carregador aceita os dois tamanhos, e o de 2 bytes é o mais comum nos dados (51 de 61 arquivos).
+  Só o byte baixo é usado, e um byte ≥ 128 é erro. Logo, as flags de 0x80 para cima não vêm do arquivo
+  ([spec do .att](../formatos/atributos-de-terreno-att.md)). A doc do editor (ME:198) diz só "1 byte".
 - **Fato:** o `TW_CHARACTER` é apagado e carimbado de novo **a cada frame** em toda célula ocupada
   por um personagem vivo. Por isso a grade da memória não é "dado do mapa": gravá-la como está grava
   também onde os NPCs estavam (ME:250-255).
 - **Fato:** **cliente e servidor leem o mesmo byte de jeitos diferentes** (ME:256-262):
   - **servidor:** compara o valor exato. Só 0 e 1 são andáveis, e só 1 é zona segura. Água (16)
     bloqueia, e qualquer combinação (3, 5...) também bloqueia;
-  - **cliente:** testa bits. Bloqueia com 4 ou 8; 1 é zona segura; 16 não bloqueia, e 3 é andável.
+  - **cliente:** é o que diz a doc do editor (ME:260-261): testa bits, bloqueia com 4 ou 8, 16 não
+    bloqueia e 3 é andável. **Para o A\*, isso não vale** (corrigido em 2026-11-22):
+    - o A\* apaga os bits 0x20, 0x40 e 0x80 e exige um valor menor que o limiar, que é 2 por padrão;
+    - então só 0 e 1 passam, e personagem (2), 3, 4, 8 e água (16) bloqueiam;
+    - os bits 0x20 e 0x40 são ignorados pelo cliente, mas o servidor bloqueia essas células
+      ([spec do protocolo, §8.2](../protocolo/protocolo-106-3-m2.md)).
 - **Fato:** o servidor tem a **própria cópia** da grade, no banco (`GameMapDefinition.TerrainData`).
   São 65.539 bytes sem cifra (3 bytes de cabeçalho + 65.536), semeados de `Resources/Terrain{N}.att`
   (ME:199).
@@ -339,7 +346,7 @@ Exemplo: Lorencia é 0 no servidor e `World1` no cliente; alguns mapas especiais
 | Dado | Arquivo | Como é |
 |---|---|---|
 | Texturas do chão | `EncTerrain{N}.map` | Cifrado com `MapFileDecrypt`. Contém versão, número do mapa, camada 1 (256²), camada 2 (256²) e alfa (256²). Cada célula guarda um índice de 0 a 29: de 0 a 13 são os tiles fixos, de 14 a 29 os extras |
-| Atributos | `EncTerrain{N}.att` | Para ler: primeiro `MapFileDecrypt`, depois `BuxConvert` (para gravar, o inverso). Cabeçalho `[versão, mapa, 255, 255]` + 256² bytes, índice `y*256+x` |
+| Atributos | `EncTerrain{N}.att` | Para ler: primeiro `MapFileDecrypt`, depois `BuxConvert` (para gravar, o inverso). Cabeçalho `[versão, mapa, 255, 255]` + 256² células de 1 ou 2 bytes, índice `y*256+x` ([spec do .att](../formatos/atributos-de-terreno-att.md)) |
 | Objetos | `EncTerrain{N}.obj` | Cifrado. Contém versão, mapa, quantidade e, por objeto: tipo (int16), posição (3 floats), ângulos (3 floats) e escala (float). É uma lista plana |
 | Altura | `TerrainHeight.OZB` | BMP comum (I.3.1) |
 | Luz estática | `TerrainLight.jpg` (no disco como `.OZJ`) | Ver I.5 |
@@ -2318,9 +2325,14 @@ O formato clássico de 12 bytes só aparece em missões e é implementado quando
 ### IV.15.1 Movimento do herói
 
 1. O clique no chão vira um comando de "andar até P".
-2. No tick, roda o A* na grade do cliente, com 8 direções e as regras de I.3.2.
+2. No tick, roda o A* na grade do cliente, com 8 direções e as regras de I.3.2. O algoritmo do MuMain
+   (custos, heurística, orçamentos) e o que é validade e o que é fidelidade estão na
+   [spec do protocolo, §8.2](../protocolo/protocolo-106-3-m2.md).
 3. O caminho é cortado em no máximo **13 passos** por pacote (o que o MuMain faz; o formato aceita 15,
    e o servidor, 16). Caminhos maiores vão em pedidos seguidos, conforme o herói avança.
+   - **Nota (2026-11-22):** o MuMain só faz isso com o botão **segurado**. Num clique único, ele para
+     no fim dos 14 passos que guardou.
+   - Continuar sozinho é uma escolha do Nexum, e é válida.
 4. Envia `C1 D4` com a origem, os passos e a rotação, e **começa a andar já** (predição).
 5. **Ritmo:** cada passo leva o tempo do servidor (I.13.8). Com velocidade 12, isso dá 333 ms em
    linha reta e 471 ms na diagonal, com o fator de velocidade dos itens. Como o servidor não envia a
