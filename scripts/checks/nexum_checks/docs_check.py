@@ -47,6 +47,13 @@ _ANY_HEADING = re.compile(r"^\s{0,3}#{1,6}\s")
 _CLEAN_ROOM_MISSING = (
     "needs a '## Sala limpa' section with the clean-room checklist, or write that it does not apply (INV-16)"
 )
+_LOCKS_AND_TESTS = "Travas alteradas e testes removidos"
+# Reports written before the template joined the two sections (slice 0) keep them apart; they are historical.
+_LOCKS_AND_TESTS_APART = ("Travas alteradas", "Testes removidos")
+_LOCKS_AND_TESTS_MISSING = (
+    "needs a '## Travas alteradas e testes removidos' section: list the locks that changed and the tests removed or "
+    "weakened, with the reason, or write 'nenhuma' and 'nenhum'"
+)
 # Faithful copies of documents that live in the knowledge center: their links point there (docs/referencia/README.md).
 _EXTERNAL_COPIES = "docs/referencia/"
 _EXTERNAL_COPIES_INDEX = "docs/referencia/README.md"
@@ -172,6 +179,8 @@ def _check_spec_folder(root: Path, folder: Path, findings: list[Finding]) -> Non
             findings.append(Finding(NAME, f"{where}/report.md", _VISUAL_PROOF_MISSING))
         if not has_section(report_text, _CLEAN_ROOM):
             findings.append(Finding(NAME, f"{where}/report.md", _CLEAN_ROOM_MISSING))
+        if not has_locks_and_tests(report_text):
+            findings.append(Finding(NAME, f"{where}/report.md", _LOCKS_AND_TESTS_MISSING))
 
 
 def _check_plan(where: str, text: str, findings: list[Finding]) -> None:
@@ -200,6 +209,11 @@ def has_section(text: str, title: str) -> bool:
     # The section ends at the next heading of the same level or above; its subsections are part of it.
     body = itertools.takewhile(lambda line: not _SECTION_END.match(line), lines[start + 1:])
     return any(line.strip() and not _ANY_HEADING.match(line) for line in body)
+
+
+def has_locks_and_tests(report: str) -> bool:
+    """The report says which locks changed and which tests were removed, so neither goes unnoticed."""
+    return has_section(report, _LOCKS_AND_TESTS) or all(has_section(report, title) for title in _LOCKS_AND_TESTS_APART)
 
 
 def _check_criteria_proof(
