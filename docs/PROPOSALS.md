@@ -49,6 +49,51 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
 
+### P-0013: os achados aprovados da auditoria externa de 2026-11-25
+- Origem: feedback do dono, em 2026-11-25, depois de uma auditoria da documentação feita com outro modelo e da conferência dela contra o repositório
+- Tipo: regra, trava, doc e decisão (vários itens, cada um com o seu destino)
+- Evidência: o dono pediu "confira o que está certo ou o que está errado fazendo uma analise. Não deixe pontos cegos na sua analise" e, depois, "Cite o que deve ser trago para o Nexum da sua analise". Dos itens citados, disse "Eu gostei de todos os outros pontos do 1, 2, 3, 4, 5, 7, 8, 10" e "Sim, registre eles". Depois, pediu para separar o que não pode ser feito agora: "mova o que não vai agora para uma P-0014 e deixe ainda no Abertas e as que podem ser processadas agora você coloca como P-0013 e consolida". Os itens 2 e 8 foram para a P-0014. A numeração abaixo é a da conversa.
+
+  **Destinos**
+
+  1. **Rever os destinos que dizem "M1".** O [ADR 0032](adr/0032-rede-antes-do-importador.md) pôs a parte 1 do M2 antes do M1, e com isso o prazo destes itens andou uma fatia: TD-0015, TD-0017, TD-0019, TD-0020 e TD-0021 ([TECH_DEBT](TECH_DEBT.md)) e a P-0004. **Ação:** conferir o destino de cada um e corrigir o que não fizer mais sentido.
+
+  **Travas (cada uma pede o "sim" do dono)**
+
+  3. **Rever os destinos quando o roteiro mudar de ordem.** A checagem `docs` só confere se o destino está escrito, não se ele ainda faz sentido; foi assim que os itens do item 1 ficaram para trás depois do ADR 0032. **Ação:** um passo na `/retrospectiva` (e no `/consolidar`): "se um ADR mudou a ordem dos marcos, revise os destinos do TECH_DEBT e das propostas abertas". Um aviso automático na checagem `docs` é a alternativa. Travas: `.claude/skills/` e, na alternativa, `scripts/checks/`.
+  4. **"Sem estado global mutável" verificado por máquina.** A regra está na [CONVENTIONS](CONVENTIONS.md), mas nenhuma checagem a confere: só a revisão. Hoje existe uma exceção justificada, a lista de pontos do profiler em `Engine/Debug/Private/Profiler.cpp`. **Ação:** ligar no `.clang-tidy` a regra `cppcoreguidelines-avoid-non-const-global-variables`, com a exceção do profiler marcada e explicada no código. Se o dono não aprovar, a CONVENTIONS passa a dizer que a regra é garantida só pela revisão. Trava: `.clang-tidy`.
+  5. **O texto do `reinterpret_cast` igual à checagem.** A checagem `cpp-rules` libera o `reinterpret_cast` na pasta inteira `Engine/Platform/Private/`, e não em um ponto só. **Ação:** ou os documentos passam a dizer "na pasta `Engine/Platform/Private/`", ou a checagem é apertada para o arquivo que precisa dele. Trava, no segundo caso: `scripts/checks/`.
+
+  **Hábito do dono, escrito no [WORKFLOW](WORKFLOW.md)**
+
+  7. **Ler o "Resumo de segurança do PR" antes de todo merge.** As guardas do terminal procuram no texto do comando sinais de escrita em travas, e um script (em Python, por exemplo) que escreva numa trava não seria pego por elas. A barreira de verdade é a seção "Resumo de segurança do PR", que a CI gera com as travas alteradas e os testes removidos, junto com o merge, que só o dono faz. **Ação:** se o WORKFLOW ainda não pedir isso de forma explícita na etapa do merge, passa a pedir.
+
+  **Item provisório novo**
+
+  10. **O `revisor` e o `auditor` podem escrever pelo terminal.** Os dois têm a ferramenta de terminal, que bloqueia a escrita em travas, mas não em outros arquivos. Hoje, "só lê" depende da instrução de cada agente. O risco é pequeno. **Ação:** registrar no TECH_DEBT, com destino na próxima `/consolidar`, onde se decide se a lista de ferramentas deles muda ou se o risco é aceito.
+
+  **Fora desta proposta**
+
+  - **Retirados pelo dono:** o item 6 (uma auditoria externa de vez em quando, como passo do `/consolidar`) e o item 11 (uma regra na central para as specs não carregarem a estrutura do código do MuMain). O dono disse que verá o item 11 "em outro momento".
+  - **Item 9, para o dono olhar com mais cuidado em outro momento:** os hooks do Claude Code chamam o `powershell`, que só existe no Windows. Em outro sistema, eles falhariam, e o Claude Code seguiria sem a guarda do terminal, a guarda da central, o aviso do início da sessão e a checagem do fim do turno, sem avisar. Continuariam valendo as listas de permissões do `.claude/settings.json`, os hooks do Git, a CI e as regras do GitHub. Enquanto o dono trabalhar só no Windows, não há efeito.
+- Prioridade sugerida: alta para o item 1 (antes da spec da parte 1 do M2); média para 3, 4, 5 e 7; baixa para 10
+- Status: aberta
+
+### P-0014: os achados da auditoria externa que esperam a parte 1 do M2
+- Origem: feedback do dono, em 2026-11-25, na mesma conversa da P-0013
+- Tipo: decisão e regra
+- Evidência: os itens 2 e 8 da análise da auditoria externa, aprovados pelo dono junto com os da P-0013 ("Eu gostei de todos os outros pontos do 1, 2, 3, 4, 5, 7, 8, 10"). Eles não podem ser feitos numa consolidação: um é uma decisão da spec da fatia, e o outro só existe depois que a fatia acabar. O dono pediu para deixá-los aqui, em "Abertas": "mova o que não vai agora para uma P-0014 e deixe ainda no Abertas". A numeração abaixo é a da conversa.
+
+  **Para o `/planejar` da parte 1 do M2**
+
+  2. **Decidir se o TD-0015 entra na parte 1 do M2.** Com a janela minimizada e o Vulkan, o `MuClient` gasta 92% de um núcleo ([TECH_DEBT](TECH_DEBT.md)). O critério do [ADR 0032](adr/0032-rede-antes-do-importador.md) pede que o cliente entre no mundo e continue lá sem queda, o que significa longos períodos com o programa aberto, muitas vezes minimizado. **Ação:** o dono decide na spec da fatia.
+
+  **Para a `/retrospectiva` da parte 1 do M2**
+
+  8. **Medir o custo da fatia.** A auditoria concluiu que o processo pesa mais que o código, e o PR #9 (P-0012) foi a resposta. **Ação:** na retrospectiva, anotar quantas sessões e quantas correções a fatia teve, e o tamanho do `tasks.md` e do report, e comparar com a fatia 0 (`specs/0000-fundacao/`: `tasks.md` com 78 KB e report com 24 KB). Os números mostram se a P-0012 bastou.
+- Prioridade sugerida: alta para o item 2 (antes da spec da parte 1 do M2); baixa para o item 8
+- Status: aberta
+
 ## Processadas
 
 ### P-0012: enxugar o ambiente da IA (menos tokens e menos texto repetido)
