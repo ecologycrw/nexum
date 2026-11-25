@@ -1,7 +1,7 @@
 ---
 fase: entre-fatias
 spec-atual:
-branch: consolidacao/2026-11-25
+branch:
 atualizado-em: 2026-11-25
 ---
 
@@ -9,19 +9,18 @@ atualizado-em: 2026-11-25
 
 ## Agora
 
-**Fatia 0 (Fundação, marco M0) concluída e na `main`** (PR #5). Uma faxina da documentação, feita a partir de uma revisão que o dono trouxe, espera o merge do dono: o PR da branch `consolidacao/2026-11-25` corrige contradições entre os documentos, as skills e as checagens, e cria o [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md), que dá um dono a cada biblioteca externa.
+**Entre fatias.** A fatia 0 (Fundação, marco M0) está na `main` (PR #5), e a faxina da documentação também (PR #7): ela corrigiu contradições entre os documentos, as skills e as checagens, e criou o [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md), que dá um dono a cada biblioteca externa.
 
 A retrospectiva mudou a ordem do roteiro ([ADR 0032](adr/0032-rede-antes-do-importador.md)): a próxima fatia é a **parte 1 do M2, a rede sem mapa**, antes do M1. O que o marco manda investigar antes já está na central: a spec de protocolo do cliente 106.3 e a spec dos atributos de terreno, ambas de 2026-11-22. A cópia da spec de referência foi trocada pela versão nova da central (P-0011). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. O dono aprova e faz o squash merge do PR da faxina pelo navegador.
-2. `/planejar` da parte 1 do M2, numa branch nova a partir da `main`. Ele lê as specs novas da central e decide com o dono três pontos que a conferência das specs levantou:
+1. `/planejar` da parte 1 do M2, quando o dono pedir, numa branch nova a partir da `main`. Ele lê as specs novas da central e decide com o dono três pontos que a conferência das specs levantou:
    - a imagem do OpenMU para os testes (`0.10.1`) e a impressão digital dela;
    - se as capturas reais do laboratório da central entram no repositório como vetores;
    - o número de série próprio no login, sem usar o do MuMain.
-3. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
-4. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
+2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
+3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
 ## Bloqueios
 
@@ -50,3 +49,4 @@ Nenhum.
 | 2026-11-25 | Retrospectiva da fatia 0: o M2 foi dividido, e a parte 1 vem antes do M1 (ADR 0032); a cópia da spec foi trocada (P-0011); as propostas P-0004, P-0005, P-0010 e P-0011 foram aceitas |
 | 2026-11-25 | O dono fez o squash merge do PR #5: a fatia 0 está na `main`. O contêiner e o volume `nexum-linux-ci` do Docker foram apagados no mesmo dia |
 | 2026-11-25 | Faxina da documentação a partir da revisão trazida pelo dono: ADR 0033 (o dono de cada biblioteca externa), os itens provisórios TD-0022 a TD-0024, as skills sem o modo local, a checagem `cpp-rules` aceitando o `#include <new>` e o filtro morto da etiqueta `gpu` removido dos presets |
+| 2026-11-25 | O dono fez o squash merge do PR #7 (a faxina da documentação) |

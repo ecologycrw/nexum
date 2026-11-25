@@ -16,7 +16,7 @@
 
 ## Agora
 
-Nenhuma fatia em andamento. A fatia 0 espera o merge do dono, e a próxima é a parte 1 do M2, que começa pelo `/planejar`.
+Nenhuma fatia em andamento. A fatia 0 está na `main`, e a próxima é a parte 1 do M2, que começa pelo `/planejar`.
 
 ## Próximas
 
