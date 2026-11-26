@@ -47,6 +47,15 @@
   | Com a espera e sem enviar o quadro | 0,7%, 0,4% e 0,3% |
 
   Ao restaurar, a janela volta a 60 quadros por segundo. A medição oficial do CA-13, no mundo, fica para o teste do dono.
+- **O servidor de teste dispensa o repetidor** (T17). O plano previa conferir se a imagem 0.10.1 aceita um IP fixo no `RESOLVE_IP`. Ela aceita: com `RESOLVE_IP=127.0.0.1`, os Game Servers se registram em `127.0.0.1:45901` a `45906`, que são as portas publicadas pelo `compose.yaml`. O `MuClient` segue o endereço do Connect Server sem nenhum repetidor, e as portas não precisaram ir para 127.127.127.127. A imagem, com a impressão digital da spec, já estava no computador do dono (a do laboratório), e nada foi baixado.
+- **O teste de integração só roda com o endereço configurado** (T17). Os dois testes de `tests/integration/openmu` levam a etiqueta `openmu` e leem o endereço do Connect Server na variável `NEXUM_OPENMU_ADDRESS`. Sem ela, como na CI, o CTest os marca como pulados ([TD-0034](../../docs/TECH_DEBT.md)). Eles usam o mesmo verificador dos testes do `MuClient` (`CheckClientRun.cmake`). A senha errada usa a conta `test1`, para não depender da `test0`, que pode estar saindo do servidor. Primeira rodada, em 2026-11-26, contra o OpenMU 0.10.1 local:
+
+  | Teste | Resultado |
+  |---|---|
+  | `openmu_muclient_stays_three_minutes_in_the_world` | passou em 181,7 s: 3 servidores na lista, o Game Server na porta 45902 (a que o Connect Server indicou), o login aceito, o personagem `test0Dk` no mapa 0 em (138, 128), 6 objetos na visão, 9 pings e nenhuma linha de erro no log do cliente |
+  | `openmu_muclient_reports_a_wrong_password` | passou em 1,6 s: "the login was refused: invalid password (code 0)", e a sessão encerra sem entrar no mundo |
+
+  O log do servidor não teve nenhum erro e nenhum aviso. Depois da partida, as únicas linhas são as duas recusas de senha da `test1` ("Account not found or invalid password"), uma da conferência à mão e outra do teste. O erro do Castle Siege que o passo 9 do teste do dono cita não apareceu nesta partida: só a linha de informação "Castle Siege initialized".
 
 ## Travas alteradas
 

@@ -1,0 +1,29 @@
+# The OpenMU test server of slice 1 (specs/0001-rede-ate-o-mundo/spec.md, CA-14), from section 10 of the protocol
+# spec of the knowledge base and its finding on the Docker version.
+#
+# - The image is 0.10.1, pinned by its digest, so a new OpenMU release never changes a test by itself.
+# - "-demo" keeps everything in memory: the data and the test accounts (test0 to test9, the password is the name of
+#   the account) are made again at each start, and nothing is saved.
+# - RESOLVE_IP is the address the Connect Server gives for the Game Servers. 127.0.0.1 reaches the ports below.
+# - The ports are published only on 127.0.0.1, because the test accounts are public: never expose this server.
+# - The container runs on 6 of the logical processors (0 to 5), so the computer keeps room for the build.
+#
+# Start:  docker compose -f tests/integration/openmu/compose.yaml up -d
+# Log:    docker compose -f tests/integration/openmu/compose.yaml logs
+# Stop:   docker compose -f tests/integration/openmu/compose.yaml down
+name: nexum-openmu-test
+
+services:
+  openmu:
+    image: munique/openmu:0.10.1@sha256:9df9ec309e6ae3dbeab1695f9923e6890c847db7ec8d4deb888927921599d3ab
+    container_name: nexum-openmu-test
+    # The image starts with "-autostart"; the arguments here come after it.
+    command: ["-demo"]
+    environment:
+      RESOLVE_IP: "127.0.0.1"
+    cpuset: "0-5"
+    ports:
+      # The Connect Server of the 106.3 client.
+      - "127.0.0.1:44406:44406"
+      # The Game Servers, one port for each kind of client in each server.
+      - "127.0.0.1:45901-45906:45901-45906"
