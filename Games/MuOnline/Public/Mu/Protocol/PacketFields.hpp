@@ -164,7 +164,8 @@ private:
 
 // Checks that the bytes are a whole message of this shape: the header, the code, the subcode and the smallest
 // size. C1 and C3 (and C2 and C4) are accepted for each other, because the encryption only changes the first
-// byte on the wire, and after decryption the first byte still says C3 or C4.
+// byte on the wire, and after decryption the first byte still says C3 or C4. It asks for memory only to
+// describe an error.
 [[nodiscard]] nexum::core::Result<void> CheckPacket(std::span<const std::byte> message,
                                                     const PacketShape& shape);
 
@@ -174,7 +175,7 @@ private:
 [[nodiscard]] bool IsPacket(std::span<const std::byte> message, const PacketShape& shape) noexcept;
 
 // Starts a message of this shape in the buffer: zeros everywhere, then the header, the length (the size of
-// the buffer), the code and the subcode.
+// the buffer), the code and the subcode. It asks for memory only to describe an error.
 [[nodiscard]] nexum::core::Result<void> StartPacket(std::span<std::byte> buffer, const PacketShape& shape);
 
 // Checks that a structure of a packet fits in the bytes that are left.

@@ -65,35 +65,37 @@ std::size_t DeclaredLength(std::span<const std::byte> message) noexcept {
     return ReadBigEndian<std::uint16_t>(message, 1);
 }
 
+// Every packet of the frame passes here, so the text of an error is only built when there is one (INV-13).
 nexum::core::Result<void> CheckPacket(std::span<const std::byte> message, const PacketShape& shape) {
-    const std::string name(shape.name);
     const std::size_t codeOffset = HeaderSize(shape.header);
     if (message.size() < codeOffset + 1 || !SameHeader(message[0], shape.header)) {
-        return nexum::core::MakeError("the message is not a " + name + ": wrong header");
+        return nexum::core::MakeError("the message is not a " + std::string(shape.name) + ": wrong header");
     }
     if (DeclaredLength(message) != message.size()) {
-        return nexum::core::MakeError("the " + name + " declares " + std::to_string(DeclaredLength(message)) +
-                                      " bytes, but it has " + std::to_string(message.size()));
+        return nexum::core::MakeError("the " + std::string(shape.name) + " declares " +
+                                      std::to_string(DeclaredLength(message)) + " bytes, but it has " +
+                                      std::to_string(message.size()));
     }
     if (ReadByte(message, codeOffset) != shape.code) {
-        return nexum::core::MakeError("the message is not a " + name + ": code " +
+        return nexum::core::MakeError("the message is not a " + std::string(shape.name) + ": code " +
                                       Hex(ReadByte(message, codeOffset)) + " instead of " + Hex(shape.code));
     }
     if (shape.hasSubCode &&
         (message.size() <= codeOffset + 1 || ReadByte(message, codeOffset + 1) != shape.subCode)) {
-        return nexum::core::MakeError("the message is not a " + name + ": wrong subcode");
+        return nexum::core::MakeError("the message is not a " + std::string(shape.name) + ": wrong subcode");
     }
     if (message.size() < shape.minimumLength) {
-        return nexum::core::MakeError("the " + name + " needs at least " +
+        return nexum::core::MakeError("the " + std::string(shape.name) + " needs at least " +
                                       std::to_string(shape.minimumLength) + " bytes, but it has " +
                                       std::to_string(message.size()));
     }
     return {};
 }
 
+// The ping of the frame is written here, so, as in CheckPacket, the text of an error waits for an error.
 nexum::core::Result<void> StartPacket(std::span<std::byte> buffer, const PacketShape& shape) {
-    const std::string name(shape.name);
     if (buffer.size() < shape.minimumLength || buffer.size() > MaximumLength(shape.header)) {
+        const std::string name(shape.name);
         return nexum::core::MakeError("a " + name + " has from " + std::to_string(shape.minimumLength) +
                                       " to " + std::to_string(MaximumLength(shape.header)) + " bytes, not " +
                                       std::to_string(buffer.size()));

@@ -109,4 +109,36 @@ using Bytes = std::vector<std::byte>;
     return hero;
 }
 
+// Messages of the world in the steady game, the same as in the tests of the translation (TranslatorTest.cpp),
+// with their sources there: the walk of the hero is the echo of a real session (finding
+// 2026-11-21-capturas-reais-sessao-106-3.md, section 3); the NPC and its leaving are calculated from their
+// layout (finding 2026-11-21-variantes-por-versao-m2.md, section 4, and the C1 14 of the plan of slice 1);
+// the correction and the stats, from section 8 of the protocol spec and the fields of the XML of OpenMU.
+
+// The NPC 0x0021, of type 14, at (135, 124), coming into view (C2 13).
+[[nodiscard]] inline Bytes NpcCameIntoView() {
+    return Make({0xC2, 0x00, 0x0F, 0x13, 0x01, 0x00, 0x21, 0x00, 0x0E, 0x87, 0x7C, 0x87, 0x7C, 0x30, 0x00});
+}
+
+// The NPC 0x0021 leaving the view (C1 14).
+[[nodiscard]] inline Bytes NpcLeftTheView() {
+    return Make({0xC1, 0x06, 0x14, 0x01, 0x00, 0x21});
+}
+
+// The hero 0x0200 walking from (145, 123) to (144, 126) (C1 D4).
+[[nodiscard]] inline Bytes HeroWalked() {
+    return Make({0xC1, 0x0A, 0xD4, 0x02, 0x00, 0x91, 0x7B, 0x90, 0x7E, 0x30});
+}
+
+// The server putting the hero 0x0200 at (144, 126) (C1 15).
+[[nodiscard]] inline Bytes HeroPlaced() {
+    return Make({0xC1, 0x08, 0x15, 0x02, 0x00, 0x90, 0x7E, 0x00});
+}
+
+// The stats of the hero (C1 26 FF): health 110, shield 5, mana 20, ability 15, and the speeds 29 and 30.
+[[nodiscard]] inline Bytes CurrentStats() {
+    return Make({0xC1, 0x18, 0x26, 0xFF, 0x6E, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00,
+                 0x14, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x1D, 0x00, 0x1E, 0x00});
+}
+
 } // namespace session_messages

@@ -4,23 +4,34 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
+#include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "AllocationCounter.hpp"
 #include "Mu/Foundation/FoundationScreen.hpp"
 #include "Mu/Foundation/ProofScene.hpp"
+#include "Mu/Online/OnlineClient.hpp"
+#include "Mu/Online/Transport.hpp"
+#include "Mu/Session/Session.hpp"
 #include "Nexum/Debug/Logger.hpp"
+#include "Nexum/Net/Connection.hpp"
 #include "Nexum/Platform/VideoSystem.hpp"
 #include "Nexum/Render/GpuDevice.hpp"
 #include "Nexum/Render/OffscreenTarget.hpp"
 #include "Nexum/Render/TextureStore.hpp"
 #include "Nexum/Time/Seconds.hpp"
+#include "SessionMessages.hpp"
 
 using frame_allocations::AllocationCounter;
 using frame_allocations::AllocationTally;
 using mu::foundation::FoundationScreen;
+using mu::session::SessionEpoch;
+using mu::session::SessionState;
 using nexum::time::Seconds;
+using session_messages::Bytes;
 
 namespace {
 
@@ -104,6 +115,81 @@ private:
     std::size_t m_next = 0;
 };
 
+// A transport of test with the messages in memory (CA-11 of slice 1). Its first frames bring the way to the
+// world, one connection per frame, and may ask for memory. After that, every frame brings the same messages
+// of the world, from memory made before, as a real connection hands over its queue. Sending only counts, so a
+// ping asks for nothing here.
+class FrameTransport final : public mu::online::Transport {
+public:
+    // The messages of the world that each frame brings once the client is in the world.
+    static constexpr std::size_t kMessagesPerFrame = 5;
+
+    FrameTransport()
+        : m_stages{
+              {session_messages::Hello(), session_messages::ServerList(), session_messages::ConnectionInfo()},
+              {session_messages::GameServerEntered(), session_messages::LoginResponse(1),
+               session_messages::CharacterList({"test0Dk"}), session_messages::CharacterInformation(),
+               session_messages::HeroEntered()}},
+          m_world{session_messages::NpcCameIntoView(), session_messages::HeroWalked(),
+                  session_messages::HeroPlaced(), session_messages::CurrentStats(),
+                  session_messages::NpcLeftTheView()} {}
+
+    void Open(const mu::session::Endpoint& endpoint) override { m_epoch = endpoint.epoch; }
+
+    nexum::core::Result<void> Send(std::span<const std::byte> /*message*/) override {
+        ++m_sent;
+        return {};
+    }
+
+    void Close() override {}
+
+    std::size_t Deliver(mu::session::Session& session, Seconds now) override {
+        // Every event of this call belongs to the connection open when it starts, even if the session opens
+        // another one while it handles them.
+        const SessionEpoch epoch = m_epoch;
+        if (m_nextStage < m_stages.size()) {
+            const std::vector<Bytes>& stage = m_stages[m_nextStage++];
+            session.Handle(epoch, {.kind = nexum::net::EventKind::Connected, .message = {}, .reason = {}},
+                           now);
+            HandMessages(session, epoch, stage, now);
+            return stage.size() + 1;
+        }
+        HandMessages(session, epoch, m_world, now);
+        m_delivered += m_world.size();
+        return m_world.size();
+    }
+
+    // How many messages of the world were handed over, and how many messages were sent.
+    [[nodiscard]] std::uint64_t Delivered() const noexcept { return m_delivered; }
+    [[nodiscard]] std::uint64_t Sent() const noexcept { return m_sent; }
+
+    // The frames that bring the way to the world.
+    [[nodiscard]] int StageCount() const noexcept { return static_cast<int>(m_stages.size()); }
+
+private:
+    static void HandMessages(mu::session::Session& session, SessionEpoch epoch,
+                             const std::vector<Bytes>& messages, Seconds now) {
+        for (const Bytes& message : messages) {
+            session.Handle(epoch, {.kind = nexum::net::EventKind::Message, .message = message, .reason = {}},
+                           now);
+        }
+    }
+
+    std::vector<std::vector<Bytes>> m_stages;
+    std::vector<Bytes> m_world;
+    std::size_t m_nextStage = 0;
+    SessionEpoch m_epoch;
+    std::uint64_t m_delivered = 0;
+    std::uint64_t m_sent = 0;
+};
+
+[[nodiscard]] mu::session::SessionOptions TestOptions() {
+    mu::session::SessionOptions options;
+    options.account = "test0";
+    options.password = "test0";
+    return options;
+}
+
 } // namespace
 
 // The counter sees the requests made through new on the thread of the frame. What SDL and the video drivers
@@ -139,6 +225,58 @@ TEST_CASE("[0000-CA-09] after 3 frames of warm-up, 1000 frames of the foundation
     // of the tick loop in the log.
     CHECK(screen->Ticks().ElapsedTicks() - ticksBefore > 1000);
     CHECK(sink.Messages() - messagesBefore >= 10);
+}
+
+// The network thread of a real connection is not counted: the counter sees only the thread of the frame,
+// which is where the messages are read, translated and applied (CA-11).
+TEST_CASE(
+    "[0001-CA-11] after 3 frames of warm-up, 1000 frames with network messages in each ask for no memory") {
+    Gpu gpu = StartGpu();
+    CountingLogSink sink;
+    nexum::debug::Logger log(sink);
+    // Before the screen, which points to the client.
+    FrameTransport transport;
+    mu::online::OnlineClient client(TestOptions(), transport, log, std::nullopt);
+    auto screen = FoundationScreen::Create(gpu.store, log, Seconds{0.0});
+    REQUIRE_MESSAGE(screen.has_value(), (screen ? "" : screen.error().message));
+    auto target = nexum::render::OffscreenTarget::Create(gpu.device, mu::foundation::kProofSceneSize);
+    REQUIRE_MESSAGE(target.has_value(), (target ? "" : target.error().message));
+    screen->Attach(&client);
+    client.Start(Seconds{0.0});
+
+    FrameLoop loop(*screen, *target, gpu.store);
+    REQUIRE(loop.Run(transport.StageCount()) == 0);
+    REQUIRE(client.State() == SessionState::InWorld);
+    REQUIRE(loop.Run(kWarmUpFrames) == 0);
+    REQUIRE(client.View().HeroState().loaded);
+
+    const std::uint64_t ticksBefore = screen->Ticks().ElapsedTicks();
+    const std::uint64_t deliveredBefore = transport.Delivered();
+    const std::uint64_t sentBefore = transport.Sent();
+    const std::uint64_t ignoredBefore = client.View().IgnoredEvents();
+    std::uint32_t failed = 0;
+    AllocationTally tally;
+    {
+        const AllocationCounter counter;
+        failed = loop.Run(kMeasuredFrames);
+        tally = counter.Tally();
+    }
+
+    const std::string origins = frame_allocations::DescribeCountedRequests();
+    CHECK(failed == 0);
+    CHECK_MESSAGE(tally.requests == 0, tally.requests, " requests for memory (", tally.bytes, " bytes) in ",
+                  kMeasuredFrames, " frames\n", origins);
+    // Every measured frame brought the messages of the world, and they went the whole way: the session, the
+    // translation and the view, in the ticks. The 60 seconds of frames also sent the ping, every 20 s.
+    CHECK(transport.Delivered() - deliveredBefore ==
+          std::uint64_t{kMeasuredFrames} * FrameTransport::kMessagesPerFrame);
+    CHECK(client.State() == SessionState::InWorld);
+    CHECK(client.View().IgnoredEvents() == ignoredBefore);
+    CHECK(client.View().HeroState().stats.attackSpeed == 29);
+    CHECK(client.View().HeroState().position == mu::world::Cell{.x = 144, .y = 126});
+    CHECK(client.View().Find(mu::world::ObjectId{0x0021}) == nullptr);
+    CHECK(transport.Sent() - sentBefore >= 2);
+    CHECK(screen->Ticks().ElapsedTicks() - ticksBefore > 1000);
 }
 
 TEST_CASE("[0000-CA-09] the counter sees each request for memory of its thread while it exists") {
