@@ -3,6 +3,7 @@
 nexum_add_tests(muonline_tests
     SOURCES
         ClientOptionsTest.cpp
+        DialectTest.cpp
         FoundationSceneTest.cpp
         FoundationScreenTest.cpp
         ModuleIdentityTest.cpp

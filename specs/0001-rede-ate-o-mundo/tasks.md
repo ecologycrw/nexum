@@ -12,7 +12,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
   - Os 7 arquivos e a licença, copiados pelo dono, têm as mesmas linhas da central; checagens `docs`, `structure` e `terms` aceitando. Commit: este.
 - [x] T03: O `packetgen` (`Tools/PacketGen`, Python só com a biblioteca padrão), a função do CMake que gera o código no build (trava `cmake/`), os testes gerados e o ADR 0034 (CA-03). Verificação: testes do gerador e os testes gerados no `verify`.
   - O `packetgen` gera os 613 pacotes dos 4 XML (cabeçalhos na pasta de build) e um teste por pacote; o XML de teste próprio confere cada tipo de campo; `verify` verde (29, 30 e 24 testes). Commit: este.
-- [ ] T04: O dialeto 106.3 (`Mu/Protocol`): a tabela de variantes, um teste por linha da §5.2 e a configuração única com a versão `20404` e o número de série `NEXUM-CLIENT-001` (CA-03, CA-12). Verificação: `verify`.
+- [x] T04: O dialeto 106.3 (`Mu/Protocol`): a tabela de variantes, um teste por linha da §5.2 e a configuração única com a versão `20404` e o número de série `NEXUM-CLIENT-001` (CA-03, CA-12). Verificação: `verify`.
+  - `Mu/Protocol/Dialect.hpp`: um apelido para cada variante da §5.2, a identidade do cliente e a porta 44406; 22 testes (um por linha e a identidade). Commit: este.
 - [ ] T05: O enquadramento `C1` a `C4`, incremental, com os exemplos do plano (CA-01). Verificação: `verify`.
 - [ ] T06: A cifra: SimpleModulus com o contador de cada direção, Xor32 e Xor3, com os vetores da central (CA-02). Verificação: `verify`.
 - [ ] T07: O item estendido e a aparência estendida, cada um num componente neutro (CA-04). Verificação: `verify`.
