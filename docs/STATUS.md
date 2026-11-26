@@ -15,7 +15,7 @@ A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #
 
 ## Próxima ação
 
-1. `/implementar` da fatia 1: as tarefas T01 a T10 estão feitas, e a próxima é a T11 (a sessão). O andamento fica no `tasks.md` da fatia. Entre uma tarefa e a seguinte, a IA pergunta ao dono se segue nesta sessão ou numa sessão nova, aberta por ele. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está em rascunho, só para a CI rodar no Linux e no macOS.
+1. `/implementar` da fatia 1. O andamento e a próxima tarefa ficam no `tasks.md` da fatia, que o hook do início da sessão lê. Entre uma tarefa e a seguinte, a IA pergunta ao dono se segue nesta sessão ou numa sessão nova, aberta por ele. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está em rascunho, só para a CI rodar no Linux e no macOS.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
