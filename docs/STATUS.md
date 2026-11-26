@@ -15,7 +15,7 @@ A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #
 
 ## Próxima ação
 
-1. `/revisar` da fatia 1: as 18 tarefas estão feitas. Depois vêm o `/fechar` e o teste do dono, com o OpenMU de teste no Docker. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está em rascunho, só para a CI rodar no Linux e no macOS; o `/fechar` o tira do rascunho.
+1. `/fechar` da fatia 1, numa sessão nova aberta pelo dono: as 18 tarefas e a revisão estão feitas. Depois vem o teste do dono, com o OpenMU de teste no Docker. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está em rascunho, só para a CI rodar no Linux e no macOS; o `/fechar` o tira do rascunho.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -53,3 +53,4 @@ Nenhum.
 | 2026-11-25 | Spec da fatia 1 (A rede até o mundo, M2 parte 1) aprovada pelo dono, com a parte 1 do M2 em duas fatias, o OpenMU 0.10.1 fixado pela impressão digital, só os vetores escritos nos documentos da central, o número de série `NEXUM-CLIENT-001`, o TD-0015 dentro da fatia, o Asio e o ADR 0034 (o `packetgen` em Python) |
 | 2026-11-26 | Fatia 1: tarefas T01 a T10 feitas. O PR #11 foi aberto em rascunho, a pedido do dono, para a CI rodar no Linux e no macOS. A primeira CI achou uma conversão de sinal num teste de fuzzing e a análise estática sem os cabeçalhos gerados (o `tidy` do `scripts/dev.py` passou a compilar antes, com o "sim" do dono). Depois das duas correções, os 10 checks passaram |
 | 2026-11-26 | Fatia 1: as 18 tarefas feitas. O `MuClient` entrou no OpenMU 0.10.1 local, sem modificações, ficou 3 minutos no mundo com 9 pings e recusou a senha errada, sem nenhum erro no log do servidor. A documentação da fatia foi atualizada, e o TD-0015, o TD-0020 e o TD-0023 saíram |
+| 2026-11-26 | Revisão independente da fatia 1: nenhum achado crítico, 1 importante e 12 menores. O importante (o teste do checksum) e cinco menores foram corrigidos; quatro menores entraram no TD-0028 e no TD-0032 ou viraram o TD-0036 e o TD-0037; três ficam para o `/fechar`. As correções vão até o commit `18b8420` |
