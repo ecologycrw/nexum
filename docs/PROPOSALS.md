@@ -77,6 +77,17 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
 - Status: aberta
 
+### P-0016: o código gerado dos pacotes sem estourar a memória do build
+- Origem: medição na fatia 1, durante o `verify` da T13, a partir de uma pergunta do dono
+- Tipo: trava
+- Evidência: o dono mandou uma imagem do Gerenciador de Tarefas durante o `verify`, com 8 compiladores do Visual Studio usando de 1,1 a 1,3 GB cada, a memória em 93% e o disco em uso, e perguntou: "porque tanto processo assim ? As vezes a memoria chega a 99% ... qual motivo ?". O computador tem 15,9 GB. O `packetgen` escreve os 391 pacotes do servidor num cabeçalho só (`ServerToClientPackets.hpp`, 1,2 MB, na pasta de build), e todo arquivo que fala com a rede lê esse cabeçalho inteiro, mesmo usando uns 30 pacotes. Hoje são 9 arquivos `.cpp` do módulo MU e dos testes, mais os testes gerados, e cada tarefa da rede acrescenta outros (a T13 trouxe 4). O `scripts/dev.py` não limita as compilações ao mesmo tempo, e o Ninja usa uma por núcleo lógico, mais duas: até 14 nesta máquina. Quando a memória acaba, o Windows usa o disco, e o build fica lento: no `verify` da T13, o build com sanitizers levou 292 s e o build de jogador, 231 s. O plano da fatia 1 já previa isto como risco ("O tamanho do código gerado"), com a saída de dividir o código gerado. Depois da explicação, o dono disse "Sim, registre a proposta". Opções a comparar:
+  - **o gerador escrever arquivos menores**, por exemplo um cabeçalho por pacote ou por grupo, e o `Mu/Protocol/Dialect.hpp` incluir só as variantes que o dialeto usa. Ataca a causa: cada compilação lê só o que usa. Muda o `Tools/PacketGen` e a trava `cmake/` (`NexumPacketGen.cmake`), e talvez o [ADR 0034](adr/0034-packetgen-em-python-no-build.md). Os testes gerados continuam cobrindo todos os pacotes;
+  - **limitar quantas compilações rodam ao mesmo tempo**. A variável de ambiente `CMAKE_BUILD_PARALLEL_LEVEL` já faz isso sem mudar nenhuma trava, porque o `dev.py` compila com `cmake --build` e os presets não fixam o número; fixar no `dev.py` muda uma trava. Alivia a memória, mas deixa o build mais lento e não resolve o tamanho do cabeçalho, que cresce com cada arquivo novo da rede.
+
+  A recomendação é a primeira, e a segunda, pela variável de ambiente, só como alívio até lá. A medição do tempo de build, que o plano pede no report, entra junto.
+- Prioridade sugerida: média (não bloqueia nada, mas cada tarefa da rede piora o build; resolver antes da parte 2 do M2, que traz mais pacotes)
+- Status: aberta
+
 ## Processadas
 
 ### P-0013: os achados aprovados da auditoria externa de 2026-11-25
