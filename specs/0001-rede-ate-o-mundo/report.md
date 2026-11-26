@@ -19,3 +19,4 @@
 - **`cmake/NexumFuzzing.cmake`** (T09, arquivo novo): a opção `NEXUM_FUZZING` e a função `nexum_add_fuzz_target`. Sem a opção, cada alvo vira um teste que roda as sementes dele nos 3 sistemas; com ela, só no Clang, vira também um programa do libFuzzer. Aprovado pelo dono em 2026-11-25 ("Sim, todas").
 - **`CMakePresets.json`** (T09): o preset `linux-fuzz`, de configuração, de build e de teste. Mesma aprovação.
 - **`.github/workflows/ci.yml`** (T09): o passo "Fuzzing" no job do Linux com Clang, que compila o preset `linux-fuzz` e roda cada alvo por 60 s a partir das sementes. Mesma aprovação.
+- **`scripts/dev.py`** (entre a T10 e a T11, pela primeira CI do PR #11): o `tidy` compila o build de desenvolvimento antes de analisar, porque o `clang-tidy` lê os cabeçalhos gerados dos pacotes, e o job da análise estática na CI só configurava. Aprovado pelo dono em 2026-11-26 ("Sim, pode mudar").
