@@ -14,7 +14,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
   - O `packetgen` gera os 613 pacotes dos 4 XML (cabeçalhos na pasta de build) e um teste por pacote; o XML de teste próprio confere cada tipo de campo; `verify` verde (29, 30 e 24 testes). Commit: este.
 - [x] T04: O dialeto 106.3 (`Mu/Protocol`): a tabela de variantes, um teste por linha da §5.2 e a configuração única com a versão `20404` e o número de série `NEXUM-CLIENT-001` (CA-03, CA-12). Verificação: `verify`.
   - `Mu/Protocol/Dialect.hpp`: um apelido para cada variante da §5.2, a identidade do cliente e a porta 44406; 22 testes (um por linha e a identidade). Commit: este.
-- [ ] T05: O enquadramento `C1` a `C4`, incremental, com os exemplos do plano (CA-01). Verificação: `verify`.
+- [x] T05: O enquadramento `C1` a `C4`, incremental, com os exemplos do plano (CA-01). Verificação: `verify`.
+  - `FrameReader`: entrega as mensagens dos 4 tipos em pedaços de 1 byte até 65.535, sem cópia quando a mensagem chega inteira; 7 testes. Commit: este.
 - [ ] T06: A cifra: SimpleModulus com o contador de cada direção, Xor32 e Xor3, com os vetores da central (CA-02). Verificação: `verify`.
 - [ ] T07: O item estendido e a aparência estendida, cada um num componente neutro (CA-04). Verificação: `verify`.
 - [ ] T08: Os pacotes de exemplo da central lidos e escritos de novo, com a contagem por grupo (CA-05). Verificação: `verify`.
