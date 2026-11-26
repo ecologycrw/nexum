@@ -9,6 +9,7 @@ nexum_add_library(MuOnline
         Private/Foundation/ProofScene.cpp
         Private/Foundation/TickReportText.cpp
         Private/ModuleIdentity.cpp
+        Private/Protocol/CharacterInformation.cpp
         Private/Protocol/Cipher.cpp
         Private/Protocol/ClientCodec.cpp
         Private/Protocol/ExtendedAppearance.cpp
@@ -20,6 +21,10 @@ nexum_add_library(MuOnline
         Private/Session/MessageQueue.cpp
         Private/Session/Ping.cpp
         Private/Session/Session.cpp
+        Private/Translate/Translator.cpp
+        Private/World/EventQueue.cpp
+        Private/World/WorldEvent.cpp
+        Private/World/WorldView.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Debug Nexum::Net Nexum::Render Nexum::Time Nexum::GridRpg)
 
 # The code that reads and writes every packet of OpenMU, generated from its XML files (third_party/openmu) at each

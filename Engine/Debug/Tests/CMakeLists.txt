@@ -1,6 +1,7 @@
 nexum_add_tests(nexum_debug_tests
     SOURCES
         LoggerTest.cpp
+        LogLineTest.cpp
         ProfilerTest.cpp
     DEPS Nexum::Debug nexum_test_log)
 

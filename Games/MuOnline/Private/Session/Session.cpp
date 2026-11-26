@@ -5,6 +5,7 @@
 #include <limits>
 #include <utility>
 
+#include "Mu/Protocol/CharacterInformation.hpp"
 #include "Mu/Protocol/LoginMessage.hpp"
 
 namespace mu::session {
@@ -26,11 +27,6 @@ constexpr std::size_t kHeldMessages = 4096;
 // A list of characters has at most 5, in the slots 0 to 4 (section 6.9).
 constexpr std::size_t kMostCharacters = 5;
 constexpr std::uint8_t kLastSlot = 4;
-
-// The data of the character has 93 bytes, and the last one comes only in packets of 93 bytes; fewer than 92
-// is an error (sections 6.11 and 9).
-constexpr std::size_t kShortestCharacterInformation = 92;
-constexpr std::size_t kCharacterInformationLength = dialect::CharacterInformation::kDeclaredLength;
 
 // The language byte of the request of the character list: 0 is English, and the server ignores it (6.8).
 constexpr std::uint8_t kEnglish = 0;
@@ -145,20 +141,6 @@ constexpr auto kNoFields = [](const auto& /*writer*/) -> Result<void> { return {
     }
     return nexum::core::MakeError("the account has no character named " + std::string(wanted) + "; it has " +
                                   listed);
-}
-
-// The data of the character, also from a packet of 92 bytes, which lacks only the last byte (section 6.11):
-// it is read from a copy of 93 bytes that ends with 0.
-[[nodiscard]] Result<dialect::CharacterInformation::View>
-ReadCharacterInformation(std::span<const std::byte> message,
-                         std::array<std::byte, kCharacterInformationLength>& whole) {
-    if (message.size() >= kCharacterInformationLength) {
-        return dialect::CharacterInformation::View::Read(message);
-    }
-    std::ranges::fill(whole, std::byte{0});
-    std::ranges::copy(message, whole.begin());
-    whole[1] = std::byte{static_cast<std::uint8_t>(kCharacterInformationLength)};
-    return dialect::CharacterInformation::View::Read(whole);
 }
 
 } // namespace
@@ -520,15 +502,13 @@ void Session::OnLoadingMessage(std::span<const std::byte> message) {
 }
 
 void Session::OnCharacterInformation(std::span<const std::byte> message) {
-    if (message.size() < kShortestCharacterInformation) {
-        Fail("the data of the character has " + std::to_string(message.size()) +
-             " bytes; it needs at least " + std::to_string(kShortestCharacterInformation));
-        return;
-    }
-    std::array<std::byte, kCharacterInformationLength> whole{};
-    auto character = ReadCharacterInformation(message, whole);
+    protocol::CharacterInformationBytes whole{};
+    auto character = protocol::ReadCharacterInformation(message, whole);
     if (!character) {
-        Fail("the data of the character cannot be read: " + character.error().message);
+        // A packet that is too short already says so; any other error comes from the reading.
+        Fail(message.size() < protocol::kShortestCharacterInformation
+                 ? character.error().message
+                 : "the data of the character cannot be read: " + character.error().message);
         return;
     }
     m_log->Info(kSession, "the character is on the map " + std::to_string(character->MapId()) + " at (" +

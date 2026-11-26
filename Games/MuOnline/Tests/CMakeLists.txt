@@ -18,6 +18,8 @@ nexum_add_tests(muonline_tests
         PingTest.cpp
         SessionTest.cpp
         TickReportTextTest.cpp
+        TranslatorTest.cpp
+        WorldViewTest.cpp
     DEPS MuOnline nexum_test_log)
 
 # CA-03: for each packet of the OpenMU XML files, a test generated with the code of the packet (Tools/PacketGen):

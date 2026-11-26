@@ -1,7 +1,8 @@
 // Fuzz target of the reading of the packets the client receives in the 106.3 dialect
 // (cmake/NexumFuzzing.cmake): any bytes, taken as one message, are read as each of those packets, and every
-// field of the ones that accept the bytes is read, the lists, the items and the appearances included. Nothing
-// reads past the end and nothing crashes.
+// field of the ones that accept the bytes is read, the lists, the items and the appearances included. The
+// same message is then translated into events of the world, which a view of the world applies. Nothing reads
+// past the end and nothing crashes.
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -9,10 +10,20 @@
 #include "Mu/Protocol/Dialect.hpp"
 #include "Mu/Protocol/ExtendedAppearance.hpp"
 #include "Mu/Protocol/ExtendedItem.hpp"
+#include "Mu/Translate/Translator.hpp"
+#include "Mu/World/EventQueue.hpp"
+#include "Mu/World/WorldView.hpp"
+#include "Nexum/Debug/Logger.hpp"
 
 namespace {
 
 namespace dialect = mu::protocol::dialect;
+
+// A log output that keeps nothing: the lines are still built, so building them is fuzzed too.
+class SilentLogSink final : public nexum::debug::LogSink {
+public:
+    void Write(const nexum::debug::LogRecord& /*record*/) noexcept override {}
+};
 
 // Keeps the values that were read, so the reading cannot be left out of the build.
 class Sink {
@@ -194,5 +205,14 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     ReadCharacter(message, sink);
     ReadScope(message, sink);
     ReadMovement(message, sink);
+
+    SilentLogSink silent;
+    nexum::debug::Logger log{silent, nexum::debug::LogLevel::Trace};
+    mu::translate::Translator translator{mu::world::ObjectId{0x0200}, log};
+    mu::world::EventQueue events{16};
+    static_cast<void>(translator.Translate(message, events));
+    mu::world::WorldView view{log};
+    events.Drain([&](const mu::world::WorldEvent& event) { view.Apply(event); });
+    sink.Take(view.Objects().size());
     return 0;
 }

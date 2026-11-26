@@ -68,6 +68,29 @@ using MapObjectOutOfScope = server::MapObjectOutOfScope;
 using ChangeTerrainAttributes = server::ChangeTerrainAttributes;
 using CurrentStats = server::CurrentStatsExtended;
 
+// Game Server: what the server sends after the choice of the character and the M2 does not use (section 6.12,
+// with the order of a real session in the finding 2026-11-21-capturas-reais-sessao-106-3.md). The client
+// knows them so that it ignores them without a warning; only their code and subcode matter. The data of the
+// master, the skills and the C1 DE 00 are named above.
+using KeyConfiguration = server::ApplyKeyConfiguration;
+using LegacyQuestStates = server::LegacyQuestStateList;
+using QuestStates = server::QuestStateList;
+using CashShopScriptVersion = server::CashShopScriptVersion;
+using CashShopBannerVersion = server::CashShopBannerVersion;
+using WarpList = server::WarpListExtended;
+using ServerMessage = server::ServerMessage;
+using AddTransformedCharacterToScope = server::AddTransformedCharacterToScopeExtended;
+using AddSummonedMonstersToScope = server::AddSummonedMonstersToScope;
+using ItemsDropped = server::ItemsDropped;
+using Weather = server::WeatherStatusUpdate;
+using HelperConfiguration = server::MuHelperConfigurationData;
+using GameMasterEffect = server::MagicEffectStatus;
+using GuildAssignment = server::AssignCharacterToGuild;
+using MessengerInitialization = server::MessengerInitialization;
+using FriendRequest = server::FriendRequest;
+using Letter = server::AddLetter;
+using CastleSiegeTaxRate = server::CastleSiegeTaxRateNotification;
+
 } // namespace dialect
 
 } // namespace mu::protocol
