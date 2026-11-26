@@ -46,7 +46,7 @@ void EncryptAndDecrypt(std::span<const std::byte> message) {
     protocol::PacketDecryptor decryptor(protocol::kServerToClientDecryptKey);
     std::vector<std::byte> plain(*written);
     const auto read = decryptor.Decrypt(std::span<const std::byte>(wire).first(*written), plain);
-    if (!read || !std::equal(message.begin(), message.end(), plain.begin(), plain.begin() + *read)) {
+    if (!read || !std::ranges::equal(message, std::span<const std::byte>(plain).first(*read))) {
         std::abort();
     }
 }
