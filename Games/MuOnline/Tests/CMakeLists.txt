@@ -5,6 +5,8 @@ nexum_add_tests(muonline_tests
         CipherTest.cpp
         ClientOptionsTest.cpp
         DialectTest.cpp
+        ExtendedAppearanceTest.cpp
+        ExtendedItemTest.cpp
         FoundationSceneTest.cpp
         FrameReaderTest.cpp
         FoundationScreenTest.cpp
