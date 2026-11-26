@@ -2,6 +2,7 @@
 # the developer's computer and a software one on the CI machines (specs/0000-fundacao/plan.md).
 nexum_add_tests(muonline_tests
     SOURCES
+        CipherTest.cpp
         ClientOptionsTest.cpp
         DialectTest.cpp
         FoundationSceneTest.cpp

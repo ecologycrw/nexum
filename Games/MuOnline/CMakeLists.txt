@@ -9,6 +9,7 @@ nexum_add_library(MuOnline
         Private/Foundation/ProofScene.cpp
         Private/Foundation/TickReportText.cpp
         Private/ModuleIdentity.cpp
+        Private/Protocol/Cipher.cpp
         Private/Protocol/FrameReader.cpp
         Private/Protocol/PacketFields.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Debug Nexum::Render Nexum::Time Nexum::GridRpg)

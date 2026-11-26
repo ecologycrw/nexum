@@ -16,7 +16,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
   - `Mu/Protocol/Dialect.hpp`: um apelido para cada variante da §5.2, a identidade do cliente e a porta 44406; 22 testes (um por linha e a identidade). Commit: este.
 - [x] T05: O enquadramento `C1` a `C4`, incremental, com os exemplos do plano (CA-01). Verificação: `verify`.
   - `FrameReader`: entrega as mensagens dos 4 tipos em pedaços de 1 byte até 65.535, sem cópia quando a mensagem chega inteira; 7 testes. Commit: este.
-- [ ] T06: A cifra: SimpleModulus com o contador de cada direção, Xor32 e Xor3, com os vetores da central (CA-02). Verificação: `verify`.
+- [x] T06: A cifra: SimpleModulus com o contador de cada direção, Xor32 e Xor3, com os vetores da central (CA-02). Verificação: `verify`.
+  - `Mu/Protocol/Cipher`: SimpleModulus com o contador de cada direção, Xor32 e Xor3; os vetores V1 a V9 e os 5 das capturas reais passam (13 testes). Commit: este.
 - [ ] T07: O item estendido e a aparência estendida, cada um num componente neutro (CA-04). Verificação: `verify`.
 - [ ] T08: Os pacotes de exemplo da central lidos e escritos de novo, com a contagem por grupo (CA-05). Verificação: `verify`.
 - [ ] T09: A estrutura de fuzzing (`NEXUM_FUZZING` em `cmake/`, o preset no `CMakePresets.json` e o passo da CI, travas) e um alvo por leitor; o `LoadPng` confere o cabeçalho (TD-0020, TD-0023) (CA-10). Verificação: `verify` e as sementes nos testes.
