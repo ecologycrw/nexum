@@ -168,6 +168,11 @@ private:
 [[nodiscard]] nexum::core::Result<void> CheckPacket(std::span<const std::byte> message,
                                                     const PacketShape& shape);
 
+// Whether the message has the header, the code and the subcode of this shape, with C1 and C3 (and C2 and C4)
+// taken for each other, as in CheckPacket. It does not look at the size, and it never asks for memory, so it
+// tells which packet arrived before the packet is read.
+[[nodiscard]] bool IsPacket(std::span<const std::byte> message, const PacketShape& shape) noexcept;
+
 // Starts a message of this shape in the buffer: zeros everywhere, then the header, the length (the size of
 // the buffer), the code and the subcode.
 [[nodiscard]] nexum::core::Result<void> StartPacket(std::span<std::byte> buffer, const PacketShape& shape);

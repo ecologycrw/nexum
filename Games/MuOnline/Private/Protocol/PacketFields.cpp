@@ -46,6 +46,16 @@ nexum::core::Result<void> WriteBinary(std::span<std::byte> field, std::span<cons
     return {};
 }
 
+bool IsPacket(std::span<const std::byte> message, const PacketShape& shape) noexcept {
+    const std::size_t codeOffset = HeaderSize(shape.header);
+    if (message.size() <= codeOffset || !SameHeader(message[0], shape.header) ||
+        ReadByte(message, codeOffset) != shape.code) {
+        return false;
+    }
+    return !shape.hasSubCode ||
+           (message.size() > codeOffset + 1 && ReadByte(message, codeOffset + 1) == shape.subCode);
+}
+
 std::size_t DeclaredLength(std::span<const std::byte> message) noexcept {
     const auto first = std::to_integer<std::uint8_t>(message[0]);
     if (first == static_cast<std::uint8_t>(HeaderKind::C1) ||

@@ -3,6 +3,7 @@
 nexum_add_tests(muonline_tests
     SOURCES
         CipherTest.cpp
+        ClientCodecTest.cpp
         ClientOptionsTest.cpp
         DialectTest.cpp
         ExtendedAppearanceTest.cpp
@@ -10,8 +11,11 @@ nexum_add_tests(muonline_tests
         FoundationSceneTest.cpp
         FrameReaderTest.cpp
         FoundationScreenTest.cpp
+        MessageQueueTest.cpp
         ModuleIdentityTest.cpp
         PacketExamplesTest.cpp
+        PacketLogTest.cpp
+        SessionTest.cpp
         TickReportTextTest.cpp
     DEPS MuOnline nexum_test_log)
 

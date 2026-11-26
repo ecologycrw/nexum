@@ -11,6 +11,10 @@
 
 - **O fuzzing achou, antes de rodar, dois leitores sem guarda para uma mensagem vazia** (T09). Ao escrever os alvos, ficou claro que a cifra (`Encrypt`, `Decrypt` e o Xor32) lia o primeiro byte de uma mensagem vazia, e que o `Encrypt` aceitava uma mensagem sem código depois do cabeçalho. Os dois passaram a recusar esses casos com um erro. Na sessão, as mensagens vêm do enquadramento, que nunca entrega uma mensagem assim, mas o leitor não depende disso (INV-12).
 - **O `LoadPng` ganhou dois irmãos públicos** (T09): o `ReadPngSize`, que lê o tamanho no cabeçalho, e o `DecodePng`, que lê um PNG da memória. O alvo de fuzzing do PNG usa os dois, e o `LoadPng` segue o mesmo caminho.
+- **"No mundo" pede também o mapa pronto** (T11). O diagrama do plano passa de "Carregando" a "No mundo" com os dados do personagem (`C3 F3 03`). A sessão espera também o aviso de "mapa pronto" do app (`FinishLoading`), como a IV.14.1 e a fase 5 da IV.16 da spec de referência. Assim, o que chega entre os dados do personagem e o mapa pronto fica guardado e é entregue em ordem, como pede o CA-07. Nesta fatia não há mapa para carregar, e o app dá o aviso logo depois dos dados (T14). No primeiro ingresso, o `C1 F3 12` não é enviado (spec de protocolo, §6.12).
+- **O tradutor de bytes do cliente (`ClientCodec`) entrou na T11**, e não na T10, porque é a sessão que escolhe a cifra de cada conexão: nenhuma no Connect Server e a do Game Server no outro.
+- **A sessão não dá eventos neutros ainda** (T11). Ela entrega as mensagens do mundo em ordem, cada uma com a época, e a tradução para eventos neutros é a T13, como o plano divide.
+- **Um teste de pacote sem pedir memória** (T11): o `IsPacket` (`Mu/Protocol/PacketFields.hpp`) diz qual pacote chegou sem montar texto. O `CheckPacket`, que o código gerado usa em toda leitura, monta o nome do pacote num `std::string` mesmo quando tudo dá certo; isso fica para a T16, que mede o quadro com mensagens de rede.
 
 ## Travas alteradas
 
