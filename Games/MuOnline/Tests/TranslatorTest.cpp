@@ -17,8 +17,6 @@
 
 #include <doctest/doctest.h>
 
-#include "Mu/Protocol/Dialect/FirstEntry.hpp"
-#include "Mu/Protocol/PacketFields.hpp"
 #include "Mu/Translate/Translator.hpp"
 #include "Mu/World/EventQueue.hpp"
 #include "Nexum/Debug/Logger.hpp"
@@ -26,7 +24,6 @@
 
 namespace {
 
-namespace dialect = mu::protocol::dialect;
 namespace world = mu::world;
 using Bytes = std::vector<std::byte>;
 using nexum::debug::LogLevel;
@@ -94,13 +91,6 @@ void PutLittleEndian(Bytes& bytes, std::size_t offset, std::uint32_t value, std:
     PutLittleEndian(data, 82, 29, 2);
     PutLittleEndian(data, 84, 29, 2);
     return data;
-}
-
-// A packet of this shape with zeros in every field, as small as the shape allows.
-[[nodiscard]] Bytes Empty(const mu::protocol::PacketShape& shape) {
-    Bytes bytes(shape.minimumLength);
-    REQUIRE(mu::protocol::StartPacket(bytes, shape).has_value());
-    return bytes;
 }
 
 struct Translation {
@@ -357,30 +347,38 @@ TEST_CASE(
 
 TEST_CASE("[0001-CA-09] the known packets that the slice does not use are ignored without a word") {
     Translation translation;
-    // The packets of the first entry (section 6.12 of the protocol spec) and the C1 B2 1A of the real
-    // sessions.
-    for (const auto* shape : {&dialect::MasterStatsUpdate::kShape,
-                              &dialect::SkillListUpdate::kShape,
-                              &dialect::KeyConfiguration::kShape,
-                              &dialect::LegacyQuestStates::kShape,
-                              &dialect::QuestStates::kShape,
-                              &dialect::CashShopScriptVersion::kShape,
-                              &dialect::CashShopBannerVersion::kShape,
-                              &dialect::WarpList::kShape,
-                              &dialect::ServerMessage::kShape,
-                              &dialect::AddTransformedCharacterToScope::kShape,
-                              &dialect::AddSummonedMonstersToScope::kShape,
-                              &dialect::ItemsDropped::kShape,
-                              &dialect::Weather::kShape,
-                              &dialect::HelperConfiguration::kShape,
-                              &dialect::GameMasterEffect::kShape,
-                              &dialect::GuildAssignment::kShape,
-                              &dialect::MessengerInitialization::kShape,
-                              &dialect::FriendRequest::kShape,
-                              &dialect::Letter::kShape,
-                              &dialect::CastleSiegeTaxRate::kShape}) {
-        CAPTURE(shape->name);
-        CHECK(translation.Events({Empty(*shape)}).empty());
+    // The packets of the first entry that the M2 ignores, with the bytes of the table of section 6.12 of the
+    // protocol spec, written here and not taken from the dialect, so that a wrong alias of the dialect fails;
+    // and the C1 B2 1A of 6 bytes of the real sessions (the same section).
+    struct Ignored {
+        std::string_view what;
+        Bytes message;
+    };
+    const std::vector<Ignored> ignored{
+        {"master stats", Make({0xC1, 0x05, 0xF3, 0x50, 0x00})},
+        {"skills", Make({0xC1, 0x05, 0xF3, 0x11, 0x00})},
+        {"keys", Make({0xC1, 0x05, 0xF3, 0x30, 0x00})},
+        {"old quests", Make({0xC1, 0x04, 0xA0, 0x00})},
+        {"new quests", Make({0xC1, 0x05, 0xF6, 0x1A, 0x00})},
+        {"cash shop script", Make({0xC1, 0x05, 0xD2, 0x0C, 0x00})},
+        {"cash shop banner", Make({0xC1, 0x05, 0xD2, 0x15, 0x00})},
+        {"warps", Make({0xC2, 0x00, 0x06, 0xF5, 0x09, 0x00})},
+        {"messages", Make({0xC1, 0x04, 0x0D, 0x00})},
+        {"transformed players", Make({0xC2, 0x00, 0x05, 0x45, 0x00})},
+        {"summons", Make({0xC2, 0x00, 0x05, 0x1F, 0x00})},
+        {"items on the ground", Make({0xC2, 0x00, 0x05, 0x20, 0x00})},
+        {"weather", Make({0xC1, 0x04, 0x0F, 0x00})},
+        {"helper", Make({0xC2, 0x00, 0x05, 0xAE, 0x00})},
+        {"effect of a GM", Make({0xC1, 0x04, 0x07, 0x00})},
+        {"guild", Make({0xC2, 0x00, 0x05, 0x65, 0x00})},
+        {"messenger", Make({0xC2, 0x00, 0x05, 0xC0, 0x00})},
+        {"friend requests", Make({0xC1, 0x04, 0xC2, 0x00})},
+        {"letters", Make({0xC3, 0x04, 0xC6, 0x00})},
+        {"castle siege tax rate", Make({0xC1, 0x06, 0xB2, 0x1A, 0x00, 0x00})},
+    };
+    for (const Ignored& packet : ignored) {
+        CAPTURE(packet.what);
+        CHECK(translation.Events({packet.message}).empty());
     }
     CHECK(translation.sink.Entries().empty());
 }
