@@ -6,6 +6,9 @@
 #include <utility>
 
 #include "Mu/Protocol/CharacterInformation.hpp"
+#include "Mu/Protocol/Dialect/ConnectServer.hpp"
+#include "Mu/Protocol/Dialect/Login.hpp"
+#include "Mu/Protocol/Dialect/World.hpp"
 #include "Mu/Protocol/LoginMessage.hpp"
 
 namespace mu::session {

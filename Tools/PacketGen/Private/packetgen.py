@@ -1,18 +1,25 @@
 """packetgen: turns the packet definitions of OpenMU (XML, MIT) into C++ that reads and writes every packet.
 
-For each XML file it writes one header and one file of doctest tests (docs/adr/0034-packetgen-em-python-no-build.md):
-- the header has, for each packet, a struct with the bytes that never change (the shape), the enums and structures
-  of the packet, a View that checks the size before giving access to the fields, and a Writer that builds the
-  packet in a buffer;
-- the tests check, for each packet, the fixed bytes, the length and the refusal of a shorter packet.
+For each XML file it writes, in a folder of its own (docs/adr/0034-packetgen-em-python-no-build.md):
+- Types.hpp, with the enums and structures that the packets of the file share;
+- one header for each packet, named after it, with a struct holding the bytes that never change (the shape), the
+  enums and structures of the packet, a View that checks the size before giving access to the fields, and a Writer
+  that builds the packet in a buffer. A packet header includes only Types.hpp, so the code that reads a packet
+  compiles that packet alone, and no header ever includes every packet (proposal P-0016);
+- doctest tests split in files of a few dozen packets each, which check, for each packet, the fixed bytes, the
+  length and the refusal of a shorter packet.
 
 Every field is read by offset, with the byte order and the bit position that the XML declares. The generated code
 uses the pieces of Mu/Protocol/PacketFields.hpp. Python 3 with the standard library only; exceptions are allowed
 here, because this is a tool (INV-14).
 
 Usage:
-    packetgen.py --xml FILE --namespace NS --header OUT.hpp --tests OUT.cpp --include INCLUDE
-                 [--common COMMON.xml --common-namespace NS --common-include INCLUDE]
+    packetgen.py --xml FILE --namespace NS --output-dir DIR --include-dir Mu/Protocol/Packets/Name
+                 [--tests-prefix Tests/NameTest]
+                 [--common COMMON.xml --common-namespace NS --common-include INCLUDE] [--peer FILE...] [--list]
+
+With --list it writes nothing and prints, one per line, "header PATH" or "tests PATH" for each file it would write,
+so the build knows the files before it runs the generator.
 """
 
 from __future__ import annotations
@@ -56,6 +63,12 @@ _NUMBERS = {
 
 # Names the generated classes already use for themselves.
 _RESERVED = {"Read", "Bytes", "Create", "Start", "View", "Writer"}
+
+# The header with the enums and structures that the packets of a file share; no packet may have its name.
+_TYPES = "Types"
+
+# How many packets each file of generated tests holds: small files compile with little memory and in parallel.
+_PACKETS_PER_TEST_FILE = 40
 
 _IDENTIFIER = re.compile(r"[^A-Za-z0-9]")
 
@@ -661,13 +674,20 @@ def file_scope(definitions: DefinitionFile, namespace: str, common: Scope | None
 
 
 def _check_unique_names(definitions: DefinitionFile) -> None:
-    """The enums, structures and packets of a file share one namespace, so two of them can never have one name."""
+    """The enums, structures and packets of a file share one namespace, so two of them can never have one name. Each
+    packet is also a file, and some systems do not tell upper from lower case in file names."""
     seen: set[str] = set()
     for name in [*(enum.name for enum in definitions.enums), *(item.name for item in definitions.structures),
                  *(packet.name for packet in definitions.packets)]:
         if cpp_name(name) in seen:
             raise DefinitionError(f"two definitions are named {cpp_name(name)}")
         seen.add(cpp_name(name))
+    files: set[str] = {_TYPES.lower()}
+    for packet in definitions.packets:
+        file_name = cpp_name(packet.name).lower()
+        if file_name in files:
+            raise DefinitionError(f"the packet {packet.name} would have the file of another definition")
+        files.add(file_name)
 
 
 def with_peer_values(scope: Scope | None, peer: DefinitionFile) -> Scope:
@@ -694,44 +714,73 @@ _PREAMBLE = """\
 """
 
 
-def generate_header(definitions: DefinitionFile, namespace: str, common: Scope | None,
-                    common_include: str | None) -> str:
+@dataclass
+class GeneratedFile:
+    """A file the generator writes: its path below the output folder, which for a header is also its include."""
+    path: str
+    text: str
+
+
+def types_include(include_dir: str) -> str:
+    return f"{include_dir}/{_TYPES}.hpp"
+
+
+def packet_include(include_dir: str, packet: PacketDefinition) -> str:
+    return f"{include_dir}/{cpp_name(packet.name)}.hpp"
+
+
+def _start_header(source: str, includes: list[str], namespace: str) -> CodeWriter:
     out = CodeWriter()
-    out.lines.extend(_PREAMBLE.format(source=definitions.source).rstrip("\n").split("\n"))
-    if common_include:
-        out.line(f"#include \"{common_include}\"")
+    out.lines.extend(_PREAMBLE.format(source=source).rstrip("\n").split("\n"))
+    for include in includes:
+        out.line(f"#include \"{include}\"")
     out.line()
     out.line("// NOLINTBEGIN(readability-function-size)")
     out.open(f"namespace {namespace} {{")
     out.depth = 0
-    scope = file_scope(definitions, namespace, common)
-    _check_unique_names(definitions)
-    for enum in definitions.enums:
-        out.line()
-        _write_enum(out, enum)
-    for structure in ordered_structures(definitions.structures):
-        out.line()
-        _write_structure(out, structure, scope)
-    for packet in definitions.packets:
-        out.line()
-        _write_packet(out, packet, scope, namespace)
+    return out
+
+
+def _end_header(out: CodeWriter, namespace: str) -> str:
     out.line()
     out.line(f"}} // namespace {namespace}")
     out.line("// NOLINTEND(readability-function-size)")
     return out.text()
 
 
+def generate_headers(definitions: DefinitionFile, namespace: str, common: Scope | None, common_include: str | None,
+                     include_dir: str) -> list[GeneratedFile]:
+    """Types.hpp, with the enums and structures that the packets of the file share, then one header for each packet.
+    A packet uses only its own types, those of its file and the common ones, so its header includes only Types.hpp."""
+    _check_unique_names(definitions)
+    scope = file_scope(definitions, namespace, common)
+    types = _start_header(definitions.source, [common_include] if common_include else [], namespace)
+    for enum in definitions.enums:
+        types.line()
+        _write_enum(types, enum)
+    for structure in ordered_structures(definitions.structures):
+        types.line()
+        _write_structure(types, structure, scope)
+    files = [GeneratedFile(types_include(include_dir), _end_header(types, namespace))]
+    for packet in definitions.packets:
+        out = _start_header(definitions.source, [types_include(include_dir)], namespace)
+        out.line()
+        _write_packet(out, packet, scope, namespace)
+        files.append(GeneratedFile(packet_include(include_dir, packet), _end_header(out, namespace)))
+    return files
+
+
 _TEST_PREAMBLE = """\
 // Generated by Tools/PacketGen from {source} (OpenMU, MIT, see third_party/openmu/LICENSE). Do not edit.
 // For each packet: the Writer starts it with its fixed bytes and length, the View reads it back, and the View refuses
-// the same packet one byte shorter (specs/0001-rede-ate-o-mundo/spec.md, CA-03).
+// the same packet one byte shorter (specs/0001-rede-ate-o-mundo/spec.md, CA-03). Part {part} of {parts}.
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
 #include <doctest/doctest.h>
 
-#include "{include}"
+{includes}
 
 namespace {{
 
@@ -764,17 +813,27 @@ void CheckPacketShape() {{
 """
 
 
-def generate_tests(definitions: DefinitionFile, namespace: str, include: str) -> str:
-    out = CodeWriter()
-    out.lines.extend(_TEST_PREAMBLE.format(source=definitions.source, include=include).rstrip("\n").split("\n"))
-    for packet in definitions.packets:
-        name = cpp_name(packet.name)
-        out.line()
-        out.open(f"TEST_CASE(\"[0001-CA-03] the generated {definitions.source} packet {packet.name} keeps its fixed "
-                 f"bytes and refuses a shorter packet\") {{")
-        out.line(f"CheckPacketShape<::{namespace}::{name}>();")
-        out.close()
-    return out.text()
+def generate_tests(definitions: DefinitionFile, namespace: str, include_dir: str,
+                   tests_prefix: str) -> list[GeneratedFile]:
+    """The tests of every packet, in files of at most _PACKETS_PER_TEST_FILE packets, named tests_prefix01.cpp,
+    tests_prefix02.cpp... Each file includes only the headers of its packets."""
+    packets = definitions.packets
+    parts = (len(packets) + _PACKETS_PER_TEST_FILE - 1) // _PACKETS_PER_TEST_FILE
+    files: list[GeneratedFile] = []
+    for part in range(parts):
+        chunk = packets[part * _PACKETS_PER_TEST_FILE:(part + 1) * _PACKETS_PER_TEST_FILE]
+        includes = "\n".join(f"#include \"{packet_include(include_dir, packet)}\"" for packet in chunk)
+        out = CodeWriter()
+        out.lines.extend(_TEST_PREAMBLE.format(source=definitions.source, part=part + 1, parts=parts,
+                                               includes=includes).rstrip("\n").split("\n"))
+        for packet in chunk:
+            out.line()
+            out.open(f"TEST_CASE(\"[0001-CA-03] the generated {definitions.source} packet {packet.name} keeps its "
+                     f"fixed bytes and refuses a shorter packet\") {{")
+            out.line(f"CheckPacketShape<::{namespace}::{cpp_name(packet.name)}>();")
+            out.close()
+        files.append(GeneratedFile(f"{tests_prefix}{part + 1:02d}.cpp", out.text()))
+    return files
 
 
 def _write_if_changed(path: Path, text: str) -> None:
@@ -789,14 +848,16 @@ def main(arguments: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Generates the C++ code of the OpenMU packet definitions.")
     parser.add_argument("--xml", required=True, type=Path)
     parser.add_argument("--namespace", required=True)
-    parser.add_argument("--header", required=True, type=Path)
-    parser.add_argument("--tests", type=Path)
-    parser.add_argument("--include", required=True, help="how the tests include the generated header")
+    parser.add_argument("--output-dir", required=True, type=Path, help="the folder that holds every generated file")
+    parser.add_argument("--include-dir", required=True,
+                        help="the folder of the headers below the output folder, as the code includes them")
+    parser.add_argument("--tests-prefix", help="the path of the test files below the output folder, before the number")
     parser.add_argument("--common", type=Path, help="a file whose enums and structures every packet may use")
     parser.add_argument("--common-namespace")
     parser.add_argument("--common-include")
     parser.add_argument("--peer", type=Path, action="append", default=[],
                         help="another file whose enum values a default value may name, as in 'File.Enum.Value'")
+    parser.add_argument("--list", action="store_true", help="print the files it would write, and write nothing")
     options = parser.parse_args(arguments)
     try:
         common_scope = None
@@ -806,10 +867,17 @@ def main(arguments: list[str]) -> int:
         for peer in options.peer:
             common_scope = with_peer_values(common_scope, read_definitions(peer))
         definitions = read_definitions(options.xml)
-        _write_if_changed(options.header,
-                          generate_header(definitions, options.namespace, common_scope, options.common_include))
-        if options.tests is not None:
-            _write_if_changed(options.tests, generate_tests(definitions, options.namespace, options.include))
+        headers = generate_headers(definitions, options.namespace, common_scope, options.common_include,
+                                   options.include_dir)
+        tests = [] if options.tests_prefix is None else generate_tests(
+            definitions, options.namespace, options.include_dir, options.tests_prefix)
+        if options.list:
+            for kind, files in (("header", headers), ("tests", tests)):
+                for item in files:
+                    print(f"{kind} {(options.output_dir / item.path).as_posix()}")
+            return 0
+        for item in [*headers, *tests]:
+            _write_if_changed(options.output_dir / item.path, item.text)
     except (DefinitionError, ElementTree.ParseError, OSError, KeyError, ValueError) as error:
         print(f"packetgen: {options.xml}: {error}", file=sys.stderr)
         return 1

@@ -8,10 +8,10 @@ nexum_generate_packets(
     XML "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Fixture.xml"
     NAMESPACE packetgen::fixture
     OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/Generated"
-    INCLUDE "PacketGen/Fixture.hpp"
-    HEADER_VARIABLE fixture_header)
+    INCLUDE_DIR "PacketGen/Fixture"
+    HEADERS_VARIABLE fixture_headers)
 set(fixture_include "${CMAKE_CURRENT_BINARY_DIR}/Generated")
 # The rule of a generated file belongs to a target of this folder; the tests in Tests/ wait for it.
-add_custom_target(packetgen_fixture DEPENDS "${fixture_header}")
+add_custom_target(packetgen_fixture DEPENDS ${fixture_headers})
 
 add_subdirectory(Tests)

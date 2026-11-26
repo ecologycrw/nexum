@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <string_view>
 
-#include "Mu/Protocol/Dialect.hpp"
+#include "Mu/Protocol/Dialect/Login.hpp"
 #include "Nexum/Core/Result.hpp"
 
 namespace mu::protocol {

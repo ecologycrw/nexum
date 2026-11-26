@@ -7,7 +7,10 @@
 #include <cstdint>
 #include <span>
 
-#include "Mu/Protocol/Dialect.hpp"
+#include "Mu/Protocol/Dialect/ConnectServer.hpp"
+#include "Mu/Protocol/Dialect/FirstEntry.hpp"
+#include "Mu/Protocol/Dialect/Login.hpp"
+#include "Mu/Protocol/Dialect/World.hpp"
 #include "Mu/Protocol/ExtendedAppearance.hpp"
 #include "Mu/Protocol/ExtendedItem.hpp"
 #include "Mu/Translate/Translator.hpp"

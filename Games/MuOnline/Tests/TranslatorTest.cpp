@@ -17,7 +17,7 @@
 
 #include <doctest/doctest.h>
 
-#include "Mu/Protocol/Dialect.hpp"
+#include "Mu/Protocol/Dialect/FirstEntry.hpp"
 #include "Mu/Protocol/PacketFields.hpp"
 #include "Mu/Translate/Translator.hpp"
 #include "Mu/World/EventQueue.hpp"

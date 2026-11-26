@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Mu/Protocol/Cipher.hpp"
+#include "Mu/Protocol/Dialect.hpp"
 
 namespace mu::protocol {
 

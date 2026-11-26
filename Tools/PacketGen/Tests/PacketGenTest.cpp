@@ -7,7 +7,9 @@
 
 #include <doctest/doctest.h>
 
-#include "PacketGen/Fixture.hpp"
+#include "PacketGen/Fixture/EveryField.hpp"
+#include "PacketGen/Fixture/Fixed.hpp"
+#include "PacketGen/Fixture/PointList.hpp"
 
 namespace {
 

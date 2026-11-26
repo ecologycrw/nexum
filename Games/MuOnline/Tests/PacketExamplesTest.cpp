@@ -12,7 +12,9 @@
 
 #include <doctest/doctest.h>
 
-#include "Mu/Protocol/Dialect.hpp"
+#include "Mu/Protocol/Dialect/ConnectServer.hpp"
+#include "Mu/Protocol/Dialect/Login.hpp"
+#include "Mu/Protocol/Dialect/World.hpp"
 #include "Mu/Protocol/LoginMessage.hpp"
 
 namespace {

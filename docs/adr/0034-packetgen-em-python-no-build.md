@@ -18,12 +18,12 @@ O dono aprovou esta decisão junto com a spec da [fatia 1](../../specs/0001-rede
 ## Decisão
 
 1. **O `packetgen` é um script em Python 3, só com a biblioteca padrão,** em `Tools/PacketGen/Private/packetgen.py`. O Python já é exigido pelo `scripts/dev.py` e pelas checagens, e a biblioteca padrão lê XML.
-2. **O código gerado fica na pasta de build, nunca no repositório.** A função `nexum_generate_packets`, de `cmake/NexumPacketGen.cmake`, roda o script a cada build em que um XML ou o script mudou. O módulo MU inclui os cabeçalhos como `Mu/Protocol/Packets/<Arquivo>.hpp`.
+2. **O código gerado fica na pasta de build, nunca no repositório.** A função `nexum_generate_packets`, de `cmake/NexumPacketGen.cmake`, roda o script a cada build em que um XML ou o script mudou. Cada pacote é um cabeçalho próprio, `Mu/Protocol/Packets/<Arquivo>/<Pacote>.hpp`, que inclui só os tipos comuns do arquivo (`Types.hpp`). O módulo MU inclui os pacotes pelas partes do dialeto (`Mu/Protocol/Dialect/`), e cada arquivo do código inclui só as partes que usa. Nenhum cabeçalho inclui todos os pacotes juntos. Como o build precisa conhecer os arquivos antes de gerar, o script os lista quando o CMake configura (`--list`), e uma mudança num XML ou no script configura de novo.
 3. **O script também roda no build de jogador,** porque o jogo lê os pacotes com o código gerado. O script não entra no programa: ele é uma ferramenta do build, como o compilador. A pasta `Tools/PacketGen` do build guarda só os testes do gerador, e esses só existem no build de desenvolvimento (INV-02).
 4. **O que o código gerado garante:**
    - cada campo é lido e escrito pela posição, com a ordem dos bytes e o deslocamento de bits que o XML declara, nunca por um *cast* de struct (INV-12);
    - a leitura de um pacote (`View::Read`) confere o cabeçalho, o tamanho declarado, o código, o subcódigo e o tamanho mínimo antes de dar acesso aos campos;
-   - cada pacote gerado tem um teste gerado dos bytes fixos, do tamanho e da recusa de um pacote menor.
+   - cada pacote gerado tem um teste gerado dos bytes fixos, do tamanho e da recusa de um pacote menor. Os testes vêm em arquivos de até 40 pacotes, cada um incluindo só os pacotes que testa.
 5. **As peças comuns ficam escritas à mão,** em `Games/MuOnline/Public/Mu/Protocol/PacketFields.hpp`: ler e escrever números, bits, textos e blocos, e conferir o cabeçalho.
 
 ## Consequências
@@ -32,6 +32,7 @@ O dono aprovou esta decisão junto com a spec da [fatia 1](../../specs/0001-rede
 - **Melhor:** para seguir um OpenMU novo, basta copiar os XML de uma base nova, gerar de novo e refazer a tabela do dialeto (o risco 5 da spec de referência).
 - **Pior:** o build passa a exigir o Python 3.10 ou mais novo, também no build de jogador. O CMake procura o Python e para com uma mensagem clara se ele faltar.
 - **Pior:** quem quer ler o código gerado precisa compilar antes. Ele fica em `build/<preset>/Games/MuOnline/Generated/`.
+- **Mudança de 2026-11-26 ([P-0016](../PROPOSALS.md)):** no começo, cada XML gerava um cabeçalho só, e o do servidor tinha 1,2 MB. Toda compilação que falava com a rede lia o arquivo inteiro e passava de 1 GB de memória, e o build enchia os 16 GB do computador do dono. Desde então, cada pacote é um cabeçalho próprio, como diz o item 2.
 - **Exigido:** o script é testado em duas camadas. Os testes em Python conferem a leitura do XML e as recusas. O C++ gerado de um XML de teste próprio (`Tools/PacketGen/Tests/Fixture.xml`) confere cada tipo de campo, byte a byte.
 - **Exigido:** os XML ficam em `third_party/openmu`, com o aviso da licença MIT e a base registrada.
 

@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <optional>
 
-#include "Mu/Protocol/Dialect.hpp"
+#include "Mu/Protocol/Dialect/World.hpp"
 #include "Nexum/Core/Result.hpp"
 #include "Nexum/Time/Seconds.hpp"
 #include "Nexum/Time/WallTimer.hpp"

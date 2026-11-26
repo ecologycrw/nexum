@@ -16,6 +16,7 @@
 #include <doctest/doctest.h>
 
 #include "Mu/Protocol/Cipher.hpp"
+#include "Mu/Protocol/Dialect/World.hpp"
 #include "Mu/Protocol/LoginMessage.hpp"
 #include "Mu/Session/Session.hpp"
 #include "Nexum/Debug/Logger.hpp"

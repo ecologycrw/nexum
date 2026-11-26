@@ -9,7 +9,9 @@
 #include <string_view>
 
 #include "Mu/Protocol/CharacterInformation.hpp"
-#include "Mu/Protocol/Dialect.hpp"
+#include "Mu/Protocol/Dialect/FirstEntry.hpp"
+#include "Mu/Protocol/Dialect/Login.hpp"
+#include "Mu/Protocol/Dialect/World.hpp"
 #include "Mu/Protocol/ExtendedAppearance.hpp"
 #include "Mu/Protocol/ExtendedItem.hpp"
 #include "Mu/Protocol/PacketFields.hpp"

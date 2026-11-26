@@ -22,6 +22,17 @@
 - **Uma linha de log sem pedir memória no `Engine/Debug`** (T13, `Nexum/Debug/LogLine.hpp`). A visão do mundo conta cada mudança no log dentro do tick, e o quadro não pode pedir memória (INV-13, CA-11). A linha é montada num espaço fixo, como a do relatório do laço (`TickReportText`), e não sabe nada do MU.
 - **Todo id é lido sem o bit 15** (T13). A marca de "acabou de surgir" só existe no `C2 12` e no `C2 13`; os outros pacotes nunca a põem, então tirar o bit de todos é uma escolha do Nexum que deixa a busca na tabela sempre com o mesmo id.
 - **O alvo de fuzzing dos pacotes do dialeto também traduz** (T13): a mesma mensagem passa pela tradução e pela visão do mundo, com um log que não guarda nada. Não há alvo novo.
+- **Um cabeçalho por pacote e o dialeto em quatro partes** (entre a T13 e a T14, [P-0016](../../docs/PROPOSALS.md)). O plano previa, no risco "O tamanho do código gerado", medir o tempo de build e dividir o código gerado se pesasse. Pesou: o cabeçalho único do servidor tinha 1,2 MB, cada compilação que lia o dialeto passava de 1 GB de memória, e o build enchia os 16 GB do computador do dono. O `packetgen` passou a gerar um cabeçalho por pacote (`Mu/Protocol/Packets/<Arquivo>/<Pacote>.hpp`), mais os tipos comuns de cada arquivo (`Types.hpp`), e os testes gerados em arquivos de até 40 pacotes. O dialeto ficou em `Mu/Protocol/Dialect/` (`ConnectServer`, `Login`, `FirstEntry` e `World`, pelas seções da spec de protocolo), e o `Dialect.hpp` guarda só a identidade do cliente. Nenhum cabeçalho inclui todos os pacotes; cada arquivo do código inclui só as partes do dialeto que usa. Os 613 testes gerados continuam lá, um por pacote, agora em 18 arquivos em vez de 4. Medido no computador do dono, com 16 GB e 12 núcleos lógicos:
+
+  | Medida | Antes | Depois |
+  |---|---|---|
+  | Build com sanitizers, no `verify`, recompilando tudo o que usa pacotes | 292 s (38 passos) | 106 s (49 passos) |
+  | Build de jogador, no `verify`, na mesma situação | 231 s (35 passos) | 111 s (46 passos) |
+  | Maior pico de memória de um compilador | 1,39 GB | 0,25 GB |
+  | Compiladores acima de 500 MB | 13 | 0 |
+  | Maior soma de memória dos compiladores ao mesmo tempo | 8,6 GB (13 compiladores) | 2,3 GB (14 compiladores) |
+
+  Os tempos incluem os testes de cada build. O "antes" da memória foi medido no build de desenvolvimento, recompilando o que lê o dialeto (227 s); o "depois", no `verify` inteiro, que recompilou tudo o que usa pacotes nos builds com sanitizers e de jogador. Os compiladores de cada linha são os mesmos (MSVC).
 - **Um teste de pacote sem pedir memória** (T11): o `IsPacket` (`Mu/Protocol/PacketFields.hpp`) diz qual pacote chegou sem montar texto. O `CheckPacket`, que o código gerado usa em toda leitura, monta o nome do pacote num `std::string` mesmo quando tudo dá certo; isso fica para a T16, que mede o quadro com mensagens de rede.
 
 ## Travas alteradas
@@ -31,4 +42,5 @@
 - **`cmake/NexumFuzzing.cmake`** (T09, arquivo novo): a opção `NEXUM_FUZZING` e a função `nexum_add_fuzz_target`. Sem a opção, cada alvo vira um teste que roda as sementes dele nos 3 sistemas; com ela, só no Clang, vira também um programa do libFuzzer. Aprovado pelo dono em 2026-11-25 ("Sim, todas").
 - **`CMakePresets.json`** (T09): o preset `linux-fuzz`, de configuração, de build e de teste. Mesma aprovação.
 - **`.github/workflows/ci.yml`** (T09): o passo "Fuzzing" no job do Linux com Clang, que compila o preset `linux-fuzz` e roda cada alvo por 60 s a partir das sementes. Mesma aprovação.
+- **`cmake/NexumPacketGen.cmake`** (entre a T13 e a T14, [P-0016](../../docs/PROPOSALS.md)): a função `nexum_generate_packets` pede ao `packetgen` a lista dos arquivos quando o CMake configura (`--list`), declara todos como saídas da regra e configura de novo quando um XML ou o script muda. Os parâmetros passaram a ser a pasta dos cabeçalhos (`INCLUDE_DIR`) e o começo do nome dos testes (`TESTS_PREFIX`). O dono escolheu a opção 1 da proposta em 2026-11-26 ("Escolha a opção 1") e confirmou a edição da trava.
 - **`scripts/dev.py`** (entre a T10 e a T11, pela primeira CI do PR #11): o `tidy` compila o build de desenvolvimento antes de analisar, porque o `clang-tidy` lê os cabeçalhos gerados dos pacotes, e o job da análise estática na CI só configurava. Aprovado pelo dono em 2026-11-26 ("Sim, pode mudar").

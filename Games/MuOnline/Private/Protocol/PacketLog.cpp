@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <string_view>
 
-#include "Mu/Protocol/Dialect.hpp"
+#include "Mu/Protocol/Dialect/Login.hpp"
 
 namespace mu::protocol {
 

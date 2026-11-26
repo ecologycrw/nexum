@@ -77,6 +77,8 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
 - Status: aberta
 
+## Processadas
+
 ### P-0016: o código gerado dos pacotes sem estourar a memória do build
 - Origem: medição na fatia 1, durante o `verify` da T13, a partir de uma pergunta do dono
 - Tipo: trava
@@ -86,9 +88,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 
   A recomendação é a primeira, e a segunda, pela variável de ambiente, só como alívio até lá. A medição do tempo de build, que o plano pede no report, entra junto.
 - Prioridade sugerida: média (não bloqueia nada, mas cada tarefa da rede piora o build; resolver antes da parte 2 do M2, que traz mais pacotes)
-- Status: aberta
-
-## Processadas
+- Status: aceita em 2026-11-26, na própria fatia 1, entre a T13 e a T14. O dono pediu: "Faça aqui ainda nessa sessão a consolidação da proposta P-0016", "Escolha a opção 1", sem cabeçalho que junte todos os pacotes, e com os testes gerados cobrindo todos os pacotes e os tempos novos para comparar. Destino: o `packetgen` gera um cabeçalho por pacote e testes em arquivos de até 40 pacotes; a trava `cmake/NexumPacketGen.cmake` pede a lista dos arquivos ao gerador; o dialeto ficou em quatro partes (`Mu/Protocol/Dialect/`), e o [ADR 0034](adr/0034-packetgen-em-python-no-build.md) foi atualizado. Os números estão no [report da fatia 1](../specs/0001-rede-ate-o-mundo/report.md).
 
 ### P-0013: os achados aprovados da auditoria externa de 2026-11-25
 - Origem: feedback do dono, em 2026-11-25, depois de uma auditoria da documentação feita com outro modelo e da conferência dela contra o repositório
