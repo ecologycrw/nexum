@@ -51,4 +51,4 @@ Em `Engine/Platform/Tests/` (`nexum_platform_tests`): `ApplicationTest.cpp` (os 
 
 - [TD-0010](../TECH_DEBT.md): no Linux, nenhum teste abre janela no Wayland.
 - [TD-0013](../TECH_DEBT.md): no Windows, os argumentos chegam na página de código do sistema.
-- [TD-0032](../TECH_DEBT.md): a senha do `MuClient` é lida do terminal até a tela de login do M6.
+- [TD-0032](../TECH_DEBT.md): a senha do `MuClient` é lida do terminal até a tela de login do M6; um Ctrl+C na pergunta da senha não religa o eco.

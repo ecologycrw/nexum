@@ -57,4 +57,5 @@ Em `Games/MuOnline/Tests/` (`muonline_tests`): `SessionTest.cpp` (de "Desconecta
 ## Itens provisórios
 
 - [TD-0027](../TECH_DEBT.md): os prazos são fixos, de 10 s.
-- [TD-0028](../TECH_DEBT.md): uma queda ou uma recusa encerra a sessão, sem reconexão.
+- [TD-0028](../TECH_DEBT.md): uma queda ou uma recusa encerra a sessão, sem reconexão; e a conta e a senha são apagadas depois do primeiro login.
+- [TD-0036](../TECH_DEBT.md): cópias do login montado ficam em outros buffers até serem sobrescritas.

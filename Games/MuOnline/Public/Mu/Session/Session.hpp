@@ -84,7 +84,8 @@ struct SessionOptions {
     std::string connectServerHost = "127.0.0.1";
     std::uint16_t connectServerPort = protocol::kConnectServerPort;
     std::string account;
-    // Kept only until the login is built, then erased; it never goes to the log (CA-12).
+    // Kept only until the login is built, then erased here; it never goes to the log (CA-12). Copies of the
+    // built login stay in other buffers until they are written over (TD-0036).
     std::string password;
     // The server and the character to choose; the first of each list when there is none.
     std::optional<std::uint16_t> serverId;

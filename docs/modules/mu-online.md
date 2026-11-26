@@ -49,3 +49,4 @@ O cliente online não reproduz nada novo: ele só põe a sessão, a tradução e
 - [TD-0032](../TECH_DEBT.md): a conta, o servidor e o personagem vêm da linha de comando, e a senha do terminal, até a tela de login do M6.
 - [TD-0033](../TECH_DEBT.md): o mapa é dado por pronto assim que os dados do personagem chegam.
 - [TD-0034](../TECH_DEBT.md): o teste de integração roda só no computador do dono.
+- [TD-0037](../TECH_DEBT.md): a época fica nas mensagens e não chega aos eventos neutros.
