@@ -6,8 +6,10 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
+#include <exception>
 #include <mutex>
 #include <string>
+#include <system_error>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -250,8 +252,13 @@ void Connect(State& state) {
         });
 }
 
-// The network thread.
-void Run(State& state) {
+// After the end of the connection, the thread waits, without spinning, for the destructor to stop it.
+void WaitForStop(State& state) {
+    std::unique_lock lock(state.incomingMutex);
+    state.incomingChanged.wait(lock, [&] { return state.stopping.load(); });
+}
+
+void Loop(State& state) {
     Connect(state);
     while (!state.stopping) {
         if (state.closeAsked.exchange(false)) {
@@ -259,14 +266,25 @@ void Run(State& state) {
         }
         Flush(state);
         if (state.over && !state.writing) {
-            std::unique_lock lock(state.incomingMutex);
-            state.incomingChanged.wait(lock, [&] { return state.stopping.load(); });
-            break;
+            WaitForStop(state);
+            return;
         }
         state.io.run_for(kSendInterval);
         if (state.io.stopped()) {
             state.io.restart();
         }
+    }
+}
+
+// The network thread. Asio gives the errors of its operations by value, but running the context passes on
+// what a handler throws (the standard library inside the codec, say) and what the system refuses. The
+// exception ends the connection here, at the border with Asio, and not the program (INV-14).
+void Run(State& state) {
+    try {
+        Loop(state);
+    } catch (const std::exception& error) {
+        Finish(state, std::string("the network thread stopped: ") + error.what());
+        WaitForStop(state);
     }
 }
 
@@ -284,10 +302,16 @@ core::Result<std::unique_ptr<Connection>> Connection::Open(const ConnectionOptio
         return core::MakeError("each queue of a connection needs at least " + std::to_string(kSmallestQueue) +
                                " bytes, and " + std::to_string(options.queueBytes) + " were asked for");
     }
-    auto state = std::make_unique<State>(options, std::move(codec));
-    State& running = *state;
-    running.thread = std::thread([&running] { Run(running); });
-    return std::make_unique<Connection>(std::move(state));
+    // The context of Asio and the thread come from the system, which can refuse them with an exception; it
+    // becomes an error here (INV-14).
+    try {
+        auto state = std::make_unique<State>(options, std::move(codec));
+        State& running = *state;
+        running.thread = std::thread([&running] { Run(running); });
+        return std::make_unique<Connection>(std::move(state));
+    } catch (const std::system_error& error) {
+        return core::MakeError(std::string("could not start the connection: ") + error.what());
+    }
 }
 
 Connection::Connection(std::unique_ptr<State> state) noexcept : m_state(std::move(state)) {}

@@ -70,7 +70,8 @@ public:
         return count;
     }
 
-    // Asks the network thread to close the connection; a Closed event follows.
+    // Asks the network thread to close the connection; a Closed event follows. The messages of the outgoing
+    // queue that were not written yet are dropped, not sent.
     void Close() noexcept;
 
     // What the network thread shares with the main thread; only Connection.cpp knows it. Use Open, not this.

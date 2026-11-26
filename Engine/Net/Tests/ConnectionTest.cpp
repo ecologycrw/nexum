@@ -54,6 +54,27 @@ private:
     std::vector<std::byte> m_pending;
 };
 
+// A codec that ends in an exception of the standard library as soon as bytes arrive, as a real one could
+// inside the library it uses.
+class ThrowingCodec final : public nexum::net::MessageCodec {
+public:
+    nexum::core::Result<void> Receive(std::span<const std::byte> bytes,
+                                      nexum::net::MessageSink& /*sink*/) override {
+        static_cast<void>(m_nothing.at(bytes.size())); // std::out_of_range
+        return {};
+    }
+
+    nexum::core::Result<std::size_t> Send(std::span<const std::byte> /*message*/,
+                                          std::span<std::byte> /*wire*/) override {
+        return nexum::core::MakeError("the throwing codec sends nothing");
+    }
+
+    std::size_t WireCapacity(std::size_t messageSize) const noexcept override { return messageSize; }
+
+private:
+    std::vector<std::byte> m_nothing;
+};
+
 struct Seen {
     bool connected = false;
     std::vector<std::vector<std::byte>> messages;
@@ -207,6 +228,20 @@ TEST_CASE("[0001-CA-06] bytes that the codec refuses close the connection, with 
     Seen seen;
     REQUIRE(PollUntil(*connection, seen, [](const Seen& state) { return state.closed; }));
     CHECK(seen.reason == "the test codec refuses a message of size 0");
+}
+
+TEST_CASE("[0001-CA-06] an exception in the network thread closes the connection, not the program") {
+    auto server = LoopbackServer::Start();
+    REQUIRE(server.has_value());
+    auto opened = Connection::Open({"127.0.0.1", (*server)->Port()}, std::make_unique<ThrowingCodec>());
+    REQUIRE(opened.has_value());
+    auto& connection = **opened;
+    REQUIRE((*server)->Accept(kWait).has_value());
+    REQUIRE((*server)->Write(std::vector<std::byte>{std::byte{1}}).has_value());
+    Seen seen;
+    REQUIRE(PollUntil(connection, seen, [](const Seen& state) { return state.closed; }));
+    CHECK(seen.reason.starts_with("the network thread stopped: "));
+    CHECK(connection.Send(Message(1, 3)).error().message == "the connection is over");
 }
 
 TEST_CASE("[0001-CA-06] the outgoing queue refuses a message when it has no room, and polling never waits") {
