@@ -735,7 +735,6 @@ def _start_header(source: str, includes: list[str], namespace: str) -> CodeWrite
     for include in includes:
         out.line(f"#include \"{include}\"")
     out.line()
-    out.line("// NOLINTBEGIN(readability-function-size)")
     out.open(f"namespace {namespace} {{")
     out.depth = 0
     return out
@@ -744,7 +743,6 @@ def _start_header(source: str, includes: list[str], namespace: str) -> CodeWrite
 def _end_header(out: CodeWriter, namespace: str) -> str:
     out.line()
     out.line(f"}} // namespace {namespace}")
-    out.line("// NOLINTEND(readability-function-size)")
     return out.text()
 
 
