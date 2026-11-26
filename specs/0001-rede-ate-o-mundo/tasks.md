@@ -59,6 +59,7 @@ Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o 
 - **2026-11-26, entre a T10 e a T11:** "Sim, pode mudar". O `tidy` do `scripts/dev.py` (trava) compila antes de analisar, porque a análise estática da CI não achava os cabeçalhos gerados.
 - **2026-11-26, entre a T13 e a T14:** "Sim, registre a proposta" e, depois, "Faça aqui ainda nessa sessão a consolidação da proposta P-0016" e "Escolha a opção 1". O código gerado pesava mais de 1 GB por compilação e enchia a memória do build. O `packetgen` passou a gerar um cabeçalho por pacote, a trava `cmake/NexumPacketGen.cmake` mudou, e o dialeto ficou em quatro partes. O dono pediu também que nenhum cabeçalho junte todos os pacotes e que os testes gerados continuem cobrindo todos eles, com os tempos novos para comparar (report, "Desvios do plano").
 - **2026-11-26, entre a T15 e a T16:** "Nesta sessão" e "Sim, ligue". A T16 foi feita na mesma sessão da T15, e o aviso automático da CI (Auto-fix) do PR #11 foi ligado de novo nesta sessão.
+- **2026-11-26, entre a T16 e a T17:** "Em outra sessão (eu abro)". A T17 começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI precisa ser ligado de novo.
 
 ## Bloqueios
 
