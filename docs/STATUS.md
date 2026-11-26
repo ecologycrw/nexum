@@ -2,7 +2,7 @@
 fase: em-andamento
 spec-atual: 0001
 branch: fatia/0001-rede-ate-o-mundo
-atualizado-em: 2026-11-25
+atualizado-em: 2026-11-26
 ---
 
 # Status
@@ -15,7 +15,7 @@ A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #
 
 ## Próxima ação
 
-1. `/implementar` da fatia 1. O dono pediu para começar as tarefas numa sessão nova, aberta por ele: antes de começar a primeira tarefa, a IA pergunta.
+1. `/implementar` da fatia 1: as tarefas T01 a T10 estão feitas, e a próxima é a T11 (a sessão). O andamento fica no `tasks.md` da fatia. Entre uma tarefa e a seguinte, a IA pergunta ao dono se segue nesta sessão ou numa sessão nova, aberta por ele. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está em rascunho, só para a CI rodar no Linux e no macOS.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -51,3 +51,4 @@ Nenhum.
 | 2026-11-25 | Consolidação dos achados de uma auditoria externa trazida pelo dono (P-0013): o clang-tidy passou a recusar variáveis globais que podem mudar, a retrospectiva e a consolidação revisam os destinos quando a ordem dos marcos muda, o dono lê o resumo de segurança antes de cada merge e entrou o TD-0025. A P-0014 ficou aberta para a parte 1 do M2 |
 | 2026-11-25 | O dono fez o squash merge do PR #10 (P-0013) |
 | 2026-11-25 | Spec da fatia 1 (A rede até o mundo, M2 parte 1) aprovada pelo dono, com a parte 1 do M2 em duas fatias, o OpenMU 0.10.1 fixado pela impressão digital, só os vetores escritos nos documentos da central, o número de série `NEXUM-CLIENT-001`, o TD-0015 dentro da fatia, o Asio e o ADR 0034 (o `packetgen` em Python) |
+| 2026-11-26 | Fatia 1: tarefas T01 a T10 feitas. O PR #11 foi aberto em rascunho, a pedido do dono, para a CI rodar no Linux e no macOS. A primeira CI achou uma conversão de sinal num teste de fuzzing e a análise estática sem os cabeçalhos gerados (o `tidy` do `scripts/dev.py` passou a compilar antes, com o "sim" do dono). Depois das duas correções, os 10 checks passaram |
