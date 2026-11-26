@@ -13,6 +13,7 @@ nexum_add_library(MuOnline
         Private/Protocol/ExtendedAppearance.cpp
         Private/Protocol/ExtendedItem.cpp
         Private/Protocol/FrameReader.cpp
+        Private/Protocol/LoginMessage.cpp
         Private/Protocol/PacketFields.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Debug Nexum::Render Nexum::Time Nexum::GridRpg)
 

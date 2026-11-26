@@ -11,6 +11,7 @@ nexum_add_tests(muonline_tests
         FrameReaderTest.cpp
         FoundationScreenTest.cpp
         ModuleIdentityTest.cpp
+        PacketExamplesTest.cpp
         TickReportTextTest.cpp
     DEPS MuOnline nexum_test_log)
 
