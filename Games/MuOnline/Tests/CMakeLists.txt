@@ -15,6 +15,7 @@ nexum_add_tests(muonline_tests
         ModuleIdentityTest.cpp
         PacketExamplesTest.cpp
         PacketLogTest.cpp
+        PingTest.cpp
         SessionTest.cpp
         TickReportTextTest.cpp
     DEPS MuOnline nexum_test_log)

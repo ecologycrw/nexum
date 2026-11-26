@@ -18,6 +18,7 @@ nexum_add_library(MuOnline
         Private/Protocol/PacketFields.cpp
         Private/Protocol/PacketLog.cpp
         Private/Session/MessageQueue.cpp
+        Private/Session/Ping.cpp
         Private/Session/Session.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Debug Nexum::Net Nexum::Render Nexum::Time Nexum::GridRpg)
 

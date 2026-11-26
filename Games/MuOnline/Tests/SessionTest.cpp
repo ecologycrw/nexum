@@ -110,7 +110,8 @@ using Bytes = std::vector<std::byte>;
     return list;
 }
 
-// The data of the character, of 93 bytes or fewer, at (145, 123) on the map 0, as in a real session.
+// The data of the character, of 93 bytes or fewer, at (145, 123) on the map 0, with the attack and magic
+// speeds 29 and 29 (bytes 82 to 85, little-endian), as in a real session.
 [[nodiscard]] Bytes CharacterInformation(std::size_t size = 93) {
     Bytes data(size);
     data[0] = std::byte{0xC3};
@@ -119,7 +120,38 @@ using Bytes = std::vector<std::byte>;
     data[3] = std::byte{0x03};
     data[4] = std::byte{145};
     data[5] = std::byte{123};
+    if (size >= 86) {
+        data[82] = std::byte{29};
+        data[84] = std::byte{29};
+    }
     return data;
+}
+
+// The stats of the hero (C1 26 FF), with new attack and magic speeds.
+[[nodiscard]] Bytes CurrentStats(std::uint16_t attackSpeed, std::uint16_t magicSpeed) {
+    Bytes stats(mu::protocol::dialect::CurrentStats::kShape.minimumLength);
+    auto writer = mu::protocol::dialect::CurrentStats::Writer::Create(stats);
+    REQUIRE(writer.has_value());
+    writer->SetAttackSpeed(attackSpeed);
+    writer->SetMagicSpeed(magicSpeed);
+    return stats;
+}
+
+// The pings among the messages sent, each as its time in ms and its two speeds.
+struct SentPing {
+    std::uint32_t milliseconds;
+    std::uint16_t attackSpeed;
+    std::uint16_t magicSpeed;
+};
+
+[[nodiscard]] std::vector<SentPing> Pings(const std::vector<Bytes>& sent) {
+    std::vector<SentPing> pings;
+    for (const Bytes& message : sent) {
+        if (auto ping = mu::protocol::dialect::Ping::View::Read(message)) {
+            pings.push_back({ping->TickCount(), ping->AttackSpeed(), ping->MagicSpeed()});
+        }
+    }
+    return pings;
 }
 
 // Messages of the world of the first entry (section 6.12 and the plan of slice 1).
@@ -365,9 +397,9 @@ TEST_CASE("[0001-CA-07] each expected answer has 10 seconds, and a late one says
         Run run;
         run.Walk(static_cast<int>(steps));
         const double sent = 0.1 * static_cast<double>(steps);
-        run.session.CheckDeadline(Seconds{sent + 9.99});
+        run.session.AdvanceClock(Seconds{sent + 9.99});
         CHECK(run.session.State() != SessionState::Disconnected);
-        run.session.CheckDeadline(Seconds{sent + 10.0});
+        run.session.AdvanceClock(Seconds{sent + 10.0});
         CHECK(run.session.State() == SessionState::Disconnected);
         CHECK(run.session.Failure() == std::string(awaited[steps]) + " did not come within 10 seconds");
     }
@@ -376,10 +408,10 @@ TEST_CASE("[0001-CA-07] each expected answer has 10 seconds, and a late one says
 TEST_CASE("[0001-CA-07] the loading of the map and the world have no deadline") {
     Run run;
     run.Walk(7);
-    run.session.CheckDeadline(Seconds{3600.0});
+    run.session.AdvanceClock(Seconds{3600.0});
     CHECK(run.session.State() == SessionState::Loading);
     REQUIRE(run.session.FinishLoading().has_value());
-    run.session.CheckDeadline(Seconds{7200.0});
+    run.session.AdvanceClock(Seconds{7200.0});
     CHECK(run.session.State() == SessionState::InWorld);
 }
 
@@ -530,4 +562,114 @@ TEST_CASE("[0001-CA-12] the log of the session never shows the user or the passw
             CHECK(entry.message.find(secret) == std::string::npos);
         }
     }
+}
+
+namespace {
+
+// The way to the world with the entry in the Game Server at t = 0, as in the example of the plan.
+void EnterAtZero(Run& run) {
+    run.session.Start(Seconds{0.0});
+    run.Message(Hello(), 0.0);
+    run.Message(ServerList(), 0.0);
+    run.Message(ConnectionInfo(), 0.0);
+    run.Connected(0.0);
+    run.Message(GameServerEntered(), 0.0);
+}
+
+} // namespace
+
+TEST_CASE("[0001-CA-08] the ping goes every 20 s of the wall clock from the entry in the Game Server, "
+          "whatever the frames") {
+    Run run;
+    EnterAtZero(run);
+    run.Message(LoginResponse(1), 0.1);
+    run.Message(CharacterList({"test0Dk"}), 0.2);
+    run.Message(CharacterInformation(), 0.3);
+    REQUIRE(run.session.FinishLoading().has_value());
+
+    struct Frame {
+        double now;
+        std::size_t pings;
+    };
+    for (const Frame frame :
+         {Frame{0.016, 0}, Frame{5.0, 0}, Frame{19.999, 0}, Frame{20.0, 1}, Frame{20.016, 1}, Frame{39.5, 1},
+          Frame{40.7, 2}, Frame{41.0, 2}, Frame{59.999, 2}, Frame{60.0, 3}}) {
+        CAPTURE(frame.now);
+        run.session.AdvanceClock(Seconds{frame.now});
+        CHECK(Pings(run.link.sent).size() == frame.pings);
+    }
+    const std::vector<SentPing> pings = Pings(run.link.sent);
+    REQUIRE(pings.size() == 3);
+    CHECK(pings[0].milliseconds == 20000);
+    CHECK(pings[1].milliseconds == 40700);
+    CHECK(pings[2].milliseconds == 60000);
+}
+
+TEST_CASE("[0001-CA-08] a long stall gives one ping, and the next stays on the rhythm of 20 s") {
+    Run run;
+    EnterAtZero(run);
+    run.Message(LoginResponse(1), 0.1);
+    run.Message(CharacterList({"test0Dk"}), 0.2);
+    run.Message(CharacterInformation(), 0.3);
+    REQUIRE(run.session.FinishLoading().has_value());
+
+    run.session.AdvanceClock(Seconds{65.0});
+    CHECK(Pings(run.link.sent).size() == 1);
+    run.session.AdvanceClock(Seconds{79.9});
+    CHECK(Pings(run.link.sent).size() == 1);
+    run.session.AdvanceClock(Seconds{80.0});
+    CHECK(Pings(run.link.sent).size() == 2);
+}
+
+TEST_CASE("[0001-CA-08] the ping carries the speeds last known, 0 and 0 before the character enters") {
+    Run run;
+    EnterAtZero(run);
+    run.Message(LoginResponse(1), 9.0);
+    run.Message(CharacterList({"test0Dk"}), 18.0);
+
+    // Still waiting for the data of the character: the ping goes, with the speeds 0 and 0, on the single
+    // outgoing queue, after the choice of the character.
+    run.session.AdvanceClock(Seconds{20.0});
+    REQUIRE(run.link.sent.size() == 6);
+    CHECK(run.link.sent[5] == Make({0xC3, 0x0C, 0x0E, 0x00, 0x20, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}));
+
+    run.Message(CharacterInformation(), 21.0);
+    REQUIRE(run.session.FinishLoading().has_value());
+    run.session.AdvanceClock(Seconds{40.0});
+    run.Message(CurrentStats(35, 40), 41.0);
+    run.session.AdvanceClock(Seconds{60.0});
+
+    const std::vector<SentPing> pings = Pings(run.link.sent);
+    REQUIRE(pings.size() == 3);
+    CHECK(pings[0].attackSpeed == 0);
+    CHECK(pings[0].magicSpeed == 0);
+    CHECK(pings[1].attackSpeed == 29);
+    CHECK(pings[1].magicSpeed == 29);
+    CHECK(pings[2].attackSpeed == 35);
+    CHECK(pings[2].magicSpeed == 40);
+}
+
+TEST_CASE("[0001-CA-08] no ping goes before the entry in the Game Server, nor after the session ends") {
+    Run run;
+    run.session.Start(Seconds{0.0});
+    run.Message(Hello(), 9.0);
+    run.Message(ServerList(), 18.0);
+    run.session.AdvanceClock(Seconds{25.0});
+    run.Message(ConnectionInfo(), 27.0);
+    run.Connected(30.0);
+    run.Message(GameServerEntered(), 30.0);
+    run.Message(LoginResponse(1), 39.0);
+    run.Message(CharacterList({"test0Dk"}), 45.0);
+    run.Message(CharacterInformation(), 47.0);
+    REQUIRE(run.session.FinishLoading().has_value());
+
+    run.session.AdvanceClock(Seconds{49.9});
+    CHECK(Pings(run.link.sent).empty());
+    run.session.AdvanceClock(Seconds{50.0});
+    CHECK(Pings(run.link.sent).size() == 1);
+
+    run.Closed(run.session.Epoch(), "the server closed the connection", 55.0);
+    run.session.AdvanceClock(Seconds{70.0});
+    run.session.AdvanceClock(Seconds{90.0});
+    CHECK(Pings(run.link.sent).size() == 1);
 }

@@ -22,6 +22,7 @@
 #include "Mu/Protocol/Dialect.hpp"
 #include "Mu/Protocol/PacketLog.hpp"
 #include "Mu/Session/MessageQueue.hpp"
+#include "Mu/Session/Ping.hpp"
 #include "Nexum/Core/Result.hpp"
 #include "Nexum/Debug/Logger.hpp"
 #include "Nexum/Net/Connection.hpp"
@@ -107,9 +108,10 @@ public:
     // One event of the connection with this epoch. An event of an older connection is dropped.
     void Handle(SessionEpoch epoch, const nexum::net::Event& event, nexum::time::Seconds now);
 
-    // Ends the session with an error when the awaited answer is late. Called once per frame, by the wall
-    // clock.
-    void CheckDeadline(nexum::time::Seconds now);
+    // The wall clock of the frame (step 3 of the frame, docs/ARCHITECTURE.md): it ends the session with an
+    // error when the awaited answer is late, and sends the ping when it is due, from the entry in the Game
+    // Server on (Mu/Session/Ping.hpp). Called once per frame, never by the ticks.
+    void AdvanceClock(nexum::time::Seconds now);
 
     // The map of the character is ready: the session enters the world, and the messages held while loading
     // are let through. An error means the session is not loading, or the data of the character has not come.
@@ -164,6 +166,8 @@ private:
     void OnLoadingMessage(std::span<const std::byte> message);
     void OnCharacterInformation(std::span<const std::byte> message);
     void HoldWorldMessage(std::span<const std::byte> message);
+    void CheckDeadline(nexum::time::Seconds now);
+    void SendPingWhenDue(nexum::time::Seconds now);
 
     void Open(std::string host, std::uint16_t port, protocol::Encryption encryption);
     // Sends the message; false means it failed, and the session already ended with the reason.
@@ -187,6 +191,7 @@ private:
     std::uint16_t m_playerId = 0;
     MessageQueue m_world;
     bool m_worldQueueGrew = false;
+    PingClock m_ping;
 };
 
 } // namespace mu::session

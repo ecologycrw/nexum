@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <limits>
 #include <utility>
 
@@ -74,16 +73,6 @@ constexpr Seconds kNoDeadline{std::numeric_limits<double>::infinity()};
         return "the country is not allowed";
     }
     return "unknown code";
-}
-
-// The time of the login, in ms: the server only writes it to its log (section 6.6), so it is the monotonic
-// time of the session, going round at 2^32.
-[[nodiscard]] std::uint32_t Milliseconds(Seconds now) noexcept {
-    const double milliseconds = now.count() * 1000.0;
-    if (!std::isfinite(milliseconds) || milliseconds < 0.0) {
-        return 0;
-    }
-    return static_cast<std::uint32_t>(std::fmod(milliseconds, 4294967296.0));
 }
 
 // A packet of fixed size, with the fields `fill(writer)` writes.
@@ -284,11 +273,28 @@ void Session::Handle(SessionEpoch epoch, const nexum::net::Event& event, Seconds
     }
 }
 
+void Session::AdvanceClock(Seconds now) {
+    CheckDeadline(now);
+    SendPingWhenDue(now);
+}
+
 void Session::CheckDeadline(Seconds now) {
     if (m_state != SessionState::Disconnected && now >= m_deadline) {
         Fail(std::string(Describe(m_awaited)) + " did not come within " +
              std::to_string(static_cast<int>(kAnswerDeadline.count())) + " seconds");
     }
+}
+
+void Session::SendPingWhenDue(Seconds now) {
+    auto ping = m_ping.Due(now);
+    if (!ping) {
+        return;
+    }
+    if (!*ping) {
+        Fail("the ping cannot be built: " + ping->error().message);
+        return;
+    }
+    static_cast<void>(SendMessage(**ping));
 }
 
 Result<void> Session::FinishLoading() {
@@ -420,12 +426,16 @@ void Session::OnGameServerEntered(std::span<const std::byte> message, Seconds no
     }
     m_playerId = entered->PlayerId();
     m_log->Info(kSession, "entered the Game Server, version " + entered->VersionString().ToString());
+    // Like the real client, the Nexum pings from the entry in the Game Server on (finding of the real
+    // sessions, section 4).
+    m_ping.Start(now);
     SendLogin(now);
 }
 
 void Session::SendLogin(Seconds now) {
     protocol::LoginMessage login{};
-    auto written = protocol::WriteLogin(m_options.account, m_options.password, Milliseconds(now), login);
+    auto written =
+        protocol::WriteLogin(m_options.account, m_options.password, ClientMilliseconds(now), login);
     EraseSecrets();
     if (!written) {
         Fail("the login cannot be built: " + written.error().message);
@@ -523,11 +533,18 @@ void Session::OnCharacterInformation(std::span<const std::byte> message) {
     }
     m_log->Info(kSession, "the character is on the map " + std::to_string(character->MapId()) + " at (" +
                               std::to_string(character->X()) + ", " + std::to_string(character->Y()) + ")");
+    m_ping.SetSpeeds(character->AttackSpeed(), character->MagicSpeed());
     HoldWorldMessage(message);
     Await(Awaited::MapReady, Seconds{0.0});
 }
 
 void Session::HoldWorldMessage(std::span<const std::byte> message) {
+    // The speeds of the ping follow the last stats of the hero that arrived (section 8 and D-10, item 7).
+    if (protocol::IsPacket(message, dialect::CurrentStats::kShape)) {
+        if (auto stats = dialect::CurrentStats::View::Read(message)) {
+            m_ping.SetSpeeds(stats->AttackSpeed(), stats->MagicSpeed());
+        }
+    }
     if (!m_world.Push(m_epoch, message) && !m_worldQueueGrew) {
         m_worldQueueGrew = true;
         m_log->Warning(kSession, "the messages of the world passed the reserved room; the queue grows, "
@@ -576,6 +593,7 @@ void Session::Fail(std::string reason) {
     m_awaited = Awaited::Nothing;
     m_deadline = kNoDeadline;
     m_world.Clear();
+    m_ping.Stop();
     EraseSecrets();
 }
 
