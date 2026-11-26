@@ -16,7 +16,7 @@
 
 ## Agora
 
-Nenhuma fatia em andamento. A fatia 0 está na `main`, e a próxima é a parte 1 do M2, que começa pelo `/planejar`.
+- **Fatia 1, a rede até o mundo** (M2, parte 1): [spec](../specs/0001-rede-ate-o-mundo/spec.md). O `MuClient` entra num OpenMU local sem modificações, faz o login, escolhe o personagem e fica no mundo, recebendo os objetos que entram e saem da visão. É a primeira das duas fatias da parte 1 do M2; a fatia 2 traz a gravação `.mucap` e o replay.
 
 ## Próximas
 

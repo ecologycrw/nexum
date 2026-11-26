@@ -63,6 +63,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
   8. **Medir o custo da fatia.** A auditoria concluiu que o processo pesa mais que o código, e o PR #9 (P-0012) foi a resposta. **Ação:** na retrospectiva, anotar quantas sessões e quantas correções a fatia teve, e o tamanho do `tasks.md` e do report, e comparar com a fatia 0 (`specs/0000-fundacao/`: `tasks.md` com 78 KB e report com 24 KB). Os números mostram se a P-0012 bastou.
 - Prioridade sugerida: alta para o item 2 (antes da spec da parte 1 do M2); baixa para o item 8
 - Status: aberta
+- Item 2 decidido em 2026-11-25, na aprovação da spec da fatia 1: o TD-0015 entra nela. Fica aberto o item 8, para a retrospectiva.
 
 ### P-0015: uma trava que confira os `NOLINT` novos
 - Origem: achado 5 do `auditor`, na consolidação de 2026-11-25 (P-0013), deixado fora dela por ser escopo novo
