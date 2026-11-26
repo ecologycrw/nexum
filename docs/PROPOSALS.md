@@ -84,6 +84,17 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (só a leitura do log no Windows; nenhum comportamento muda)
 - Status: aberta
 
+### P-0018: o adaptador de servidor entre o protocolo e o jogo
+- Origem: feedback do dono, em 2026-11-26, depois da T18 da fatia 1
+- Tipo: decisão
+- Evidência: o dono perguntou: "existe alguma forma de criar uma abstração para receber qualquer servidor ? Ou isso já existe ? Ou ainda não." Depois dos exemplos, disse: "Sim, registre". Hoje, a rede da engine (`Engine/Net`) só move bytes, e os eventos neutros (`Mu/World/WorldEvent.hpp`) já são o contrato com os sistemas do jogo (IV.14.4 da spec de referência e [ADR 0010](adr/0010-rede-adaptador-em-camadas.md)). Mas o `OnlineClient` (`Mu/Online`) guarda direto a sessão e a tradução do OpenMU 106.3, e ainda não existem comandos neutros de saída. O replay da fatia 2 é a primeira outra fonte de eventos: sem um encaixe, ele obrigaria a duplicar o cliente online ou a remendá-lo.
+  - **A proposta:** um contrato no módulo MU (por exemplo, `ServerAdapter`) com quatro partes: o começo da sessão (conta, senha, servidor e personagem), a entrega dos eventos neutros a cada quadro, o envio de comandos neutros (como andar até uma célula ou atacar um objeto) e o estado (conectando, no mundo, ou caiu, com o motivo). Os eventos e os comandos são valores de tamanho fixo, para o encaixe não pedir memória a cada quadro (INV-13). O contrato fica no módulo MU, e não na engine, porque os eventos e os comandos ainda falam de MU (INV-03).
+  - **Duas implementações na fatia 2:** o OpenMU 106.3 ao vivo, com as peças de hoje (`NetworkTransport`, `Session` e `Translator`), e o replay do `.mucap`. Os comandos neutros entram de verdade com o andar, na parte 2 do M2.
+  - **Fica fora:** apoiar oficialmente outros servidores (a [VISÃO](VISION.md) diz que o servidor é o OpenMU sem modificações), carregar adaptadores por plugins e descrever protocolos por arquivos de configuração. Um servidor novo exigiria a descrição da central (sala limpa, INV-16) e a origem conferida (INV-17). Reavaliar no ponto de decisão depois do M7.
+  - **O que pede:** um ADR, por ser uma mudança de arquitetura, e o "sim" do dono no `/planejar` da fatia 2. A [Regra de três](CONVENTIONS.md#regra-de-três) aceita a abstração antes do terceiro caso, porque é uma fronteira entre camadas.
+- Prioridade sugerida: média (entra no planejamento da fatia 2, junto com o replay)
+- Status: aberta
+
 ## Processadas
 
 ### P-0016: o código gerado dos pacotes sem estourar a memória do build
