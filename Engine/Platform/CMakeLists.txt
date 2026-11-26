@@ -10,6 +10,7 @@ nexum_add_library(nexum_platform
         Private/SdlLogRoute.cpp
         Private/Terminal.cpp
         Private/VideoSystem.cpp
+        Private/Wait.cpp
         Private/Window.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Debug
     PRIVATE_DEPS SDL3::SDL3)

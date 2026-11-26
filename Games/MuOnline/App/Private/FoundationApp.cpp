@@ -8,6 +8,7 @@
 
 #include "ClientStart.hpp"
 #include "Nexum/Debug/Profiler.hpp"
+#include "Nexum/Platform/Wait.hpp"
 #include "Nexum/Render/OffscreenTarget.hpp"
 #include "Nexum/Render/TestCard.hpp"
 #include "Nexum/Time/Seconds.hpp"
@@ -103,9 +104,14 @@ AppStatus FoundationApp::Iterate() {
         m_log->Error(kClient, "the frame failed: " + framed.error().message);
         return End(AppStatus::Failure);
     }
-    if (auto shown = m_parts.target.Present(m_parts.screen.Drawing(), m_parts.textures); !shown) {
-        m_log->Error(kRender, "could not show the frame: " + shown.error().message);
-        return End(AppStatus::Failure);
+    // A window that is not on the screen gets no frame: with Vulkan, asking for its image cost more than the
+    // whole frame (T15, on the owner's computer: 8% of one core while minimized, against 0.5% without it).
+    const bool seen = m_parts.window.IsVisible();
+    if (seen) {
+        if (auto shown = m_parts.target.Present(m_parts.screen.Drawing(), m_parts.textures); !shown) {
+            m_log->Error(kRender, "could not show the frame: " + shown.error().message);
+            return End(AppStatus::Failure);
+        }
     }
     NEXUM_PROFILE_FRAME();
     ++m_frames;
@@ -116,7 +122,17 @@ AppStatus FoundationApp::Iterate() {
         m_log->Info(kClient, "drew " + std::to_string(m_frames) + " frames, as --frames asked");
         return End(AppStatus::Success);
     }
+    if (!seen) {
+        WaitForNextTick(now);
+    }
     return AppStatus::Continue;
+}
+
+// A shown frame waits for the screen. A frame that is not shown waits for nothing, and the loop would spin
+// (TD-0015): it waits instead until the next tick is due, never longer than one tick, so the ticks, the ping
+// and the network keep their pace (specs/0001-rede-ate-o-mundo/plan.md, item 14).
+void FoundationApp::WaitForNextTick(nexum::time::Seconds frameStart) {
+    platform::WaitFor(m_parts.screen.Ticks().UntilNextTick(m_clock.Elapsed() - frameStart));
 }
 
 AppStatus FoundationApp::CheckSession(nexum::time::Seconds now) {

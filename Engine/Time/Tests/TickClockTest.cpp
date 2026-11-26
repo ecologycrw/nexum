@@ -67,6 +67,45 @@ bool CuttingShortens(std::chrono::nanoseconds frameTime) {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(Seconds{frameTime}) != frameTime;
 }
 
+// What a frame loop that nobody sees did on the test clock.
+struct HiddenLoopRun {
+    std::uint64_t frames = 0;
+    // The frames, after the first, that ran a number of ticks other than one.
+    std::uint64_t framesWithoutOneTick = 0;
+    std::chrono::nanoseconds longestWait{0};
+    // The test clock when the last frame started.
+    std::chrono::nanoseconds lastFrameStart{0};
+};
+
+// A frame loop with no window on the screen, on a test clock that starts at zero: each frame works from 1 to
+// 30 ms, waits as long as UntilNextTick says, and the system wakes it from 0 to 2 ms late. The times are
+// whole nanoseconds in an irregular but fixed order: tests never use the system's random numbers (INV-07).
+HiddenLoopRun RunHiddenLoop(TickClock& clock, std::chrono::nanoseconds duration) {
+    constexpr std::int64_t kWorkStride = 7'654'321;
+    constexpr std::int64_t kWorkSpread = 29'000'001;
+    constexpr std::int64_t kLateStride = 1'234'567;
+    constexpr std::int64_t kLateSpread = 2'000'001;
+
+    HiddenLoopRun run;
+    std::chrono::nanoseconds now{0};
+    for (std::int64_t index = 0; now < duration; ++index) {
+        const FrameTicks frame = clock.AdvanceFrame(Seconds{now - run.lastFrameStart});
+        if (index > 0 && frame.count != 1) {
+            ++run.framesWithoutOneTick;
+        }
+        run.lastFrameStart = now;
+        ++run.frames;
+
+        const std::chrono::nanoseconds work =
+            1ms + std::chrono::nanoseconds{(index * kWorkStride) % kWorkSpread};
+        const std::chrono::nanoseconds wait = clock.UntilNextTick(Seconds{work});
+        const std::chrono::nanoseconds late{(index * kLateStride) % kLateSpread};
+        run.longestWait = std::max(run.longestWait, wait);
+        now += work + wait + late;
+    }
+    return run;
+}
+
 } // namespace
 
 TEST_CASE("[0000-CA-02] short frames add up until a whole tick has passed") {
@@ -211,4 +250,59 @@ TEST_CASE("a negative, not-a-number or infinite frame time counts as zero") {
                             .alpha = 0.5F},
                        });
     CHECK(clock.ElapsedTicks() == 0);
+}
+
+TEST_CASE("[0001-CA-13] the time until the next tick counts from the last frame and never passes one tick") {
+    TickClock clock;
+    CHECK(clock.UntilNextTick(Seconds{0.0}) == 40ms);
+
+    REQUIRE(clock.AdvanceFrame(Seconds{0.016}).count == 0);
+    CHECK(clock.UntilNextTick(Seconds{0.0}) == 24ms);
+    CHECK(clock.UntilNextTick(Seconds{0.010}) == 14ms);
+    CHECK(clock.UntilNextTick(Seconds{0.024}) == 0ms);
+    // A frame that took longer than the time left never waits.
+    CHECK(clock.UntilNextTick(Seconds{0.030}) == 0ms);
+    CHECK(clock.UntilNextTick(Seconds{3600.0}) == 0ms);
+
+    REQUIRE(clock.AdvanceFrame(Seconds{0.025}).count == 1);
+    CHECK(clock.UntilNextTick(Seconds{0.0}) == 39ms);
+}
+
+TEST_CASE("a negative, not-a-number or infinite time since the frame counts as zero") {
+    TickClock clock;
+    REQUIRE(clock.AdvanceFrame(Seconds{0.016}).count == 0);
+    for (const double since :
+         {-0.01, std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity()}) {
+        CAPTURE(since);
+        CHECK(clock.UntilNextTick(Seconds{since}) == 24ms);
+    }
+}
+
+TEST_CASE(
+    "[0001-CA-13] a paused clock counts one whole tick from its last frame, and nothing while a step waits") {
+    TickClock clock;
+    REQUIRE(clock.AdvanceFrame(Seconds{0.03}).count == 0);
+    clock.Pause();
+    CHECK(clock.UntilNextTick(Seconds{0.0}) == 40ms);
+    CHECK(clock.UntilNextTick(Seconds{0.015}) == 25ms);
+
+    clock.RequestStep();
+    CHECK(clock.UntilNextTick(Seconds{0.0}) == 0ms);
+    REQUIRE(clock.AdvanceFrame(Seconds{0.016}).count == 1);
+    CHECK(clock.UntilNextTick(Seconds{0.0}) == 40ms);
+}
+
+TEST_CASE("[0001-CA-13] ten minutes with no window on the screen run one tick per frame and lose none") {
+    TickClock clock;
+    const HiddenLoopRun run = RunHiddenLoop(clock, 10min);
+
+    // The loop waits for the ticks instead of spinning: 25 frames per second, each wait at most one tick.
+    CHECK(run.frames == 15'000);
+    CHECK(run.longestWait <= 40ms);
+    CHECK(run.longestWait > 0ms);
+    // Every frame after the first runs exactly one tick, and the ticks keep the pace of the test clock even
+    // though the system wakes the loop late.
+    CHECK(run.framesWithoutOneTick == 0);
+    CHECK(clock.ElapsedTicks() == run.frames - 1);
+    CHECK(clock.ElapsedTicks() == static_cast<std::uint64_t>(run.lastFrameStart / 40ms));
 }

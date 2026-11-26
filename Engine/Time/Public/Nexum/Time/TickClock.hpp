@@ -39,6 +39,13 @@ public:
     // How many ticks the clock has handed out since it was created.
     [[nodiscard]] std::uint64_t ElapsedTicks() const noexcept;
 
+    // The time from now to the next tick, when the last AdvanceFrame was `sinceFrame` ago: never below zero
+    // and never above one tick. A frame loop that nobody sees waits this long before its next frame, so it
+    // runs one tick per frame and loses none (specs/0001-rede-ate-o-mundo/plan.md, item 14). A paused clock
+    // has no tick of its own: it counts one whole tick from its last frame, or nothing while a step request
+    // waits. A negative, not-a-number or infinite `sinceFrame` counts as zero.
+    [[nodiscard]] std::chrono::nanoseconds UntilNextTick(Seconds sinceFrame) const noexcept;
+
     // Stops the ticks. The drawing goes on with a fixed alpha, and the paused time is thrown away, so
     // resuming never runs a burst of ticks. This is a decision of the engine, not of the original
     // (specs/0000-fundacao/plan.md).

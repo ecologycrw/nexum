@@ -24,6 +24,7 @@ Cabeçalhos públicos em `Engine/Time/Public/Nexum/Time/`.
   - `Alpha()` é o resto do acumulador dividido por 40 ms (`kTickDuration`), para o desenho ficar entre dois ticks.
   - `Pause` e `Resume`: pausado, não roda nenhum tick, o α fica parado e o tempo pausado é descartado. Essa é uma decisão da engine, não do original.
   - `RequestStep`: com a simulação pausada, roda exatamente um tick por pedido.
+  - `UntilNextTick(tempo desde o quadro)` diz quanto falta para o próximo tick, entre zero e um tick. O laço que ninguém vê espera esse tempo antes do quadro seguinte e roda um tick por quadro, sem perder nenhum ([plano da fatia 1](../../specs/0001-rede-ate-o-mundo/plan.md), item 14). Pausado, conta um tick inteiro desde o último quadro, ou zero se há um pedido de passo esperando.
   - Um tempo negativo, que não é número ou infinito conta como zero.
 - **`WallTimer`** (`WallTimer.hpp`): dispara a cada período de tempo de parede, também com a simulação pausada. Depois de uma parada longa, dispara uma vez só e continua no mesmo ritmo.
 - **`TickTimer`** (`TickTimer.hpp`): dispara a cada N ticks e não sabe nada do tempo de parede.
@@ -31,7 +32,7 @@ Cabeçalhos públicos em `Engine/Time/Public/Nexum/Time/`.
 
 ## Como usar
 
-A tela da fundação (`Games/MuOnline/Private/Foundation/FoundationScreen.cpp`) segue a ordem do quadro do III.4 da spec: relógios de parede, ticks e desenho com o α. O "outro jogo" dos testes de arquitetura (`tests/architecture/OtherGame/`) usa o mesmo relógio, sem nada do MU.
+A tela da fundação (`Games/MuOnline/Private/Foundation/FoundationScreen.cpp`) segue a ordem do quadro do III.4 da spec: relógios de parede, ticks e desenho com o α. Com a janela fora da tela, o `MuClient` (`Games/MuOnline/App/Private/FoundationApp.cpp`) espera o `UntilNextTick` no fim de cada quadro. O "outro jogo" dos testes de arquitetura (`tests/architecture/OtherGame/`) usa o mesmo relógio, sem nada do MU.
 
 ## Fontes da central
 

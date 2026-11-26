@@ -65,6 +65,9 @@ private:
     [[nodiscard]] nexum::platform::AppStatus CheckSession(nexum::time::Seconds now);
     // Ends the client with this status, with the summary of the session as the last line of the log.
     [[nodiscard]] nexum::platform::AppStatus End(nexum::platform::AppStatus status);
+    // Waits until the next tick is due, after a frame the window did not show; `frameStart` is the monotonic
+    // time at the start of the frame.
+    void WaitForNextTick(nexum::time::Seconds frameStart);
 
     nexum::debug::Logger* m_log;
     // Before the parts, so the screen, which points to the client, goes first.

@@ -36,6 +36,15 @@
 - **Um teste de pacote sem pedir memória** (T11): o `IsPacket` (`Mu/Protocol/PacketFields.hpp`) diz qual pacote chegou sem montar texto. O `CheckPacket`, que o código gerado usa em toda leitura, monta o nome do pacote num `std::string` mesmo quando tudo dá certo; isso fica para a T16, que mede o quadro com mensagens de rede.
 - **O cliente online ganhou uma área própria, o `Mu/Online`** (T14). A tabela de módulos do plano lista o `Mu/Protocol`, o `Mu/Session`, o `Mu/Translate` e o `Mu/World`. O que liga essas peças ao quadro ficou no `Mu/Online`: o `NetworkTransport`, que abre uma `Connection` com um `ClientCodec` novo para cada conexão que a sessão pede, e o `OnlineClient`, que roda a sessão, a tradução e a visão do mundo nos passos 2 e 3 do quadro e no começo de cada tick. Ele está na biblioteca, e não no programa, para os testes o alimentarem sem rede (T14) e o teste do quadro sem alocação (T16) usar um transporte de teste pela mesma interface (`Transport`).
 - **A senha também pode vir da entrada padrão** (T14). O CA-12 pede a senha digitada no terminal sem aparecer. Quando a entrada não é um terminal (um arquivo ou um pipe), o `ReadHiddenLine` lê a linha como ela vem, porque nada a mostra. É assim que os testes do `MuClient` nos 3 sistemas e o teste de integração da T17 dão a senha, sem ela passar pela linha de comando. O "sem aparecer" num terminal de verdade só se confere à mão, no passo 3 do teste do dono.
+- **A janela fora da tela também não recebe o quadro** (T15). O plano pede só a espera: sem nenhuma janela visível, o laço espera até o próximo tick, nunca mais que 40 ms. Com a espera, o `MuClient` minimizado passou a desenhar 25 quadros por segundo, com 25 ticks por segundo, mas ainda gastava de 7,7% a 8,6% de um núcleo no build de jogador. Cada quadro continuava pedindo ao Vulkan a imagem da janela minimizada, e esse pedido custava mais que o quadro inteiro. Agora, enquanto a janela não aparece (minimizada, escondida ou coberta, pelo `Window::IsVisible`), o quadro roda os ticks e monta o desenho, mas não vai para a placa. A espera usa o `SDL_DelayNS`, que no Windows tem um temporizador preciso: 20 ms pedidos viram cerca de 20,3 ms, e não os passos de 15,6 ms da espera da biblioteca padrão. Medido no computador do dono, sem conexão, em janelas de 15 s:
+
+  | Build de jogador, janela minimizada | Processador (um núcleo) |
+  |---|---|
+  | Antes desta fatia (medido na T13 da fatia 0, [TD-0015](../../docs/TECH_DEBT.md)) | 92% |
+  | Só com a espera | 7,7% e 8,6% |
+  | Com a espera e sem enviar o quadro | 0,7%, 0,4% e 0,3% |
+
+  Ao restaurar, a janela volta a 60 quadros por segundo. A medição oficial do CA-13, no mundo, fica para o teste do dono.
 
 ## Travas alteradas
 

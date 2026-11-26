@@ -34,6 +34,15 @@ TEST_CASE("a window opens with a drawing area of at least the asked size in pixe
     CHECK(window->Native().handle != nullptr);
 }
 
+TEST_CASE("[0001-CA-13] a window that opens shows its drawing on the screen") {
+    const VideoSystem video = StartVideo();
+    const auto window =
+        Window::Open(video, WindowOptions{.title = "Nexum visible", .width = 160, .height = 120});
+    REQUIRE(window.has_value());
+    // Minimizing has no automatic test: the Xvfb of the CI has no window manager (docs/modules/platform.md).
+    CHECK(window->IsVisible());
+}
+
 TEST_CASE("each open window has an id of its own") {
     const VideoSystem video = StartVideo();
     const auto first =
