@@ -9,7 +9,7 @@ atualizado-em: 2026-11-25
 
 ## Agora
 
-**Entre fatias.** A fatia 0 (Fundação, marco M0) está na `main` (PR #5), e a faxina da documentação também (PR #7): ela corrigiu contradições entre os documentos, as skills e as checagens, e criou o [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md), que dá um dono a cada biblioteca externa.
+**Entre fatias.** A fatia 0 (Fundação, marco M0) está na `main` (PR #5), e a faxina da documentação também (PR #7): ela corrigiu contradições entre os documentos, as skills e as checagens, e criou o [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md), que dá um dono a cada biblioteca externa. O ambiente da IA foi enxugado no PR #9 (P-0012).
 
 A retrospectiva mudou a ordem do roteiro ([ADR 0032](adr/0032-rede-antes-do-importador.md)): a próxima fatia é a **parte 1 do M2, a rede sem mapa**, antes do M1. O que o marco manda investigar antes já está na central: a spec de protocolo do cliente 106.3 e a spec dos atributos de terreno, ambas de 2026-11-22. A cópia da spec de referência foi trocada pela versão nova da central (P-0011). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
@@ -19,6 +19,8 @@ A retrospectiva mudou a ordem do roteiro ([ADR 0032](adr/0032-rede-antes-do-impo
    - a imagem do OpenMU para os testes (`0.10.1`) e a impressão digital dela;
    - se as capturas reais do laboratório da central entram no repositório como vetores;
    - o número de série próprio no login, sem usar o do MuMain.
+
+   Ele também decide o item 2 da [P-0014](PROPOSALS.md): se o TD-0015 (o laço sem pausa com a janela minimizada) entra nesta fatia.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -50,3 +52,5 @@ Nenhum.
 | 2026-11-25 | O dono fez o squash merge do PR #5: a fatia 0 está na `main`. O contêiner e o volume `nexum-linux-ci` do Docker foram apagados no mesmo dia |
 | 2026-11-25 | Faxina da documentação a partir da revisão trazida pelo dono: ADR 0033 (o dono de cada biblioteca externa), os itens provisórios TD-0022 a TD-0024, as skills sem o modo local, a checagem `cpp-rules` aceitando o `#include <new>` e o filtro morto da etiqueta `gpu` removido dos presets |
 | 2026-11-25 | O dono fez o squash merge do PR #7 (a faxina da documentação) |
+| 2026-11-25 | Consolidação do ambiente da IA (P-0012): a saída curta do `verify`, o `tasks.md` com tarefas curtas, as specs longas lidas por seção, cada regra com um único dono e ADR novo só para decisões próprias e desvios da spec. O dono fez o squash merge do PR #9 |
+| 2026-11-25 | Consolidação dos achados de uma auditoria externa trazida pelo dono (P-0013): o clang-tidy passou a recusar variáveis globais que podem mudar, a retrospectiva e a consolidação revisam os destinos quando a ordem dos marcos muda, o dono lê o resumo de segurança antes de cada merge e entrou o TD-0025. A P-0014 ficou aberta para a parte 1 do M2 |

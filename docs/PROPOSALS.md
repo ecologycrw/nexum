@@ -49,7 +49,72 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
 
+### P-0014: os achados da auditoria externa que esperam a parte 1 do M2
+- Origem: feedback do dono, em 2026-11-25, na mesma conversa da P-0013
+- Tipo: decisão e regra
+- Evidência: os itens 2 e 8 da análise da auditoria externa, aprovados pelo dono junto com os da P-0013 ("Eu gostei de todos os outros pontos do 1, 2, 3, 4, 5, 7, 8, 10"). Eles não podem ser feitos numa consolidação: um é uma decisão da spec da fatia, e o outro só existe depois que a fatia acabar. O dono pediu para deixá-los aqui, em "Abertas": "mova o que não vai agora para uma P-0014 e deixe ainda no Abertas". A numeração abaixo é a da conversa.
+
+  **Para o `/planejar` da parte 1 do M2**
+
+  2. **Decidir se o TD-0015 entra na parte 1 do M2.** Com a janela minimizada e o Vulkan, o `MuClient` gasta 92% de um núcleo ([TECH_DEBT](TECH_DEBT.md)). O critério do [ADR 0032](adr/0032-rede-antes-do-importador.md) pede que o cliente entre no mundo e continue lá sem queda, o que significa longos períodos com o programa aberto, muitas vezes minimizado. **Ação:** o dono decide na spec da fatia.
+
+  **Para a `/retrospectiva` da parte 1 do M2**
+
+  8. **Medir o custo da fatia.** A auditoria concluiu que o processo pesa mais que o código, e o PR #9 (P-0012) foi a resposta. **Ação:** na retrospectiva, anotar quantas sessões e quantas correções a fatia teve, e o tamanho do `tasks.md` e do report, e comparar com a fatia 0 (`specs/0000-fundacao/`: `tasks.md` com 78 KB e report com 24 KB). Os números mostram se a P-0012 bastou.
+- Prioridade sugerida: alta para o item 2 (antes da spec da parte 1 do M2); baixa para o item 8
+- Status: aberta
+
+### P-0015: uma trava que confira os `NOLINT` novos
+- Origem: achado 5 do `auditor`, na consolidação de 2026-11-25 (P-0013), deixado fora dela por ser escopo novo
+- Tipo: trava
+- Evidência: um comentário `NOLINT` ou `NOLINTNEXTLINE` desliga uma regra do clang-tidy naquela linha, e nada no Nexum confere quando um deles entra. A [CONVENTIONS](CONVENTIONS.md) pede que cada exceção tenha o motivo escrito no código, mas isso é só texto: um `NOLINT` novo apaga a checagem em silêncio, e só a revisão o vê. Hoje existem três, todos com motivo: o `currentLaunch` de `Engine/Platform/Private/Application.cpp` e os dois pontos do profiler em `Engine/Debug/Private/Profiler.cpp`. Depois da explicação, o dono disse "Sim, registre". Opções a comparar:
+  - **o resumo de segurança do PR contar os `NOLINT` acrescentados** e listar cada um, como já faz com os testes removidos. É o mais barato: não bloqueia nada e põe cada exceção nova diante do dono antes do merge. Trava: `scripts/checks/` (o `pr_summary.py` e os testes dele);
+  - **a checagem `cpp-rules` exigir um comentário com o motivo logo acima** de cada `NOLINT`, e que ele cite a regra desligada, sem `NOLINT` genérico. Trava: `scripts/checks/`;
+  - **uma lista fixa de arquivos onde o `NOLINT` é aceito**: a mais rígida, e cada exceção nova pediria uma mudança de trava.
+
+  A recomendação é a primeira, talvez junto com a segunda: a primeira mostra, a segunda impede o `NOLINT` sem motivo.
+- Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
+- Status: aberta
+
 ## Processadas
+
+### P-0013: os achados aprovados da auditoria externa de 2026-11-25
+- Origem: feedback do dono, em 2026-11-25, depois de uma auditoria da documentação feita com outro modelo e da conferência dela contra o repositório
+- Tipo: regra, trava, doc e decisão (vários itens, cada um com o seu destino)
+- Evidência: o dono pediu "confira o que está certo ou o que está errado fazendo uma analise. Não deixe pontos cegos na sua analise" e, depois, "Cite o que deve ser trago para o Nexum da sua analise". Dos itens citados, disse "Eu gostei de todos os outros pontos do 1, 2, 3, 4, 5, 7, 8, 10" e "Sim, registre eles". Depois, pediu para separar o que não pode ser feito agora: "mova o que não vai agora para uma P-0014 e deixe ainda no Abertas e as que podem ser processadas agora você coloca como P-0013 e consolida". Os itens 2 e 8 foram para a P-0014. A numeração abaixo é a da conversa.
+
+  **Destinos**
+
+  1. **Rever os destinos que dizem "M1".** O [ADR 0032](adr/0032-rede-antes-do-importador.md) pôs a parte 1 do M2 antes do M1, e com isso o prazo destes itens andou uma fatia: TD-0015, TD-0017, TD-0019, TD-0020 e TD-0021 ([TECH_DEBT](TECH_DEBT.md)) e a P-0004. **Ação:** conferir o destino de cada um e corrigir o que não fizer mais sentido.
+
+  **Travas (cada uma pede o "sim" do dono)**
+
+  3. **Rever os destinos quando o roteiro mudar de ordem.** A checagem `docs` só confere se o destino está escrito, não se ele ainda faz sentido; foi assim que os itens do item 1 ficaram para trás depois do ADR 0032. **Ação:** um passo na `/retrospectiva` (e no `/consolidar`): "se um ADR mudou a ordem dos marcos, revise os destinos do TECH_DEBT e das propostas abertas". Um aviso automático na checagem `docs` é a alternativa. Travas: `.claude/skills/` e, na alternativa, `scripts/checks/`.
+  4. **"Sem estado global mutável" verificado por máquina.** A regra está na [CONVENTIONS](CONVENTIONS.md), mas nenhuma checagem a confere: só a revisão. Hoje existe uma exceção justificada, a lista de pontos do profiler em `Engine/Debug/Private/Profiler.cpp`. **Ação:** ligar no `.clang-tidy` a regra `cppcoreguidelines-avoid-non-const-global-variables`, com a exceção do profiler marcada e explicada no código. Se o dono não aprovar, a CONVENTIONS passa a dizer que a regra é garantida só pela revisão. Trava: `.clang-tidy`.
+  5. **O texto do `reinterpret_cast` igual à checagem.** A checagem `cpp-rules` libera o `reinterpret_cast` na pasta inteira `Engine/Platform/Private/`, e não em um ponto só. **Ação:** ou os documentos passam a dizer "na pasta `Engine/Platform/Private/`", ou a checagem é apertada para o arquivo que precisa dele. Trava, no segundo caso: `scripts/checks/`.
+
+  **Hábito do dono, escrito no [WORKFLOW](WORKFLOW.md)**
+
+  7. **Ler o "Resumo de segurança do PR" antes de todo merge.** As guardas do terminal procuram no texto do comando sinais de escrita em travas, e um script (em Python, por exemplo) que escreva numa trava não seria pego por elas. A barreira de verdade é a seção "Resumo de segurança do PR", que a CI gera com as travas alteradas e os testes removidos, junto com o merge, que só o dono faz. **Ação:** se o WORKFLOW ainda não pedir isso de forma explícita na etapa do merge, passa a pedir.
+
+  **Item provisório novo**
+
+  10. **O `revisor` e o `auditor` podem escrever pelo terminal.** Os dois têm a ferramenta de terminal, que bloqueia a escrita em travas, mas não em outros arquivos. Hoje, "só lê" depende da instrução de cada agente. O risco é pequeno. **Ação:** registrar no TECH_DEBT, com destino na próxima `/consolidar`, onde se decide se a lista de ferramentas deles muda ou se o risco é aceito.
+
+  **Fora desta proposta**
+
+  - **Retirados pelo dono:** o item 6 (uma auditoria externa de vez em quando, como passo do `/consolidar`) e o item 11 (uma regra na central para as specs não carregarem a estrutura do código do MuMain). O dono disse que verá o item 11 "em outro momento".
+  - **Item 9, para o dono olhar com mais cuidado em outro momento:** os hooks do Claude Code chamam o `powershell`, que só existe no Windows. Em outro sistema, eles falhariam, e o Claude Code seguiria sem a guarda do terminal, a guarda da central, o aviso do início da sessão e a checagem do fim do turno, sem avisar. Continuariam valendo as listas de permissões do `.claude/settings.json`, os hooks do Git, a CI e as regras do GitHub. Enquanto o dono trabalhar só no Windows, não há efeito.
+- Prioridade sugerida: alta para o item 1 (antes da spec da parte 1 do M2); média para 3, 4, 5 e 7; baixa para 10
+- Status: aceita
+- Destino: processada no `/consolidar` de 2026-11-25 (branch `consolidacao/2026-11-25-auditoria`), com o "Sim, consolidar" do dono. A auditoria do `auditor` ficou limitada aos arquivos desta consolidação, a pedido do dono, porque a documentação inteira tinha sido auditada no mesmo dia (P-0012). Cada item:
+  - **1:** feito (`5c12a2a`). Dos seis itens, só o TD-0015 depende da ordem nova do roteiro: ele ganhou a nota de que o `/planejar` da parte 1 do M2 decide se entra antes (P-0014). Os outros continuam com o M1 como destino, porque cada um está ligado ao que só o M1 traz: o primeiro material (TD-0017), os shaders e os modelos (TD-0019 e P-0004), o importador (TD-0020) e mais de um depósito de texturas (TD-0021). A auditoria corrigiu dois pontos: o TD-0020 passou para o M2, porque o fuzzing do `LoadPng` está marcado para a parte 1 do M2 (TD-0023) e cairia logo no pedido de 14 GB; e a conferência passou a cobrir também as propostas aceitas com destino no M1 e os outros itens do M1. A P-0005, a P-0010, o TD-0007 e o TD-0014 foram conferidos e continuam no M1, ligados ao ImGui, ao visualizador, ao modo de autoria e à saída do cartão de teste.
+  - **3:** feito (`5c12a2a`). A `/retrospectiva` e o `/consolidar` passaram a conferir os destinos quando a ordem dos marcos muda. A auditoria pediu que o passo cubra também as propostas aceitas com o destino ainda por cumprir, e as duas skills passaram a dizer isso. O aviso automático na checagem `docs` foi descartado por enquanto: o passo nas skills basta, e o aviso vira proposta se o passo falhar.
+  - **4:** feito (`bbdefdf`). O `.clang-tidy` passou a recusar variáveis globais que podem mudar. A regra achou uma global que a conferência da auditoria não tinha visto, o `currentLaunch` de `Engine/Platform/Private/Application.cpp`: o SDL chama a primeira função do programa sem nenhum dado próprio, e ela é o único caminho até a função de início. Ela e os pontos do profiler ficaram marcados com `NOLINTNEXTLINE` e o motivo, e a [CONVENTIONS](CONVENTIONS.md) diz como uma exceção é aceita. As pastas de testes já ficavam fora da análise, então as macros do doctest não deram falsos avisos. O código do profiler só compila com `NEXUM_PROFILER=ON`, e a análise estática roda sem ele; a CONVENTIONS diz isso, e uma global nova ali fica com a revisão.
+  - **5:** nada a mudar. O [guia de desenvolvimento](setup/DEV.md) já dizia "`reinterpret_cast` fora de `Engine/Platform/Private`", igual à checagem; a frase "fora de um ponto só" era da auditoria externa, não dos documentos do Nexum. Nenhum código usa `reinterpret_cast` hoje. Isso corrige a evidência do item. A auditoria lembrou que o `.clang-tidy` também recusa o `reinterpret_cast` no código inteiro (`cppcoreguidelines-pro-type-reinterpret-cast`), então, mesmo em `Engine/Platform/Private/`, ele só passa com um `NOLINT` e o motivo.
+  - **7:** feito (`5c12a2a`). A seção "O merge" do [WORKFLOW](WORKFLOW.md) pede que o dono leia o resumo de segurança, e diz onde ele fica: na página "Summary" da execução da CI, no quadro "pr-summary summary". No teste do PR, o dono não o achou na aba "Checks", que o texto citava, e o caminho foi corrigido.
+  - **10:** feito (`5c12a2a`), como o TD-0025. O destino ficou `M2`, porque a checagem só aceita uma fatia ou um marco: a decisão é tomada na retrospectiva da parte 1 do M2 ou no próximo `/consolidar`, o que vier primeiro.
+  - **Fora desta proposta:** os itens 2 e 8 estão na P-0014, aberta; os itens 6, 9 e 11 ficam como descrito acima.
 
 ### P-0012: enxugar o ambiente da IA (menos tokens e menos texto repetido)
 - Origem: feedback do dono, em 2026-11-25, depois de duas análises do ambiente: uma sobre o consumo de tokens e outra sobre excesso nos agentes, hooks, skills e docs
