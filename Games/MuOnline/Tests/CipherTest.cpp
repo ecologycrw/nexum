@@ -326,11 +326,24 @@ TEST_CASE("[0001-CA-02] a broken block or a size outside the blocks of 11 closes
     PacketEncryptor server(kServerToClientEncryptKey);
     const auto wire = Encrypt(server, kServerMessage);
 
+    // The size byte of a block is the real size xor a constant xor the checksum (section 4.2), so flipping
+    // the same bit in the size byte and in the checksum keeps the size at 8: only the checksum is wrong.
     auto wrongChecksum = wire;
+    wrongChecksum[11] = wrongChecksum[11] ^ std::byte{0x01}; // the size of the first block
     wrongChecksum[12] = wrongChecksum[12] ^ std::byte{0x01}; // the checksum of the first block
     std::vector<std::byte> out(wire.size());
     PacketDecryptor first(kServerToClientDecryptKey);
-    CHECK_FALSE(first.Decrypt(wrongChecksum, out).has_value());
+    const auto checksumRefused = first.Decrypt(wrongChecksum, out);
+    REQUIRE_FALSE(checksumRefused.has_value());
+    CHECK(checksumRefused.error().message == "the checksum of a block is wrong");
+
+    // A byte of data changed on the way: the block opens into other bytes, with another checksum.
+    auto changedData = wire;
+    changedData[2] = changedData[2] ^ std::byte{0x01}; // the first byte of the first block
+    PacketDecryptor changed(kServerToClientDecryptKey);
+    const auto changedRefused = changed.Decrypt(changedData, out);
+    REQUIRE_FALSE(changedRefused.has_value());
+    CHECK(changedRefused.error().message == "the checksum of a block is wrong");
 
     auto tooManyBytes = wire;
     tooManyBytes[11] = tooManyBytes[11] ^ std::byte{0x01}; // the size of the first block: 8 becomes 9
