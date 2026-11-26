@@ -17,6 +17,12 @@ Ficam numa opção (*feature*) do `vcpkg.json` e só entram no build quando ela 
 
 - **Tracy 0.15.0** (BSD-3-Clause, BSD-2-Clause e MIT): o profiler, atrás do `Engine/Debug`. Entra só no build de desenvolvimento e só com `NEXUM_PROFILER=ON` (a opção `profiler` do `vcpkg.json`), no modo "sob demanda", sem as ferramentas gráficas e sem o tratador de falhas. Não entra no jogo distribuído. Aprovado pelo dono na fatia 0.
 
+## Conteúdo de terceiros fora do vcpkg
+
+Arquivos de outros projetos guardados no próprio repositório, cada um com a licença ao lado. A checagem `structure` não confere esta lista, porque ela não vem do `vcpkg.json`.
+
+- **OpenMU, as definições de pacotes** (MIT, Copyright 2017 MUnique): os XML de pacotes, o `CommonEnums.xml`, o `PacketHeaders.xml` e o esquema `PacketDefinitions.xsd`, da base `b53c704c6`, em [`third_party/openmu`](../third_party/openmu/README.md), com o aviso da licença. O `packetgen` lê esses arquivos no build e gera o código dos pacotes. O código gerado entra no jogo distribuído. Aprovado pelo dono com a spec da fatia 1.
+
 ## Planejadas
 
 Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licença é conferida na versão adotada antes de entrar. O módulo dono de cada uma está no [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md).
@@ -30,7 +36,6 @@ Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licen�
 - RmlUi (MIT) e FreeType (FTL, que pede crédito): a interface. Entram no M6.
 - HarfBuzz ("Old MIT"), se o texto precisar de montagem: M6.
 - miniaudio (domínio público ou MIT-0): o áudio. Entra no M7.
-- OpenMU (MIT): os XML de pacotes e, se for o caso, código, sempre com o aviso da licença. Entra no M2, em `third_party/openmu`.
 
 Bibliotecas com licença GPL não entram no jogo distribuído.
 
