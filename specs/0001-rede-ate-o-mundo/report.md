@@ -66,3 +66,28 @@
 - **`.github/workflows/ci.yml`** (T09): o passo "Fuzzing" no job do Linux com Clang, que compila o preset `linux-fuzz` e roda cada alvo por 60 s a partir das sementes. Mesma aprovação.
 - **`cmake/NexumPacketGen.cmake`** (entre a T13 e a T14, [P-0016](../../docs/PROPOSALS.md)): a função `nexum_generate_packets` pede ao `packetgen` a lista dos arquivos quando o CMake configura (`--list`), declara todos como saídas da regra e configura de novo quando um XML ou o script muda. Os parâmetros passaram a ser a pasta dos cabeçalhos (`INCLUDE_DIR`) e o começo do nome dos testes (`TESTS_PREFIX`). O dono escolheu a opção 1 da proposta em 2026-11-26 ("Escolha a opção 1") e confirmou a edição da trava.
 - **`scripts/dev.py`** (entre a T10 e a T11, pela primeira CI do PR #11): o `tidy` compila o build de desenvolvimento antes de analisar, porque o `clang-tidy` lê os cabeçalhos gerados dos pacotes, e o job da análise estática na CI só configurava. Aprovado pelo dono em 2026-11-26 ("Sim, pode mudar").
+
+## Itens provisórios
+
+Saíram do [TECH_DEBT](../../docs/TECH_DEBT.md) na T18:
+
+| Item | Como foi resolvido |
+|---|---|
+| TD-0015 | Fora da tela (minimizada, escondida ou coberta), o laço do `MuClient` não envia o quadro para a placa e espera até o próximo tick (T15). Minimizado, no build de jogador, o processador caiu de 92% para cerca de 0,3% a 0,7% de um núcleo (o detalhe está em "Desvios do plano"). A medição no mundo é o passo 5 do teste do dono |
+| TD-0020 | O `LoadPng` confere o tamanho no cabeçalho do PNG antes de ler os pixels (T09). O teste `[0001-CA-10]` do `PngTest.cpp` recusa um arquivo de 33 bytes que declara 60.000 × 60.000 pixels |
+| TD-0023 | A estrutura de fuzzing existe (T09, `cmake/NexumFuzzing.cmake`): cada leitor tem um alvo, inclusive o `ParseVersion` e o `LoadPng`, da fatia 0. As sementes rodam como testes comuns nos 3 sistemas, e a CI roda cada alvo por 60 s no Linux com Clang |
+
+Entraram nesta fatia, cada um com o destino:
+
+| Item | O que é | Destino |
+|---|---|---|
+| TD-0026 | o fuzzing roda 60 s por alvo na CI, e não 1 hora | M2 |
+| TD-0027 | os prazos das respostas da sessão são fixos, de 10 s | M7 |
+| TD-0028 | uma queda ou uma recusa encerra a sessão, sem reconexão | M7 |
+| TD-0029 | a visão do mundo é uma tabela por id, sem entidades | M4 |
+| TD-0030 | os personagens transformados e as invocações não são traduzidos | M4 |
+| TD-0031 | os itens no chão são ignorados, e os efeitos dos jogadores vêm só contados | M5 |
+| TD-0032 | a conta, o servidor e o personagem vêm da linha de comando, e a senha do terminal | M6 |
+| TD-0033 | o mapa é dado por pronto assim que os dados do personagem chegam | M3 |
+| TD-0034 | o teste de integração contra o OpenMU roda só no computador do dono | M7 |
+| TD-0035 | os vetores vêm dos documentos da central, sem o programa em C# da V.2.1 | M2 |

@@ -143,7 +143,7 @@ TEST_CASE("an empty image or one above the size limit is not written") {
 
 TEST_CASE("[0001-CA-10] a small PNG file that declares a huge image is refused by its header") {
     // The signature and the IHDR chunk of 60000x60000 pixels, then nothing: SDL would ask for about 14 GB
-    // before seeing that the rest is missing (docs/TECH_DEBT.md, TD-0020).
+    // before seeing that the rest is missing, as it did before slice 1 (specs/0001-rede-ate-o-mundo/spec.md).
     std::array<unsigned char, 33> huge{};
     std::copy_n(kKnownPng.begin(), huge.size(), huge.begin());
     for (const std::size_t offset : {std::size_t{16}, std::size_t{20}}) {

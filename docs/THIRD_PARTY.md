@@ -39,4 +39,4 @@ Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licen�
 
 Bibliotecas com licença GPL não entram no jogo distribuído.
 
-As ferramentas usadas só no desenvolvimento, como compiladores e analisadores, não entram no jogo e não ficam nesta lista.
+As ferramentas usadas só no desenvolvimento, como compiladores e analisadores, não entram no jogo e não ficam nesta lista. O servidor de teste também fica fora: a imagem `munique/openmu:0.10.1` do Docker (OpenMU, MIT) é só citada, pela impressão digital, em `tests/integration/openmu/compose.yaml`. O Docker a baixa no computador de quem testa, e ela nunca entra no repositório nem no jogo.

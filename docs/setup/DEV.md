@@ -82,8 +82,40 @@ O programa fica na pasta de build do preset, como `build/windows-dev/Games/MuOnl
 | Desenhar N quadros e fechar sozinho | `--frames N` |
 | Escolher o backend da placa de vídeo (no Windows, o padrão é o Vulkan) | `--gpu-driver vulkan`, `direct3d12` ou `metal` |
 | Gravar a cena de prova sem janela (só no build de desenvolvimento) | `--capture ARQUIVO.png` |
+| Entrar num OpenMU: o Connect Server e a conta. A senha é pedida no terminal, sem aparecer, e nunca vem pela linha de comando | `--connect HOST:PORTA --account NOME` |
+| Escolher o servidor e o personagem (sem as opções, o primeiro da lista) | `--server ID`, `--character NOME` |
+| Encerrar com sucesso depois de N segundos no mundo | `--world-seconds N` |
 
 O teste `visual_proof_0000_test_card` faz a captura e a compara com `tests/visual/approved/0000-test-card.png`: `ctest --preset windows-dev -R visual_proof`. A captura fica em `build/windows-dev/tests/visual/0000-test-card.png`. A comparação sozinha é `visualproof CAPTURA.png APROVADA.png --tolerance NÍVEIS`, que termina com 0 quando aprova, 1 quando recusa e 2 quando a linha de comando está errada. Só o dono põe imagens em `tests/visual/approved/` ([VISUAL](../VISUAL.md#prova-visual)).
+
+### O servidor de teste do OpenMU
+
+O teste de integração usa um OpenMU de verdade, sem modificações, no Docker: a imagem `munique/openmu:0.10.1`, fixada pela impressão digital, no modo `-demo`. Nesse modo, os dados e as contas de teste são criados de novo a cada início. A senha de cada conta é o próprio nome, de `test0` a `test9`. Na primeira vez, o Docker baixa cerca de 425 MB. As portas só abrem em 127.0.0.1, e o contêiner usa os processadores 0 a 5 (`tests/integration/openmu/compose.yaml`). As contas são públicas: nunca exponha esse servidor. O servidor do laboratório da central usa as mesmas portas, então só um dos dois fica ligado por vez.
+
+```powershell
+docker compose -f tests/integration/openmu/compose.yaml up -d
+.\build\windows-dev\Games\MuOnline\App\MuClient.exe --connect 127.0.0.1:44406 --account test0
+docker compose -f tests/integration/openmu/compose.yaml logs
+docker compose -f tests/integration/openmu/compose.yaml down
+```
+
+O servidor fica pronto em poucos segundos, quando o log mostra "Client Listener started, Port 44406". Os testes com a etiqueta `openmu` só rodam quando a variável `NEXUM_OPENMU_ADDRESS` diz o endereço do Connect Server. Sem ela, como no `verify` e na CI, o CTest os marca como pulados ([TD-0034](../TECH_DEBT.md)). Com o servidor no ar, eles levam cerca de 3 minutos:
+
+```powershell
+$env:NEXUM_OPENMU_ADDRESS = "127.0.0.1:44406"
+ctest --preset windows-dev -L openmu
+```
+
+### Fuzzing
+
+Cada leitor de dados de fora tem um alvo de fuzzing (`cmake/NexumFuzzing.cmake`): um arquivo `*FuzzTest.cpp` e uma pasta de sementes em `Tests/FuzzSeeds/`. Em todo build, as sementes rodam como um teste comum (`*_seeds`). O fuzzing de verdade, com o libFuzzer, só existe no Linux com Clang, pelo preset `linux-fuzz`. A CI roda cada alvo por 60 segundos ([TD-0026](../TECH_DEBT.md)). Para rodar no Linux, como a CI:
+
+```bash
+cmake --preset linux-fuzz
+cmake --build --preset linux-fuzz --target nexum_fuzz_targets
+```
+
+Os programas ficam em `build/linux-fuzz/fuzz/`, e o `targets.txt` dessa pasta diz a pasta de sementes de cada um.
 
 ### Testes sem as janelas de falha do Windows
 

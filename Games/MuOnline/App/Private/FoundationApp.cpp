@@ -128,9 +128,9 @@ AppStatus FoundationApp::Iterate() {
     return AppStatus::Continue;
 }
 
-// A shown frame waits for the screen. A frame that is not shown waits for nothing, and the loop would spin
-// (TD-0015): it waits instead until the next tick is due, never longer than one tick, so the ticks, the ping
-// and the network keep their pace (specs/0001-rede-ate-o-mundo/plan.md, item 14).
+// A shown frame waits for the screen. A frame that is not shown waits for nothing, and the loop would spin,
+// as it did before slice 1: it waits instead until the next tick is due, never longer than one tick, so the
+// ticks, the ping and the network keep their pace (specs/0001-rede-ate-o-mundo/plan.md, item 14).
 void FoundationApp::WaitForNextTick(nexum::time::Seconds frameStart) {
     platform::WaitFor(m_parts.screen.Ticks().UntilNextTick(m_clock.Elapsed() - frameStart));
 }
