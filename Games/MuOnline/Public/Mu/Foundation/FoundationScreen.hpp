@@ -17,6 +17,10 @@
 #include "Nexum/Time/TickDiagnostics.hpp"
 #include "Nexum/Time/WallTimer.hpp"
 
+namespace mu::online {
+class OnlineClient;
+} // namespace mu::online
+
 namespace mu::foundation {
 
 // The colors the square takes, one after the other.
@@ -60,6 +64,11 @@ public:
     [[nodiscard]] static nexum::core::Result<FoundationScreen>
     Create(nexum::render::TextureStore& store, nexum::debug::Logger& log, nexum::time::Seconds start);
 
+    // The client in the world whose steps each frame runs in their places: the network, the wall clocks and
+    // the events at the start of each tick (Mu/Online/OnlineClient.hpp). Null, the frames have no network.
+    // The client must outlive the screen, or be detached first.
+    void Attach(online::OnlineClient* online) noexcept { m_online = online; }
+
     // One frame. `now` is the monotonic time of the frame and `frameTime` the time since the previous one;
     // `target` is the size in pixels of what the frame will be drawn into.
     [[nodiscard]] nexum::core::Result<void> Frame(nexum::time::Seconds now, nexum::time::Seconds frameTime,
@@ -77,7 +86,7 @@ private:
                      nexum::time::Seconds start);
 
     void ReportTicks(nexum::time::Seconds now) noexcept;
-    void RunTicks(nexum::time::Seconds frameTime) noexcept;
+    void RunTicks(nexum::time::Seconds frameTime);
     [[nodiscard]] nexum::core::Result<void> Draw(nexum::render::TargetSize target);
 
     nexum::debug::Logger* m_log;
@@ -90,6 +99,7 @@ private:
     FoundationScene m_scene;
     nexum::core::FrameArena m_arena;
     nexum::render::DrawList m_drawing;
+    online::OnlineClient* m_online = nullptr;
 };
 
 } // namespace mu::foundation

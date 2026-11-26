@@ -34,6 +34,8 @@
 
   Os tempos incluem os testes de cada build. O "antes" da memória foi medido no build de desenvolvimento, recompilando o que lê o dialeto (227 s); o "depois", no `verify` inteiro, que recompilou tudo o que usa pacotes nos builds com sanitizers e de jogador. Os compiladores de cada linha são os mesmos (MSVC).
 - **Um teste de pacote sem pedir memória** (T11): o `IsPacket` (`Mu/Protocol/PacketFields.hpp`) diz qual pacote chegou sem montar texto. O `CheckPacket`, que o código gerado usa em toda leitura, monta o nome do pacote num `std::string` mesmo quando tudo dá certo; isso fica para a T16, que mede o quadro com mensagens de rede.
+- **O cliente online ganhou uma área própria, o `Mu/Online`** (T14). A tabela de módulos do plano lista o `Mu/Protocol`, o `Mu/Session`, o `Mu/Translate` e o `Mu/World`. O que liga essas peças ao quadro ficou no `Mu/Online`: o `NetworkTransport`, que abre uma `Connection` com um `ClientCodec` novo para cada conexão que a sessão pede, e o `OnlineClient`, que roda a sessão, a tradução e a visão do mundo nos passos 2 e 3 do quadro e no começo de cada tick. Ele está na biblioteca, e não no programa, para os testes o alimentarem sem rede (T14) e o teste do quadro sem alocação (T16) usar um transporte de teste pela mesma interface (`Transport`).
+- **A senha também pode vir da entrada padrão** (T14). O CA-12 pede a senha digitada no terminal sem aparecer. Quando a entrada não é um terminal (um arquivo ou um pipe), o `ReadHiddenLine` lê a linha como ela vem, porque nada a mostra. É assim que os testes do `MuClient` nos 3 sistemas e o teste de integração da T17 dão a senha, sem ela passar pela linha de comando. O "sem aparecer" num terminal de verdade só se confere à mão, no passo 3 do teste do dono.
 
 ## Travas alteradas
 

@@ -133,7 +133,11 @@ public:
     }
 
     [[nodiscard]] SessionState State() const noexcept { return m_state; }
+    // True when the data of the character came and the session waits for FinishLoading.
+    [[nodiscard]] bool WaitsForMap() const noexcept { return m_awaited == Awaited::MapReady; }
     [[nodiscard]] SessionEpoch Epoch() const noexcept { return m_epoch; }
+    // How many pings left since the start, for the summary of the session.
+    [[nodiscard]] std::uint64_t PingsSent() const noexcept { return m_pingsSent; }
     // Why the session ended; empty while it runs or when it did not fail.
     [[nodiscard]] const std::string& Failure() const noexcept { return m_failure; }
     // The id with which the player always sees itself (section 6.5); 0 before the Game Server says it.
@@ -192,6 +196,7 @@ private:
     MessageQueue m_world;
     bool m_worldQueueGrew = false;
     PingClock m_ping;
+    std::uint64_t m_pingsSent = 0;
 };
 
 } // namespace mu::session

@@ -13,6 +13,8 @@ nexum_add_tests(muonline_tests
         FoundationScreenTest.cpp
         MessageQueueTest.cpp
         ModuleIdentityTest.cpp
+        NetworkTransportTest.cpp
+        OnlineClientTest.cpp
         PacketExamplesTest.cpp
         PacketLogTest.cpp
         PingTest.cpp
@@ -20,7 +22,7 @@ nexum_add_tests(muonline_tests
         TickReportTextTest.cpp
         TranslatorTest.cpp
         WorldViewTest.cpp
-    DEPS MuOnline nexum_test_log)
+    DEPS MuOnline nexum_test_log Nexum::NetTestServer)
 
 # CA-03: for each packet of the OpenMU XML files, a test generated with the code of the packet (Tools/PacketGen):
 # the fixed bytes, the length and the refusal of a shorter packet. The tests come in files of a few dozen packets,

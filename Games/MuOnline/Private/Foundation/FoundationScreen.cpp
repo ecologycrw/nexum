@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Mu/Foundation/TickReportText.hpp"
+#include "Mu/Online/OnlineClient.hpp"
 #include "Nexum/Core/Image.hpp"
 #include "Nexum/Debug/Profiler.hpp"
 #include "Nexum/Render/TestCard.hpp"
@@ -91,8 +92,14 @@ FoundationScreen::FoundationScreen(nexum::debug::Logger& log, const FoundationTe
 core::Result<void> FoundationScreen::Frame(Seconds now, Seconds frameTime, render::TargetSize target) {
     // 1. Input: the window events reach the program before the frame; keyboard and mouse come with the slice
     //    that needs them.
-    // 2. Network: the translated server events are taken here, without being applied yet (M2).
-    // 3. Wall timers.
+    // 2. Network: the translated server events are taken here, without being applied yet.
+    if (m_online != nullptr) {
+        m_online->TakeNetwork(now);
+    }
+    // 3. Wall timers: the deadlines and the ping of the session, and the reports.
+    if (m_online != nullptr) {
+        m_online->AdvanceClock(now);
+    }
     ReportTicks(now);
     // 4. Finished loads go to the GPU here, within their time budget (M1).
     // 5. Fixed ticks.
@@ -109,11 +116,15 @@ void FoundationScreen::ReportTicks(Seconds now) noexcept {
     m_log->Info(kTimeCategory, text.Format(m_diagnostics.TakeReport()));
 }
 
-void FoundationScreen::RunTicks(Seconds frameTime) noexcept {
+void FoundationScreen::RunTicks(Seconds frameTime) {
     const nexum::time::FrameTicks frame = m_ticks.AdvanceFrame(frameTime);
     for (std::uint32_t tick = 0; tick < frame.count; ++tick) {
         NEXUM_PROFILE_SCOPE("tick");
         const Seconds started = m_tickStopwatch.Elapsed();
+        // The events of the server come before the systems, so the tick sees the world already corrected.
+        if (m_online != nullptr) {
+            m_online->ApplyEvents();
+        }
         m_scene.Tick();
         m_diagnostics.RecordTickTime(m_tickStopwatch.Elapsed() - started);
     }

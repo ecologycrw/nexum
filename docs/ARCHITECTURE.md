@@ -122,7 +122,7 @@ flowchart TB
 - Os eventos do servidor são aplicados **antes** dos comandos e dos sistemas, para o tick ver o mundo já corrigido.
 - O desenho recebe um **retrato** interpolado com α e não tem como escrever no mundo.
 - Comandos de jogo nunca são repetidos para "recuperar" ticks; o excesso de atraso é descartado ([ADR 0005](adr/0005-tick-fixo-de-25-hz.md)).
-- Hoje, o laço do `MuClient` já segue essa ordem. Os passos que ainda não existem (rede e cargas) estão marcados no código, vazios.
+- Hoje, o laço do `MuClient` já segue essa ordem. Com `--connect`, a rede, os relógios de parede e o começo de cada tick rodam o cliente online (`Mu/Online`). O passo das cargas ainda não existe e está marcado no código, vazio.
 
 ## Threads e filas
 

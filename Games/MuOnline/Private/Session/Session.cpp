@@ -279,7 +279,9 @@ void Session::SendPingWhenDue(Seconds now) {
         Fail("the ping cannot be built: " + ping->error().message);
         return;
     }
-    static_cast<void>(SendMessage(**ping));
+    if (SendMessage(**ping)) {
+        ++m_pingsSent;
+    }
 }
 
 Result<void> Session::FinishLoading() {
