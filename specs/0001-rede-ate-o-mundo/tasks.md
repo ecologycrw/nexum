@@ -6,7 +6,8 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
 
 Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da sessão lê, e no máximo 2 linhas depois dela: o resultado em uma frase e o commit.
 
-- [ ] T01: O Asio no `vcpkg.json` (trava), o `find_package` na raiz e o registro no THIRD_PARTY (CA-06, CA-15). Verificação: `verify` com o Asio instalado pelo vcpkg.
+- [x] T01: O Asio no `vcpkg.json` (trava), o `find_package` na raiz e o registro no THIRD_PARTY (CA-06, CA-15). Verificação: `verify` com o Asio instalado pelo vcpkg.
+  - O Asio 1.38.2 entrou pelo vcpkg e é achado na raiz do CMake; `verify` verde nos 3 builds. Commit: este.
 - [ ] T02: Os XML do OpenMU em `third_party/openmu`, copiados pelo dono, com o aviso MIT e a base `b53c704c6`, registrados no THIRD_PARTY (CA-03, CA-15). Verificação: checagem `structure` e os arquivos iguais aos da central.
 - [ ] T03: O `packetgen` (`Tools/PacketGen`, Python só com a biblioteca padrão), a função do CMake que gera o código no build (trava `cmake/`), os testes gerados e o ADR 0034 (CA-03). Verificação: testes do gerador e os testes gerados no `verify`.
 - [ ] T04: O dialeto 106.3 (`Mu/Protocol`): a tabela de variantes, um teste por linha da §5.2 e a configuração única com a versão `20404` e o número de série `NEXUM-CLIENT-001` (CA-03, CA-12). Verificação: `verify`.
@@ -38,7 +39,7 @@ Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a 
 
 Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o que mudou e por quê. Nenhuma decisão do dono fica só no meio do texto de uma tarefa.
 
-*(nenhuma)*
+- **2026-11-25, antes da T01:** "Sim, todas". O dono aprovou de uma vez as travas da fatia: o Asio no `vcpkg.json` (T01, com o download pelo vcpkg), a função do `packetgen` em `cmake/` (T03) e o fuzzing em `cmake/`, no `CMakePresets.json` e no `.github/` (T09). A checagem `structure` não muda. O dono já copiou os XML do OpenMU para `third_party/openmu` (T02).
 
 ## Bloqueios
 

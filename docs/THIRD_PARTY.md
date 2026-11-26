@@ -7,6 +7,7 @@ Toda biblioteca do `vcpkg.json` fica registrada aqui com a licença dela ([ADR 0
 | Biblioteca | Licença | Para quê | Entra no jogo distribuído |
 |---|---|---|---|
 | `sdl3` | zlib; um cabeçalho do OpenGL ES usa Apache-2.0 | janela, entrada, placa de vídeo (o SDL GPU, com Vulkan, Direct3D 12 e Metal), leitura e gravação de PNG e pastas do usuário | sim |
+| `asio` | BSL-1.0 | as conexões TCP, atrás do `Engine/Net` (o Asio standalone 1.38.2, sem a Boost, usado só com códigos de erro) | sim |
 | `tl-expected` | CC0-1.0 | devolver erros por valor (`Result<T>`) | sim |
 | `doctest` | MIT | testes automáticos | não |
 
@@ -24,7 +25,6 @@ Previstas pela spec (Apêndice D), cada uma na fatia que precisar dela. A licen�
 - KTX-Software (Apache 2.0), stb_image ou libjpeg-turbo, cgltf (MIT) e meshoptimizer (MIT): o importador. Entram no M1.
 - Dear ImGui (MIT, ramo docking): o modo de autoria. Entra no M1.
 - EnTT (MIT): o armazenamento das entidades, atrás da fachada `World`. Entra no M1 ou no M2.
-- Asio standalone (BSL-1.0): os sockets. Entra no M2.
 - Uma biblioteca JSON (nlohmann/json ou simdjson, MIT ou Apache 2.0): dados e configuração.
 - GLM (MIT): matemática, com os tipos apelidados num único cabeçalho do Core. Entra no M1.
 - RmlUi (MIT) e FreeType (FTL, que pede crédito): a interface. Entram no M6.
