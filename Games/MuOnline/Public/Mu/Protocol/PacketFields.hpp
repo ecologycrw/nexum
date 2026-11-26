@@ -159,6 +159,9 @@ private:
 [[nodiscard]] nexum::core::Result<void> WriteBinary(std::span<std::byte> field,
                                                     std::span<const std::byte> bytes);
 
+// The byte in two hexadecimal digits, as the error messages and the packet log write it ("C3", "0F").
+[[nodiscard]] std::string HexByte(std::uint8_t value);
+
 // The length that the header of the message declares. The message must hold its whole header.
 [[nodiscard]] std::size_t DeclaredLength(std::span<const std::byte> message) noexcept;
 

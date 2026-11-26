@@ -22,15 +22,10 @@ constexpr std::size_t kLargestMessage = 0xFFFF;
     return HasShortLength(static_cast<HeaderKind>(std::to_integer<std::uint8_t>(first))) ? 2 : 3;
 }
 
-[[nodiscard]] std::string Hex(std::uint8_t value) {
-    constexpr std::string_view kDigits = "0123456789ABCDEF";
-    return {kDigits[value >> 4U], kDigits[value & 0x0FU]};
-}
-
 [[nodiscard]] nexum::core::Result<void> CheckFirstByte(std::byte first) {
     const auto value = std::to_integer<std::uint8_t>(first);
     if (!IsHeaderKind(value)) {
-        return nexum::core::MakeError("the first byte " + Hex(value) + " is not C1, C2, C3 or C4");
+        return nexum::core::MakeError("the first byte " + HexByte(value) + " is not C1, C2, C3 or C4");
     }
     return {};
 }

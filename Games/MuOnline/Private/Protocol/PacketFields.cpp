@@ -18,12 +18,12 @@ namespace {
            value == static_cast<std::uint8_t>(HeaderKind::C4);
 }
 
-[[nodiscard]] std::string Hex(std::uint8_t value) {
+} // namespace
+
+std::string HexByte(std::uint8_t value) {
     constexpr std::string_view kDigits = "0123456789ABCDEF";
     return {kDigits[value >> 4U], kDigits[value & 0x0FU]};
 }
-
-} // namespace
 
 nexum::core::Result<void> WriteText(std::span<std::byte> field, std::string_view text) {
     if (text.size() > field.size()) {
@@ -57,9 +57,7 @@ bool IsPacket(std::span<const std::byte> message, const PacketShape& shape) noex
 }
 
 std::size_t DeclaredLength(std::span<const std::byte> message) noexcept {
-    const auto first = std::to_integer<std::uint8_t>(message[0]);
-    if (first == static_cast<std::uint8_t>(HeaderKind::C1) ||
-        first == static_cast<std::uint8_t>(HeaderKind::C3)) {
+    if (HasShortLength(static_cast<HeaderKind>(ReadByte(message, 0)))) {
         return ReadByte(message, 1);
     }
     return ReadBigEndian<std::uint16_t>(message, 1);
@@ -78,7 +76,8 @@ nexum::core::Result<void> CheckPacket(std::span<const std::byte> message, const 
     }
     if (ReadByte(message, codeOffset) != shape.code) {
         return nexum::core::MakeError("the message is not a " + std::string(shape.name) + ": code " +
-                                      Hex(ReadByte(message, codeOffset)) + " instead of " + Hex(shape.code));
+                                      HexByte(ReadByte(message, codeOffset)) + " instead of " +
+                                      HexByte(shape.code));
     }
     if (shape.hasSubCode &&
         (message.size() <= codeOffset + 1 || ReadByte(message, codeOffset + 1) != shape.subCode)) {

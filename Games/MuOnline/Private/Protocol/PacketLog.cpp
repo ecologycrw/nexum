@@ -4,6 +4,7 @@
 #include <string_view>
 
 #include "Mu/Protocol/Dialect/Login.hpp"
+#include "Mu/Protocol/PacketFields.hpp"
 
 namespace mu::protocol {
 
@@ -18,13 +19,6 @@ constexpr std::size_t kCredentialsEnd = 34;
     return direction == PacketDirection::Sent && IsPacket(message, dialect::Login::kShape);
 }
 
-void AppendHex(std::string& text, std::byte value) {
-    constexpr std::string_view kDigits = "0123456789ABCDEF";
-    const auto number = std::to_integer<std::uint8_t>(value);
-    text += kDigits[number >> 4U];
-    text += kDigits[number & 0x0FU];
-}
-
 } // namespace
 
 std::string FormatPacket(PacketDirection direction, std::span<const std::byte> message) {
@@ -37,7 +31,7 @@ std::string FormatPacket(PacketDirection direction, std::span<const std::byte> m
         if (hidden && index >= kCredentialsStart && index < kCredentialsEnd) {
             text += "**";
         } else {
-            AppendHex(text, message[index]);
+            text += HexByte(std::to_integer<std::uint8_t>(message[index]));
         }
     }
     if (shown < message.size()) {

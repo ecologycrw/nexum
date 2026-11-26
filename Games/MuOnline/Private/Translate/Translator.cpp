@@ -404,8 +404,7 @@ void Translator::ReportUnknown(Message message) noexcept {
         return;
     }
     const auto header = protocol::ReadByte(message, 0);
-    const bool shortLength = header == 0xC1 || header == 0xC3;
-    const std::size_t codeAt = shortLength ? 2 : 3;
+    const std::size_t codeAt = protocol::HeaderSize(static_cast<protocol::HeaderKind>(header));
     if (message.size() <= codeAt) {
         return;
     }
