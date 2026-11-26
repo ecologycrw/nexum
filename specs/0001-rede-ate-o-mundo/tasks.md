@@ -10,7 +10,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
   - O Asio 1.38.2 entrou pelo vcpkg e é achado na raiz do CMake; `verify` verde nos 3 builds. Commit: este.
 - [x] T02: Os XML do OpenMU em `third_party/openmu`, copiados pelo dono, com o aviso MIT e a base `b53c704c6`, registrados no THIRD_PARTY (CA-03, CA-15). Verificação: checagem `structure` e os arquivos iguais aos da central.
   - Os 7 arquivos e a licença, copiados pelo dono, têm as mesmas linhas da central; checagens `docs`, `structure` e `terms` aceitando. Commit: este.
-- [ ] T03: O `packetgen` (`Tools/PacketGen`, Python só com a biblioteca padrão), a função do CMake que gera o código no build (trava `cmake/`), os testes gerados e o ADR 0034 (CA-03). Verificação: testes do gerador e os testes gerados no `verify`.
+- [x] T03: O `packetgen` (`Tools/PacketGen`, Python só com a biblioteca padrão), a função do CMake que gera o código no build (trava `cmake/`), os testes gerados e o ADR 0034 (CA-03). Verificação: testes do gerador e os testes gerados no `verify`.
+  - O `packetgen` gera os 613 pacotes dos 4 XML (cabeçalhos na pasta de build) e um teste por pacote; o XML de teste próprio confere cada tipo de campo; `verify` verde (29, 30 e 24 testes). Commit: este.
 - [ ] T04: O dialeto 106.3 (`Mu/Protocol`): a tabela de variantes, um teste por linha da §5.2 e a configuração única com a versão `20404` e o número de série `NEXUM-CLIENT-001` (CA-03, CA-12). Verificação: `verify`.
 - [ ] T05: O enquadramento `C1` a `C4`, incremental, com os exemplos do plano (CA-01). Verificação: `verify`.
 - [ ] T06: A cifra: SimpleModulus com o contador de cada direção, Xor32 e Xor3, com os vetores da central (CA-02). Verificação: `verify`.

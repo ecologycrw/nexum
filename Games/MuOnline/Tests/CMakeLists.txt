@@ -9,6 +9,15 @@ nexum_add_tests(muonline_tests
         TickReportTextTest.cpp
     DEPS MuOnline nexum_test_log)
 
+# CA-03: for each packet of the OpenMU XML files, a test generated with the code of the packet (Tools/PacketGen):
+# the fixed bytes, the length and the refusal of a shorter packet.
+nexum_add_tests(muonline_packet_tests
+    SOURCES ${generated_tests}
+    DEPS MuOnline)
+add_dependencies(muonline_packet_tests muonline_packets)
+# Hundreds of packets and test cases in one file pass the number of sections that an MSVC object file allows.
+target_compile_options(muonline_packet_tests PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
+
 # CA-09: the frame of the foundation screen never asks for memory (INV-13). It is a test program of its own,
 # because the allocation counter replaces the global allocation functions of C++ for the whole program that
 # links it (tests/architecture/frame_allocations).

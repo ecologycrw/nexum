@@ -46,3 +46,4 @@ Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referê
 | [0031](0031-audio-paridade-primeiro-e-audio-3d.md) | Áudio com paridade primeiro e o Áudio 3D como opção à parte | aceita |
 | [0032](0032-rede-antes-do-importador.md) | A rede antes do importador, com o M2 dividido em duas partes | aceita |
 | [0033](0033-dono-de-cada-biblioteca-externa.md) | O módulo dono de cada biblioteca externa e os tipos de vocabulário | aceita |
+| [0034](0034-packetgen-em-python-no-build.md) | O gerador do codec (packetgen) em Python, rodando no build | aceita |
