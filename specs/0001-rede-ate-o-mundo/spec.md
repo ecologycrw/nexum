@@ -1,7 +1,7 @@
 ---
 id: 0001
 titulo: A rede até o mundo
-status: em-andamento
+status: concluida
 aprovada-em: 2026-11-25
 marco: M2
 ---

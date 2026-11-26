@@ -127,6 +127,10 @@ A IA imita o código que já existe. Por isso, os melhores exemplos de cada padr
 | separar o estado que muda no tick do retrato que o desenho só lê | `Games/MuOnline/Public/Mu/Foundation/FoundationScreen.hpp` |
 | testar que um programa falha com a mensagem certa | `Engine/Core/Tests/CMakeLists.txt` (o teste `nexum_core_assert_failure_tests`) |
 | juntar a captura e a comparação de uma cena num teste da prova visual | `tests/visual/CMakeLists.txt` |
+| falar com a rede sem a thread principal esperar: a engine só vê bytes, e o jogo dá a transformação | `Engine/Net/Public/Nexum/Net/Connection.hpp` e `MessageCodec.hpp`, com o servidor de teste `LoopbackServer.hpp` |
+| uma máquina de estados alimentada por mensagens e pelo tempo, testada sem rede | `Games/MuOnline/Public/Mu/Session/Session.hpp` e `Games/MuOnline/Tests/SessionTest.cpp` |
+| testar com os vetores da central, cada um com a fonte | `Games/MuOnline/Tests/CipherTest.cpp` |
+| um alvo de fuzzing cujas sementes rodam nos testes comuns | `cmake/NexumFuzzing.cmake` e `Games/MuOnline/Tests/FrameReaderFuzzTest.cpp` |
 
 ## Testes
 

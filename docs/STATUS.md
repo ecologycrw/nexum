@@ -9,13 +9,13 @@ atualizado-em: 2026-11-26
 
 ## Agora
 
-**Fatia 1 em andamento: a rede até o mundo** ([spec](../specs/0001-rede-ate-o-mundo/spec.md)), na branch `fatia/0001-rede-ate-o-mundo`. É a primeira das duas fatias da parte 1 do M2, que vem antes do M1 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O `MuClient` vai entrar num OpenMU local sem modificações e ficar no mundo; a fatia 2 traz a gravação `.mucap` e o replay. O andamento das tarefas fica no `tasks.md` da fatia, criado pelo `/implementar`.
+**Fatia 1 fechada, esperando o teste do dono: a rede até o mundo** ([spec](../specs/0001-rede-ate-o-mundo/spec.md) e [report](../specs/0001-rede-ate-o-mundo/report.md)), na branch `fatia/0001-rede-ate-o-mundo`. É a primeira das duas fatias da parte 1 do M2, que vem antes do M1 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O `MuClient` entra num OpenMU local sem modificações e fica no mundo; a fatia 2 traz a gravação `.mucap` e o replay. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) saiu do rascunho e está pronto para o teste.
 
 A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10) estão na `main`. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. `/fechar` da fatia 1, numa sessão nova aberta pelo dono: as 18 tarefas e a revisão estão feitas. Depois vem o teste do dono, com o OpenMU de teste no Docker. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está em rascunho, só para a CI rodar no Linux e no macOS; o `/fechar` o tira do rascunho.
+1. O dono testa a fatia 1 pelo "O que você deve testar" do [report](../specs/0001-rede-ate-o-mundo/report.md), com o OpenMU de teste no Docker, e conta o resultado. Depois, a `/retrospectiva` roda na mesma branch, antes da aprovação e do merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11).
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -54,3 +54,4 @@ Nenhum.
 | 2026-11-26 | Fatia 1: tarefas T01 a T10 feitas. O PR #11 foi aberto em rascunho, a pedido do dono, para a CI rodar no Linux e no macOS. A primeira CI achou uma conversão de sinal num teste de fuzzing e a análise estática sem os cabeçalhos gerados (o `tidy` do `scripts/dev.py` passou a compilar antes, com o "sim" do dono). Depois das duas correções, os 10 checks passaram |
 | 2026-11-26 | Fatia 1: as 18 tarefas feitas. O `MuClient` entrou no OpenMU 0.10.1 local, sem modificações, ficou 3 minutos no mundo com 9 pings e recusou a senha errada, sem nenhum erro no log do servidor. A documentação da fatia foi atualizada, e o TD-0015, o TD-0020 e o TD-0023 saíram |
 | 2026-11-26 | Revisão independente da fatia 1: nenhum achado crítico, 1 importante e 12 menores. O importante (o teste do checksum) e cinco menores foram corrigidos; quatro menores entraram no TD-0028 e no TD-0032 ou viraram o TD-0036 e o TD-0037; três ficam para o `/fechar`. As correções vão até o commit `18b8420` |
+| 2026-11-26 | Fatia 1 fechada: report com a prova dos 15 critérios, a contagem dos vetores (100% em cada grupo), a checklist de sala limpa e a medição de 30 minutos no mundo com a janela minimizada. O PR #11 saiu do rascunho para o teste do dono |
