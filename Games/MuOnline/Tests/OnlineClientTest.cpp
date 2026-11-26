@@ -2,6 +2,7 @@
 // a transport in memory, the entry in the world as soon as the data of the character comes, the messages of
 // the world translated in step 2 and applied only at the start of a tick, and the end of the client when the
 // session fails or stayed as long as asked. The messages come from SessionMessages.hpp, with their sources.
+#include <algorithm>
 #include <cstddef>
 #include <optional>
 #include <span>
@@ -214,11 +215,9 @@ TEST_CASE("[0001-CA-08] the online client sends the ping in step 3 and counts it
     run.WalkToTheWorld();
     run.client.ApplyEvents();
     const auto pings = [&run] {
-        std::size_t count = 0;
-        for (const Bytes& message : run.transport.sent) {
-            count += mu::protocol::dialect::Ping::View::Read(message).has_value() ? 1 : 0;
-        }
-        return count;
+        return std::ranges::count_if(run.transport.sent, [](const Bytes& message) {
+            return mu::protocol::dialect::Ping::View::Read(message).has_value();
+        });
     };
 
     // The ping runs from the entry in the Game Server, at 0.4 s: the first one is due at 20.4 s.
