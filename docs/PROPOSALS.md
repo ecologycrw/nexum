@@ -77,6 +77,13 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
 - Status: aberta
 
+### P-0017: as mensagens de erro da rede em UTF-8 no Windows
+- Origem: fatia 1, T14, no teste `muclient_reads_the_password_and_reports_a_closed_connect_server`
+- Tipo: bug
+- Evidência: no Windows, a razão do fim da conexão chegou ao log com as letras acentuadas trocadas: "could not connect to 127.0.0.1:1: Nenhuma conex�o p�de ser feita porque a m�quina de destino as recusou ativamente." O `Engine/Net` junta ao texto a mensagem de erro do Asio (`error.message()`, em `Engine/Net/Private/Connection.cpp`), e o mais provável é que ela venha do Windows na página de código do sistema, e não em UTF-8; isso precisa ser confirmado antes da correção. A [CONVENTIONS](CONVENTIONS.md) pede UTF-8 em tudo, com a conversão só na borda com o sistema operacional. O defeito é parecido com o [TD-0013](TECH_DEBT.md) (os argumentos da linha de comando na página de código). Hoje ele só atrapalha a leitura do log num Windows em português; as mensagens da sessão, como a recusa do login, são do próprio Nexum e não passam por aqui. Opções a comparar: converter a mensagem para UTF-8 no `Engine/Net`, na borda com o Asio; ou escrever a razão só com o código do erro e um texto próprio, sem a mensagem do sistema.
+- Prioridade sugerida: baixa (só a leitura do log no Windows; nenhum comportamento muda)
+- Status: aberta
+
 ## Processadas
 
 ### P-0016: o código gerado dos pacotes sem estourar a memória do build
