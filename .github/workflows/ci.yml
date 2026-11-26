@@ -56,6 +56,24 @@ jobs:
           cmake --preset ${{ matrix.preset }} -B build/profiler -DNEXUM_PROFILER=ON
           cmake --build build/profiler
           ctest --test-dir build/profiler --output-on-failure --tests-regex '^nexum_debug_'
+      # Fuzzing (cmake/NexumFuzzing.cmake): each fuzz target runs for 60 seconds with libFuzzer, starting from its
+      # seeds, and any crash or failed check of a sanitizer fails the job. The 1 hour per target of V.3 of the
+      # reference spec comes before the end of M2 (docs/TECH_DEBT.md, TD-0026).
+      - name: Fuzzing
+        if: matrix.name == 'linux-clang'
+        run: |
+          cmake --preset linux-fuzz
+          cmake --build --preset linux-fuzz --target nexum_fuzz_targets
+          mapfile -t targets < build/linux-fuzz/fuzz/targets.txt
+          for line in "${targets[@]}"; do
+            target="${line%% *}"
+            seeds="${line#* }"
+            corpus="build/linux-fuzz/fuzz/corpus/$target"
+            mkdir -p "$corpus"
+            echo "::group::$target"
+            "build/linux-fuzz/fuzz/$target" -max_total_time=60 -print_final_stats=1 "$corpus" "$seeds"
+            echo "::endgroup::"
+          done
 
   # The player build: Release, without the authoring mode (INV-19).
   release:

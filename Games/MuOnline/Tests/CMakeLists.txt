@@ -30,3 +30,15 @@ target_compile_options(muonline_packet_tests PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/
 nexum_add_tests(muonline_frame_allocation_tests
     SOURCES FrameAllocationTest.cpp
     DEPS MuOnline nexum_test_allocation_counter)
+
+# CA-10: a fuzz target for each reader of outside data: the frames, the encryption, the item, the appearance and
+# the packets the client receives. The seeds of each run here as a test on every system.
+foreach(fuzzed IN ITEMS "FrameReader;frame_reader" "Cipher;cipher" "ExtendedItem;extended_item"
+                        "ExtendedAppearance;extended_appearance" "DialectPackets;dialect_packets")
+    list(GET fuzzed 0 reader)
+    list(GET fuzzed 1 target)
+    nexum_add_fuzz_target(muonline_${target}
+        SOURCES ${reader}FuzzTest.cpp
+        SEEDS "${CMAKE_CURRENT_SOURCE_DIR}/FuzzSeeds/${reader}"
+        DEPS MuOnline)
+endforeach()

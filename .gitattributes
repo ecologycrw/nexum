@@ -27,3 +27,4 @@
 *.spv binary
 *.dxil binary
 *.mucap binary
+*.bin binary

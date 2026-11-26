@@ -19,3 +19,9 @@ add_test(NAME nexum_core_assert_failure_tests
         -DPROGRAM=$<TARGET_FILE:nexum_core_assert_failure_program>
         -DASSERTS_ENABLED=${NEXUM_AUTHORING}
         -P "${CMAKE_CURRENT_SOURCE_DIR}/CheckAssertFailure.cmake")
+
+# A fuzz target for each reader of outside data: its seeds run here as a test on every system.
+nexum_add_fuzz_target(nexum_core_parse_version
+    SOURCES ParseVersionFuzzTest.cpp
+    SEEDS "${CMAKE_CURRENT_SOURCE_DIR}/FuzzSeeds/ParseVersion"
+    DEPS Nexum::Core)

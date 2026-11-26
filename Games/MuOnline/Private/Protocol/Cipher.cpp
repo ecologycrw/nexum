@@ -168,11 +168,18 @@ std::size_t EncryptedLength(std::size_t headerSize, std::size_t plainLength) noe
 
 nexum::core::Result<std::size_t> PacketEncryptor::Encrypt(std::span<const std::byte> message,
                                                           std::span<std::byte> wire) {
+    if (message.empty()) {
+        return nexum::core::MakeError("an empty message cannot be encrypted");
+    }
     const std::uint8_t first = Byte(message, 0);
     if (!IsEncrypted(first)) {
         return CopyClear(message, wire);
     }
     const std::size_t headerSize = HeaderSize(static_cast<HeaderKind>(first));
+    if (message.size() <= headerSize) {
+        return nexum::core::MakeError("a message of " + std::to_string(message.size()) +
+                                      " bytes has no code after its header");
+    }
     if (first == static_cast<std::uint8_t>(HeaderKind::C3) && message.size() > kLargestPlainC3) {
         return nexum::core::MakeError("a C3 of " + std::to_string(message.size()) +
                                       " bytes does not fit on the wire: the most is 185");
@@ -204,12 +211,15 @@ nexum::core::Result<std::size_t> PacketEncryptor::Encrypt(std::span<const std::b
 
 nexum::core::Result<std::size_t> PacketDecryptor::Decrypt(std::span<const std::byte> wire,
                                                           std::span<std::byte> plain) {
+    if (wire.empty()) {
+        return nexum::core::MakeError("an empty message cannot be decrypted");
+    }
     const std::uint8_t first = Byte(wire, 0);
     if (!IsEncrypted(first)) {
         return CopyClear(wire, plain);
     }
     const std::size_t headerSize = HeaderSize(static_cast<HeaderKind>(first));
-    const std::size_t body = wire.size() - headerSize;
+    const std::size_t body = wire.size() - std::min(wire.size(), headerSize);
     if (body == 0 || body % kEncryptedBlockSize != 0) {
         return nexum::core::MakeError("an encrypted message of " + std::to_string(wire.size()) +
                                       " bytes is not made of blocks of 11");
@@ -248,6 +258,9 @@ nexum::core::Result<std::size_t> PacketDecryptor::Decrypt(std::span<const std::b
 }
 
 void Xor32Encrypt(std::span<std::byte> message) noexcept {
+    if (message.empty()) {
+        return;
+    }
     const std::size_t headerSize =
         HeaderSize(static_cast<HeaderKind>(std::to_integer<std::uint8_t>(message[0])));
     for (std::size_t index = headerSize + 1; index < message.size(); ++index) {
@@ -256,6 +269,9 @@ void Xor32Encrypt(std::span<std::byte> message) noexcept {
 }
 
 void Xor32Decrypt(std::span<std::byte> message) noexcept {
+    if (message.empty()) {
+        return;
+    }
     const std::size_t headerSize =
         HeaderSize(static_cast<HeaderKind>(std::to_integer<std::uint8_t>(message[0])));
     for (std::size_t index = message.size() - 1; index > headerSize; --index) {

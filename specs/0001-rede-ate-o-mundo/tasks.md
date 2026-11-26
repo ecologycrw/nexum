@@ -22,7 +22,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
   - `ReadExtendedItem` e `ReadExtendedAppearance` viram `mu::items::Item` e `mu::characters::Appearance`; as 32 + 224 combinações, as bordas, a captura e os dados cortados passam (14 testes). Commit: este.
 - [x] T08: Os pacotes de exemplo da central lidos e escritos de novo, com a contagem por grupo (CA-05). Verificação: `verify`.
   - 13 casos (169 conferências): os pacotes da sessão, os andares V1 a V6 com cada passo, o eco e o login igual ao da captura, a não ser pelo número de série (`WriteLogin`). Commit: este.
-- [ ] T09: A estrutura de fuzzing (`NEXUM_FUZZING` em `cmake/`, o preset no `CMakePresets.json` e o passo da CI, travas) e um alvo por leitor; o `LoadPng` confere o cabeçalho (TD-0020, TD-0023) (CA-10). Verificação: `verify` e as sementes nos testes.
+- [x] T09: A estrutura de fuzzing (`NEXUM_FUZZING` em `cmake/`, o preset no `CMakePresets.json` e o passo da CI, travas) e um alvo por leitor; o `LoadPng` confere o cabeçalho (TD-0020, TD-0023) (CA-10). Verificação: `verify` e as sementes nos testes.
+  - 7 alvos com sementes (`*_seeds` nos testes); o `LoadPng` recusa pelo cabeçalho; a CI roda cada alvo por 60 s (só prova num PR); TD-0026. Commit: este.
 - [ ] T10: O transporte `Engine/Net`: a conexão TCP com o Asio, a thread de rede, as filas e a interface da transformação de bytes (CA-06). Verificação: `nexum_net_tests` e as checagens `architecture` e `terms`.
 - [ ] T11: A sessão (`Mu/Session`) de "Desconectado" a "No mundo", com os prazos, a época, os eventos guardados no carregamento e o log que mascara as credenciais (CA-07, CA-12). Verificação: `verify`.
 - [ ] T12: O ping a cada 20 s de relógio de parede, desde a entrada no Game Server (CA-08). Verificação: `verify`.
@@ -62,7 +63,7 @@ Achados do revisor e o que foi feito com cada um, uma linha por achado. Preenchi
 
 ## Notas para a próxima sessão
 
-- **Onde parou (2026-11-25):** T01 a T08 feitas. A próxima é a T09 (o fuzzing). A T09 muda as travas do fuzzing, já aprovadas pelo dono; a T17 baixa a imagem do OpenMU e pede o "sim" do dono antes do download.
+- **Onde parou (2026-11-25):** T01 a T09 feitas. A próxima é a T10 (o `Engine/Net`). O passo de fuzzing da CI só roda num PR: ainda não foi visto rodando. A T17 baixa a imagem do OpenMU e pede o "sim" do dono antes do download.
 - **Rascunhos prontos, ainda fora do repositório,** na pasta de notas da sessão que começou a fatia (`C:\Users\RANDALL\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_1c6014bb-eedc-4ffb-a2b0-e55923cce64e\rascunhos-fatia-0001`): o `MessageCodec`, a `Connection`, o `LoopbackServer` e o `ConnectionTest` do `Engine/Net` (T10) e o `ClientCodec` do módulo MU (T10 ou T11). Nenhum foi compilado; confira cada um contra a spec antes de usar.
 - **Desenho da T10:** a thread de rede roda o Asio em passos de 5 ms (`run_for`) e olha a fila de saída entre os passos, porque acordá-la pelo Asio pediria memória a cada mensagem na thread principal. As filas são pares de buffers reservados ao abrir, trocados sob mutex. Os testes do `Engine/Net` não podem incluir o Asio (só `Engine/Net/Private` pode), por isso o servidor de teste (`LoopbackServer`) fica na API pública do `Engine/Net`.
 - **Armadilhas desta máquina:** o `ColumnLimit` do `.clang-format` é 110; rode `py scripts/dev.py format --fix` antes do build. O `guard-bash` bloqueia um comando que cita `scripts/dev.py` (ou outra trava) e também grava um arquivo: faça em comandos separados. Para ver o resultado do `verify`, use `set -o pipefail` e `echo EXIT=$?`, porque o `tail` esconde o código de saída. O MSVC recusa `for (std::uint8_t x : {0x01, ...})` (conversão de `int`): use um `std::array<std::uint8_t, N>`.

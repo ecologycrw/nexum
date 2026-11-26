@@ -22,6 +22,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(NexumSanitizers)
 include(NexumModule)
 include(NexumPacketGen)
+include(NexumFuzzing)
 
 find_package(SDL3 CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
