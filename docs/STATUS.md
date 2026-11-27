@@ -1,7 +1,7 @@
 ---
-fase: entre-fatias
-spec-atual:
-branch: fatia/0001-rede-ate-o-mundo
+fase: em-andamento
+spec-atual: 0002
+branch: fatia/0002-gravacao-e-replay
 atualizado-em: 2026-11-26
 ---
 
@@ -9,15 +9,15 @@ atualizado-em: 2026-11-26
 
 ## Agora
 
-**Fatia 1 concluída, esperando o merge do dono: a rede até o mundo** ([spec](../specs/0001-rede-ate-o-mundo/spec.md) e [report](../specs/0001-rede-ate-o-mundo/report.md)), na branch `fatia/0001-rede-ate-o-mundo`. O dono testou, e a retrospectiva foi feita. O `MuClient` entra num OpenMU local sem modificações e fica no mundo. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está pronto para a aprovação.
+**Fatia 2 em andamento: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [plano](../specs/0002-gravacao-e-replay/plan.md)), na branch `fatia/0002-gravacao-e-replay`. O `MuClient` vai gravar a sessão no mundo num arquivo `.mucap` e reproduzi-la sem servidor, conferindo o estado do mundo nos pontos de controle. A fatia fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)).
 
-A próxima é a **fatia 2, a gravação `.mucap` e o replay**, que fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). Ela traz também o adaptador de servidor (P-0018), a época nos eventos neutros (TD-0037) e a conferência dos `NOLINT` novos (P-0015). A retrospectiva mudou duas regras: o PR da fatia abre em rascunho logo depois da lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo (P-0020).
+O dono aprovou a spec em 2026-11-26, com as 6 decisões: o adaptador de servidor (P-0018, que vira o ADR 0035), o formato `.mucap` versão 1, a gravação e o replay só no build de desenvolvimento e dentro do módulo MU, a gravação na memória até o fim (16 MiB), a gravação de referência do OpenMU local e a trava dos `NOLINT` (P-0015). Valem as duas regras da retrospectiva da fatia 1: o PR da fatia abre em rascunho logo depois da lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo (P-0020).
 
-A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10) estão na `main`. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
+A fatia 1 (a rede até o mundo) está na `main` desde o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11), assim como a fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. O dono lê o resumo de segurança e faz o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11). Depois, `/planejar` da fatia 2, a partir da `main`.
+1. `/implementar` da fatia 2: a lista de tarefas, o PR em rascunho logo depois dela e a primeira tarefa, o ADR 0035.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -59,3 +59,5 @@ Nenhum.
 | 2026-11-26 | Fatia 1 fechada: report com a prova dos 15 critérios, a contagem dos vetores (100% em cada grupo), a checklist de sala limpa e a medição de 30 minutos no mundo com a janela minimizada. O PR #11 saiu do rascunho para o teste do dono |
 | 2026-11-26 | Teste do dono da fatia 1: tudo passou, e a CI ficou verde nos 10 checks |
 | 2026-11-26 | Retrospectiva da fatia 1: a próxima é a fatia 2 (a gravação `.mucap` e o replay). A escada de erros trouxe a P-0019 (o PR em rascunho desde a lista de tarefas) e a P-0020 (o teste de recusa confere o motivo, e os testes de risco são sabotados), aplicadas. A P-0015 e a P-0018 foram aceitas para a fatia 2, e a P-0017 para o M7. A P-0014 fechou com a medição do custo da fatia |
+| 2026-11-26 | O dono fez o squash merge do PR #11: a fatia 1 está na `main` |
+| 2026-11-26 | Spec da fatia 2 (A gravação e o replay, M2 parte 1) aprovada pelo dono, com o adaptador de servidor (P-0018, ADR 0035), o formato `.mucap` versão 1, a gravação e o replay só no build de desenvolvimento e no módulo MU, a gravação na memória até o fim (16 MiB), a gravação de referência do OpenMU local e a trava dos `NOLINT` (P-0015) |

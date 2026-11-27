@@ -18,7 +18,7 @@
 
 ## Agora
 
-Nenhuma fatia em andamento. A fatia 1 espera o merge do dono, e a próxima é a fatia 2, que começa pelo `/planejar`.
+- **Fatia 2, a gravação e o replay** (M2, parte 1): [spec](../specs/0002-gravacao-e-replay/spec.md). O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo nos pontos de controle. Ela traz também o adaptador de servidor ([P-0018](PROPOSALS.md)), a época nos eventos neutros ([TD-0037](TECH_DEBT.md)) e a conferência dos `NOLINT` novos ([P-0015](PROPOSALS.md)). É a segunda e última fatia da parte 1 do M2.
 
 ## Próximas
 
