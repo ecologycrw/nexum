@@ -183,8 +183,8 @@ AppStatus FoundationApp::End(AppStatus status) {
         // every message that came (Mu/Recording/Recorder.hpp, Finish).
         m_online.client->ApplyEvents(now);
 #if NEXUM_AUTHORING_ENABLED
-        if (m_tools != nullptr) {
-            m_tools->EndSession(*m_online.client, now);
+        if (m_tools != nullptr && !m_tools->EndSession(*m_online.client, now)) {
+            status = AppStatus::Failure;
         }
 #endif
         m_log->Info(kClient, m_online.client->Summary(now));

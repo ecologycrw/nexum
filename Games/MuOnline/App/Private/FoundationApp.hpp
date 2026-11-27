@@ -73,7 +73,8 @@ private:
     // Continue while the session runs; the end of the client when it failed or stayed as long as asked.
     [[nodiscard]] nexum::platform::AppStatus CheckSession(nexum::time::Seconds now);
     // Ends the client with this status: the events that wait for a tick are applied, the recording ends, and
-    // the summary of the session is the last line of the log.
+    // the summary of the session is the last line of the log. A replay stopped before the end of its
+    // recording ends with failure.
     [[nodiscard]] nexum::platform::AppStatus End(nexum::platform::AppStatus status);
     // Waits until the next tick is due, after a frame the window did not show; `frameStart` is the monotonic
     // time at the start of the frame.

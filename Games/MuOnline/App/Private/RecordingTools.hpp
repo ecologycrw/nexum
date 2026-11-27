@@ -44,8 +44,10 @@ public:
     [[nodiscard]] std::unique_ptr<online::ServerAdapter> MakeReplayServer() const;
 
     // The last frame ended, and the client applied the events that waited: the end of the recording, with the
-    // view as the session left it, as failed when the session failed.
-    void EndSession(const online::OnlineClient& client, nexum::time::Seconds now);
+    // view as the session left it, as failed when the session failed. A replay that the client ended before
+    // the end of its recording, by --frames or by closing the window, checked only a part of it: false, with
+    // an error line that says so, so the client does not end with success.
+    [[nodiscard]] bool EndSession(const online::OnlineClient& client, nexum::time::Seconds now);
 
     // After the client ended: writes the whole recording to its file, and says so in the last line of the
     // log. Gives `exitCode`, or 1 when the file could not be written. Without --record, it only gives

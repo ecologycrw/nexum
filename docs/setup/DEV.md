@@ -118,7 +118,7 @@ docker compose -f tests/integration/openmu/compose.yaml down
 .\build\windows-dev\Games\MuOnline\App\MuClient.exe --replay build\sessao.mucap
 ```
 
-A gravação termina com a linha "client: wrote the recording to ...: N messages, N ticks and N checkpoints". O replay roda no ritmo gravado e confere cada tick e cada ponto de controle. Sem diferença, ele termina com 0 e a linha "the replay checked N messages, N ticks and N checkpoints". Uma diferença termina com 1, e a mensagem diz em qual tick ou ponto de controle ela aconteceu, com o valor gravado e o do replay. As linhas `world:` dos dois terminais são as mesmas: os mesmos objetos entram na visão e saem dela, na mesma ordem.
+A gravação termina com a linha "client: wrote the recording to ...: N messages, N ticks and N checkpoints". O replay roda no ritmo gravado e confere cada tick e cada ponto de controle. Sem diferença, ele termina com 0 e a linha "the replay checked N messages, N ticks and N checkpoints". Uma diferença termina com 1, e a mensagem diz em qual tick ou ponto de controle ela aconteceu, com o valor gravado e o do replay. Um replay interrompido antes do fim, com a janela fechada ou pelo `--frames`, também termina com 1, com a linha "the replay stopped before the end of the recording": ele conferiu só uma parte da gravação. As linhas `world:` dos dois terminais são as mesmas: os mesmos objetos entram na visão e saem dela, na mesma ordem.
 
 ### Refazer a gravação de referência
 

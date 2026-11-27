@@ -182,9 +182,20 @@ if(NEXUM_AUTHORING)
         "world: the player test1Dk \\(0x033E\\) left the view"
         "replay: the replay reached the end of the recording, where the client ended it: every tick and checkpoint matched"
         "client: the session ends: [0-9]+ s in the world, the replay checked 23 messages, 6 ticks and 2 checkpoints, objects in view: 6")
-    muclient_add_run_test(muclient_replays_the_reference_recording
-        "--replay;${CMAKE_CURRENT_SOURCE_DIR}/../Tests/Recordings/openmu-two-players.mucap" 0 "${reference_patterns}"
+    set(reference_recording "${CMAKE_CURRENT_SOURCE_DIR}/../Tests/Recordings/openmu-two-players.mucap")
+    muclient_add_run_test(muclient_replays_the_reference_recording "--replay;${reference_recording}" 0
+        "${reference_patterns}"
         ABSENT "[error]")
+
+    # A replay that the client ends before the end of its recording checked only a part of it, and ends with an
+    # error: here --frames ends it after 2 frames of the about 20 seconds of the reference recording.
+    set(stopped_replay_patterns
+        "client: drew 2 frames, as --frames asked"
+        "client: the replay stopped before the end of the recording, so it checked only a part of it"
+        "client: the session ends: .*the replay checked [0-9]+ messages?, [0-9]+ ticks? and 0 checkpoints")
+    muclient_add_run_test(muclient_fails_a_replay_stopped_before_its_end "--replay;${reference_recording};--frames;2"
+        1 "${stopped_replay_patterns}"
+        ABSENT "every tick and checkpoint matched")
 
     muclient_add_run_test(muclient_refuses_a_recording_it_cannot_write
         "${online_arguments};--record;${record_test_dir}/missing/session.mucap" 1

@@ -83,13 +83,20 @@ std::unique_ptr<online::ServerAdapter> RecordingTools::MakeReplayServer() const 
     return std::make_unique<online::ReplayServer>(*m_replay, *m_log);
 }
 
-void RecordingTools::EndSession(const online::OnlineClient& client, Seconds now) {
-    if (!m_recorder) {
-        return;
+bool RecordingTools::EndSession(const online::OnlineClient& client, Seconds now) {
+    const online::OnlineStatus status = client.Status(now);
+    if (m_recorder) {
+        m_recorder->Finish(client.View(), now,
+                           status == online::OnlineStatus::Failed ? recording::EndReason::SessionFailed
+                                                                  : recording::EndReason::Closed);
     }
-    const bool failed = client.Status(now) == online::OnlineStatus::Failed;
-    m_recorder->Finish(client.View(), now,
-                       failed ? recording::EndReason::SessionFailed : recording::EndReason::Closed);
+    // A replay that failed already said why.
+    if (m_replay && status != online::OnlineStatus::ServerEnded && status != online::OnlineStatus::Failed) {
+        m_log->Error(kClient,
+                     "the replay stopped before the end of the recording, so it checked only a part of it");
+        return false;
+    }
+    return true;
 }
 
 int RecordingTools::WriteRecording(int exitCode) {
