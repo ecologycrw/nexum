@@ -8,10 +8,11 @@ nexum_add_program(MuClient
     DEPS MuOnline Nexum::Platform)
 
 # The player build never carries the authoring mode (INV-19). NEXUM_AUTHORING comes from the preset. The capture
-# of the proof scene (--capture, CA-07) is compiled only into the development build.
+# of the proof scene (--capture, CA-07), and the recording and the replay of a session (--record and --replay, CA-08
+# of slice 2), are compiled only into the development build.
 target_compile_definitions(MuClient PRIVATE NEXUM_AUTHORING_ENABLED=$<BOOL:${NEXUM_AUTHORING}>)
 if(NEXUM_AUTHORING)
-    target_sources(MuClient PRIVATE Private/ProofCapture.cpp)
+    target_sources(MuClient PRIVATE Private/ProofCapture.cpp Private/RecordingTools.cpp)
 endif()
 
 string(REPLACE "." "\\." version_pattern "${PROJECT_VERSION}")
@@ -129,4 +130,63 @@ if(NEXUM_AUTHORING)
 else()
     muclient_add_run_test(muclient_player_build_refuses_capture "--capture;proof-scene.png" 2
         "--capture exists only in the development build;Usage: MuClient")
+endif()
+
+# CA-04, CA-05 and CA-08 of slice 2: the recording and the replay, only in the development build. A session that
+# never reaches the world, against the closed port of the tests above, is recorded with its header and its end,
+# and then replayed. The recordings of the fuzz target (Tests/FuzzSeeds/Recording) are replayed at their pace: one
+# to its end, and one whose second tick differs. The client refuses a file it cannot write before the password,
+# and a file that is not a recording before the window opens.
+if(NEXUM_AUTHORING)
+    set(record_test_dir "${CMAKE_CURRENT_BINARY_DIR}/record_test")
+    file(MAKE_DIRECTORY "${record_test_dir}")
+    file(WRITE "${record_test_dir}/not-a-recording.txt" "This is not a recording.\n")
+    set(recordings "${CMAKE_CURRENT_SOURCE_DIR}/../Tests/FuzzSeeds/Recording")
+
+    set(record_patterns
+        "client: the session ends: never in the world, pings sent: 0"
+        "client: wrote the recording to .*closed\\.mucap: 0 messages, 0 ticks and 0 checkpoints")
+    muclient_add_run_test(muclient_records_a_session_that_never_reaches_the_world
+        "${online_arguments};--record;${record_test_dir}/closed.mucap;--server-version;OpenMU test" 1
+        "${record_patterns}"
+        INPUT "${online_test_dir}/longest-password.txt"
+        ABSENT "${longest_password}")
+    set_tests_properties(muclient_records_a_session_that_never_reaches_the_world PROPERTIES
+        FIXTURES_SETUP muclient_closed_recording)
+    set(closed_replay_patterns
+        "replay: replaying 0 messages, 0 ticks and 0 checkpoints, recorded by the Nexum ${version_pattern} with the server OpenMU test"
+        "replay: the replay reached the end of the recording, where the session failed"
+        "client: the session ends: never in the world, the replay checked 0 messages, 0 ticks and 0 checkpoints")
+    muclient_add_run_test(muclient_replays_a_session_that_never_reached_the_world
+        "--replay;${record_test_dir}/closed.mucap" 0 "${closed_replay_patterns}")
+    set_tests_properties(muclient_replays_a_session_that_never_reached_the_world PROPERTIES
+        FIXTURES_REQUIRED muclient_closed_recording)
+
+    set(whole_replay_patterns
+        "replay: the replay is in the world, with the hero 0200"
+        "replay: the replay reached the end of the recording, where the client ended it: every tick and checkpoint"
+        "client: the session ends: [0-9]+ s in the world, the replay checked 3 messages, 2 ticks and 1 checkpoint")
+    muclient_add_run_test(muclient_replays_a_recording_to_its_end "--replay;${recordings}/two-ticks.bin" 0
+        "${whole_replay_patterns}")
+    set(difference_patterns
+        "replay: the tick 2 at 340000 us took [0-9]+ events in the recording, but [0-9]+ in the replay"
+        "client: the session ends: [0-9]+ s in the world, the replay checked 3 messages, 1 tick and 0 checkpoints")
+    muclient_add_run_test(muclient_reports_the_difference_of_a_replay
+        "--replay;${recordings}/tick-difference.bin" 1 "${difference_patterns}")
+
+    muclient_add_run_test(muclient_refuses_a_recording_it_cannot_write
+        "${online_arguments};--record;${record_test_dir}/missing/session.mucap" 1
+        "client: could not write the recording: could not write the file .*missing.session\\.mucap: "
+        INPUT "${online_test_dir}/longest-password.txt"
+        ABSENT "Password of the account;Connect Server")
+    set(not_a_recording_patterns
+        "client: could not read the recording .*not-a-recording\\.txt: the recording does not start with the mark")
+    muclient_add_run_test(muclient_refuses_a_file_that_is_not_a_recording
+        "--replay;${record_test_dir}/not-a-recording.txt" 1 "${not_a_recording_patterns}"
+        ABSENT "video driver")
+else()
+    foreach(option IN ITEMS record server-version replay)
+        muclient_add_run_test(muclient_player_build_refuses_${option} "--${option};session.mucap" 2
+            "--${option} exists only in the development build;Usage: MuClient")
+    endforeach()
 endif()

@@ -13,6 +13,7 @@
 
 #include "Mu/Protocol/Dialect.hpp"
 #include "Mu/Protocol/LoginMessage.hpp"
+#include "Mu/Recording/Recording.hpp"
 
 namespace mu::app {
 
@@ -29,11 +30,18 @@ constexpr std::string_view kAccount = "--account";
 constexpr std::string_view kServer = "--server";
 constexpr std::string_view kCharacter = "--character";
 constexpr std::string_view kWorldSeconds = "--world-seconds";
+constexpr std::string_view kRecord = "--record";
+constexpr std::string_view kServerVersion = "--server-version";
+constexpr std::string_view kReplay = "--replay";
+
+// The options the player build refuses (INV-19).
+constexpr std::array<std::string_view, 4> kDevelopmentOnly{kCapture, kRecord, kServerVersion, kReplay};
 
 constexpr std::string_view kDevelopmentUsage =
     "Usage: MuClient [--frames N] [--gpu-driver vulkan|direct3d12|metal]\n"
     "                [--connect HOST:PORT --account NAME [--server ID] [--character NAME]\n"
-    "                 [--world-seconds N]]\n"
+    "                 [--world-seconds N] [--record FILE.mucap [--server-version TEXT]]]\n"
+    "       MuClient --replay FILE.mucap [--frames N] [--gpu-driver vulkan|direct3d12|metal]\n"
     "       MuClient --capture FILE.png [--gpu-driver vulkan|direct3d12|metal]\n"
     "       MuClient --version\n"
     "With --connect, the password of the account is typed in the terminal, and it does not show.\n";
@@ -114,6 +122,24 @@ template <typename Number>
     return std::string(text);
 }
 
+// The file of --record or --replay.
+[[nodiscard]] core::Result<std::string> ParseRecordingPath(std::string_view option, std::string_view text) {
+    if (text.empty()) {
+        return core::MakeError(std::string(option) + " needs the path of a .mucap file");
+    }
+    return std::string(text);
+}
+
+// The version of the server goes into a text of the header of the recording, which holds at most 64 bytes.
+[[nodiscard]] core::Result<std::string> ParseServerVersion(std::string_view text) {
+    if (!text.empty() && text.size() <= recording::kLongestText) {
+        return std::string(text);
+    }
+    return core::MakeError("--server-version needs a text of 1 to " +
+                           std::to_string(recording::kLongestText) + " bytes, not '" + std::string(text) +
+                           "'");
+}
+
 [[nodiscard]] core::Error GivenTwice(std::string_view option) {
     return core::Error{std::string(option) + " was given twice"};
 }
@@ -165,13 +191,25 @@ template <typename Value, typename Parse>
     return ReadOnce(options.worldSeconds, kWorldSeconds, [&] { return ParseCount(kWorldSeconds, value); });
 }
 
+[[nodiscard]] core::Result<void> ReadRecord(std::string_view value, ClientOptions& options) {
+    return ReadOnce(options.recordPath, kRecord, [&] { return ParseRecordingPath(kRecord, value); });
+}
+
+[[nodiscard]] core::Result<void> ReadServerVersion(std::string_view value, ClientOptions& options) {
+    return ReadOnce(options.serverVersion, kServerVersion, [&] { return ParseServerVersion(value); });
+}
+
+[[nodiscard]] core::Result<void> ReadReplay(std::string_view value, ClientOptions& options) {
+    return ReadOnce(options.replayPath, kReplay, [&] { return ParseRecordingPath(kReplay, value); });
+}
+
 // An option that takes one value, and the function that reads it.
 struct ValueOption {
     std::string_view name;
     core::Result<void> (*read)(std::string_view value, ClientOptions& options);
 };
 
-constexpr std::array<ValueOption, 8> kValueOptions{{
+constexpr std::array<ValueOption, 11> kValueOptions{{
     {.name = kFrames, .read = ReadFrames},
     {.name = kGpuDriver, .read = ReadGpuDriver},
     {.name = kCapture, .read = ReadCapture},
@@ -180,6 +218,9 @@ constexpr std::array<ValueOption, 8> kValueOptions{{
     {.name = kServer, .read = ReadServer},
     {.name = kCharacter, .read = ReadCharacter},
     {.name = kWorldSeconds, .read = ReadWorldSeconds},
+    {.name = kRecord, .read = ReadRecord},
+    {.name = kServerVersion, .read = ReadServerVersion},
+    {.name = kReplay, .read = ReadReplay},
 }};
 
 // The option of this build with this name, before its value is read.
@@ -187,8 +228,8 @@ constexpr std::array<ValueOption, 8> kValueOptions{{
     if (option == kVersion) {
         return core::MakeError("--version comes alone, without other options");
     }
-    if (option == kCapture && build == BuildKind::Player) {
-        return core::MakeError("--capture exists only in the development build");
+    if (build == BuildKind::Player && std::ranges::find(kDevelopmentOnly, option) != kDevelopmentOnly.end()) {
+        return core::MakeError(std::string(option) + " exists only in the development build");
     }
     const auto known = std::ranges::find(kValueOptions, option, &ValueOption::name);
     if (known == kValueOptions.end()) {
@@ -197,8 +238,38 @@ constexpr std::array<ValueOption, 8> kValueOptions{{
     return &*known;
 }
 
+// The replay plays a recording without a server, so nothing goes to the world, and nothing else is recorded
+// or drawn.
+[[nodiscard]] core::Result<void> CheckReplay(const ClientOptions& options) {
+    if (!options.replayPath) {
+        return {};
+    }
+    const std::array<std::pair<bool, std::string_view>, 7> withoutReplay{{
+        {options.connectServer.has_value(), kConnect},
+        {options.account.has_value(), kAccount},
+        {options.serverId.has_value(), kServer},
+        {options.character.has_value(), kCharacter},
+        {options.worldSeconds.has_value(), kWorldSeconds},
+        {options.recordPath.has_value(), kRecord},
+        {options.capturePath.has_value(), kCapture},
+    }};
+    for (const auto& [given, name] : withoutReplay) {
+        if (given) {
+            return core::MakeError("--replay plays a recording without a server, so it comes without " +
+                                   std::string(name));
+        }
+    }
+    return {};
+}
+
 // The options that only make sense together, or never together.
 [[nodiscard]] core::Result<void> CheckTogether(const ClientOptions& options) {
+    if (auto replay = CheckReplay(options); !replay) {
+        return replay;
+    }
+    if (options.serverVersion && !options.recordPath) {
+        return core::MakeError("--server-version comes with --record, the file of the recording");
+    }
     if (options.capturePath && options.frameLimit) {
         return core::MakeError("--capture draws one scene without a window, so it comes without --frames");
     }
@@ -211,11 +282,12 @@ constexpr std::array<ValueOption, 8> kValueOptions{{
     if (options.connectServer) {
         return {};
     }
-    const std::array<std::pair<bool, std::string_view>, 4> worldOptions{{
+    const std::array<std::pair<bool, std::string_view>, 5> worldOptions{{
         {options.account.has_value(), kAccount},
         {options.serverId.has_value(), kServer},
         {options.character.has_value(), kCharacter},
         {options.worldSeconds.has_value(), kWorldSeconds},
+        {options.recordPath.has_value(), kRecord},
     }};
     for (const auto& [given, name] : worldOptions) {
         if (given) {
