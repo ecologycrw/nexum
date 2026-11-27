@@ -1,9 +1,9 @@
 #include "Mu/Online/ReplayServer.hpp"
 
-#include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -30,6 +30,9 @@ constexpr nexum::debug::LogCategory kReplay{"replay"};
 // The digest is shown with all its 16 hexadecimal digits, and an id with its 4.
 constexpr std::size_t kDigestDigits = 16;
 constexpr std::size_t kIdDigits = 4;
+// About 285,000 years, a little before the 2^63 - 1 us that std::chrono::microseconds holds: from here on,
+// the replay takes the clock as past the end of every recording.
+constexpr Seconds kFarthestClock{9.0e12};
 
 // "1 tick", "2 ticks".
 LogLine& AppendCount(LogLine& line, std::uint64_t count, std::string_view thing) noexcept {
@@ -108,9 +111,18 @@ void ReplayServer::TakeEvents(Seconds now, world::EventQueue& events) {
 }
 
 Microseconds ReplayServer::ElapsedAt(Seconds now) const noexcept {
+    const Seconds since = now - m_start;
+    // Past the microseconds of std::chrono, the clock is past the end of every recording, whose times go up
+    // to 2^64 - 1 us: rounding there would not fit.
+    if (since >= kFarthestClock) {
+        return std::numeric_limits<Microseconds>::max();
+    }
+    // Before the start, and a clock that is not a number.
+    if (!(since > Seconds{0.0})) {
+        return 0;
+    }
     // Rounded as the recorder rounds the times it writes.
-    const auto since = std::chrono::round<std::chrono::microseconds>(now - m_start).count();
-    return static_cast<Microseconds>(std::max<std::int64_t>(since, 0));
+    return static_cast<Microseconds>(std::chrono::round<std::chrono::microseconds>(since).count());
 }
 
 Microseconds ReplayServer::DueTimeOfNextGroup() const noexcept {

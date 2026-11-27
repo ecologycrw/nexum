@@ -43,10 +43,12 @@ nexum_add_tests(muonline_frame_allocation_tests
     SOURCES FrameAllocationTest.cpp
     DEPS MuOnline nexum_test_allocation_counter)
 
-# CA-10: a fuzz target for each reader of outside data: the frames, the encryption, the item, the appearance and
-# the packets the client receives. The seeds of each run here as a test on every system.
+# A fuzz target for each reader of outside data: the frames, the encryption, the item, the appearance and the
+# packets the client receives (CA-10 of slice 1), and the recording, whose valid cases are also replayed (CA-09
+# of slice 2). The seeds of each run here as a test on every system.
 foreach(fuzzed IN ITEMS "FrameReader;frame_reader" "Cipher;cipher" "ExtendedItem;extended_item"
-                        "ExtendedAppearance;extended_appearance" "DialectPackets;dialect_packets")
+                        "ExtendedAppearance;extended_appearance" "DialectPackets;dialect_packets"
+                        "Recording;recording")
     list(GET fuzzed 0 reader)
     list(GET fuzzed 1 target)
     nexum_add_fuzz_target(muonline_${target}

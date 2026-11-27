@@ -9,6 +9,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <span>
@@ -676,4 +677,32 @@ TEST_CASE("[0002-CA-05] a session recorded live is replayed without a server to 
     CHECK(ReplayAtPace(live.recorded, 1000.0, kOneTick) == steady);
     // Two replays of the same recording give the same result.
     CHECK(ReplayAtPace(live.recorded, 0.02, kEveryOtherFrame) == steady);
+}
+
+TEST_CASE("[0002-CA-09] a clock past the largest time a recording holds replays it to the end") {
+    // The fuzz target jumps the clock past the end of the recording, and the end can be at any time the
+    // format holds, up to 2^64 - 1 us: far more than the 2^63 - 1 us of the microseconds of std::chrono.
+    const recording::Recording recording =
+        HandMade()
+            .Add(RecordingEnd{.time = std::numeric_limits<recording::Microseconds>::max(),
+                              .reason = EndReason::Closed})
+            .Read();
+    Replay replay(recording);
+    replay.client.Start(Seconds{0.0});
+    replay.Frame(1.0e6);
+    CHECK(replay.server.Status().state == ServerState::Connecting);
+
+    double past = 0.0;
+    SUBCASE("2 * 10^13 s, past 2^64 us") {
+        past = 2.0e13;
+    }
+    SUBCASE("10^13 s, past 2^63 us") {
+        past = 1.0e13;
+    }
+    SUBCASE("a clock at infinity") {
+        past = std::numeric_limits<double>::infinity();
+    }
+    replay.Frame(past);
+    CHECK(replay.server.Status().state == ServerState::Ended);
+    CHECK(replay.client.Status(Seconds{past}) == OnlineStatus::ServerEnded);
 }
