@@ -91,7 +91,7 @@ Não se aplica: a janela continua com o cartão de teste da fatia 0.
 
 Achados do revisor e o que foi feito com cada um, uma linha por achado. Preenchido pelo `/revisar`.
 
-O revisor (2026-11-27, sobre o `a322d81`) não achou nada crítico nem importante, e achou 11 menores. Seis foram corrigidos, um virou item provisório, um virou proposta e três ficam para o report. As correções vão até o commit `a97dc54`, e o `verify` passou depois delas (55 testes, 56 com sanitizers, 44 no build de jogador, a análise estática sem problemas e as checagens OK).
+O revisor (2026-11-27, sobre o `a322d81`) não achou nada crítico nem importante, e achou 11 menores. Cinco foram corrigidos (M2, M3, M6, M8 e M9), um virou item provisório (M1), um virou proposta (M5), três ficam para o report (M4, M7 e M11) e um espera o "sim" do dono no `/fechar` (M10). As correções vão até o commit `a97dc54`, e o `verify` passou depois delas (55 testes, 56 com sanitizers, 44 no build de jogador, a análise estática sem problemas e as checagens OK).
 
 - **M1, a época avisada ao gravador só no passo 2, e não antes do tick:** procede, mas não acontece hoje, porque a época só muda no passo 2, e nenhum teste consegue mudá-la em outro passo. Virou o TD-0040 (destino M4), e a consequência do ADR 0035 diz isso. Commit `6df8398`.
 - **M2, um replay interrompido termina com sucesso:** procede. Corrigido: o replay que o `--frames` ou a janela fechada encerram antes do fim termina com 1 e a linha "the replay stopped before the end of the recording, so it checked only a part of it". Teste `muclient_fails_a_replay_stopped_before_its_end`, com a sabotagem. Commit `aab0a69`.
