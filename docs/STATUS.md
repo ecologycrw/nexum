@@ -2,7 +2,7 @@
 fase: em-andamento
 spec-atual: 0002
 branch: fatia/0002-gravacao-e-replay
-atualizado-em: 2026-11-26
+atualizado-em: 2026-11-27
 ---
 
 # Status
@@ -17,7 +17,7 @@ A fatia 1 (a rede até o mundo) está na `main` desde o squash merge do [PR #11]
 
 ## Próxima ação
 
-1. `/implementar` da fatia 2: as 16 tarefas do [`tasks.md`](../specs/0002-gravacao-e-replay/tasks.md), com o [PR #12](https://github.com/ecologycrw/nexum/pull/12) em rascunho desde a lista de tarefas.
+1. `/revisar` da fatia 2: as 16 tarefas do [`tasks.md`](../specs/0002-gravacao-e-replay/tasks.md) estão feitas, com o [PR #12](https://github.com/ecologycrw/nexum/pull/12) em rascunho desde a lista de tarefas.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -61,3 +61,4 @@ Nenhum.
 | 2026-11-26 | Retrospectiva da fatia 1: a próxima é a fatia 2 (a gravação `.mucap` e o replay). A escada de erros trouxe a P-0019 (o PR em rascunho desde a lista de tarefas) e a P-0020 (o teste de recusa confere o motivo, e os testes de risco são sabotados), aplicadas. A P-0015 e a P-0018 foram aceitas para a fatia 2, e a P-0017 para o M7. A P-0014 fechou com a medição do custo da fatia |
 | 2026-11-26 | O dono fez o squash merge do PR #11: a fatia 1 está na `main` |
 | 2026-11-26 | Spec da fatia 2 (A gravação e o replay, M2 parte 1) aprovada pelo dono, com o adaptador de servidor (P-0018, ADR 0035), o formato `.mucap` versão 1, a gravação e o replay só no build de desenvolvimento e no módulo MU, a gravação na memória até o fim (16 MiB), a gravação de referência do OpenMU local e a trava dos `NOLINT` (P-0015) |
+| 2026-11-27 | Fatia 2: as 16 tarefas feitas. O `MuClient` gravou 60 s no OpenMU 0.10.1 local, com a `test1Dk` entrando na visão e saindo, e o replay da gravação, com o servidor desligado, conferiu cada tick e ponto de controle e mostrou as mesmas linhas do mundo. A gravação de referência de 20 s está no repositório e é reproduzida nos 3 sistemas. Saiu o TD-0037; entraram o TD-0038 e o TD-0039 |
