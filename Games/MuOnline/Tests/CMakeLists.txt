@@ -18,6 +18,7 @@ nexum_add_tests(muonline_tests
         PacketExamplesTest.cpp
         PacketLogTest.cpp
         PingTest.cpp
+        RecordingTest.cpp
         SessionTest.cpp
         TickReportTextTest.cpp
         TranslatorTest.cpp
