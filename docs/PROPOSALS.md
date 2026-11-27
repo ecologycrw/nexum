@@ -52,6 +52,13 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
 - Revista na retrospectiva da fatia 1 (2026-11-26): continua aberta, para rever junto com a P-0008.
 
+### P-0021: a falha de uma semente de fuzzing no Windows abre uma janela em vez de falhar na hora
+- Origem: fatia 2, T11 (a sabotagem do alvo `muonline_recording`), e feedback do dono
+- Tipo: bug
+- Evidência: o programa que roda as sementes de cada alvo de fuzzing (`tests/support/FuzzSeedMain.cpp`) não troca por texto a janela "Debug Error! ... abort() has been called" do MSVC, como o `tests/support/DoctestMain.cpp` já faz para os testes comuns. No Windows, quando uma semente falha, o teste fica parado até alguém clicar ou até o limite de 300 s do CTest, em vez de falhar na hora com a mensagem. Na T11, a sabotagem da gravação com o maior tempo levou 312 s para falhar, e a janela apareceu na tela do dono, que mandou a imagem: "Em algum momento isso aqui apareceu, não sei se foi a causa que levou você a corrigir. Mas mesmo assim mandando o que de fato apareceu." O `tests/support/` não é trava; a mudança seria a mesma função do `DoctestMain.cpp` no começo do `main` do `FuzzSeedMain.cpp`, com um teste como o `DoctestMainTest.cpp`
+- Prioridade sugerida: média (atrapalha o `verify` e a CI do Windows sempre que uma semente falha)
+- Status: aberta
+
 ## Processadas
 
 ### P-0020: o teste de recusa confere o motivo, e os testes de risco são sabotados
