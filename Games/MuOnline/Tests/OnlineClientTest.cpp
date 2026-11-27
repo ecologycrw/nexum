@@ -3,9 +3,10 @@
 // the character comes, the messages of the world translated in step 2 and applied only at the start of a
 // tick, and the end of the client when the session fails or stayed as long as asked. The messages come from
 // SessionMessages.hpp, with their sources. Then the client with a server of test, which gives the events
-// themselves (CA-01 of slice 2).
+// themselves (CA-01 of slice 2), and the tick that drops the events of an older epoch (CA-02 of slice 2).
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <span>
 #include <string>
@@ -21,6 +22,7 @@
 #include "Mu/Online/Transport.hpp"
 #include "Mu/Protocol/Dialect/World.hpp"
 #include "Mu/Session/Session.hpp"
+#include "Mu/Session/SessionEpoch.hpp"
 #include "Mu/World/EventQueue.hpp"
 #include "Mu/World/WorldEvent.hpp"
 #include "Mu/World/WorldView.hpp"
@@ -156,7 +158,8 @@ struct AppliedReport {
 };
 
 // A server of test, without session, translation or network: each TakeEvents gives the next batch of events
-// that the test wrote, and the test sets the state. It keeps what each tick told it.
+// that the test wrote, with the epoch of the server at that moment, and the test sets the state and the
+// epoch. It keeps what each tick told it.
 class ScriptedServer final : public mu::online::ServerAdapter {
 public:
     void Start(Seconds now) override { started = now.count(); }
@@ -165,7 +168,7 @@ public:
         ++takes;
         if (m_next < batches.size()) {
             for (const mu::world::WorldEvent& event : batches[m_next]) {
-                events.Push(event);
+                events.Push(epoch, event);
             }
             ++m_next;
         }
@@ -177,7 +180,7 @@ public:
         applied.push_back({.count = count, .now = now.count(), .objectsInView = view.Objects().size()});
     }
 
-    [[nodiscard]] SessionEpoch CurrentEpoch() const noexcept override { return SessionEpoch{}; }
+    [[nodiscard]] SessionEpoch CurrentEpoch() const noexcept override { return epoch; }
 
     [[nodiscard]] mu::online::ServerStatus Status() const noexcept override {
         return {.state = state, .reason = reason};
@@ -186,6 +189,7 @@ public:
     [[nodiscard]] std::string Summary(Seconds /*now*/) const override { return "a server of test"; }
 
     std::vector<std::vector<mu::world::WorldEvent>> batches;
+    SessionEpoch epoch{1};
     ServerState state = ServerState::Connecting;
     std::string reason;
     std::vector<AppliedReport> applied;
@@ -205,6 +209,19 @@ private:
     entered.target = cell;
     entered.typeNumber = 249;
     return entered;
+}
+
+// The lines of the log about events dropped for their epoch.
+[[nodiscard]] std::vector<std::string> DropLines(const nexum::test_support::MemoryLogSink& sink) {
+    std::vector<std::string> lines;
+    for (const auto& entry : sink.Entries()) {
+        if (entry.message.find("dropped") != std::string::npos) {
+            CHECK(entry.level == nexum::debug::LogLevel::Info);
+            CHECK(entry.category == "online");
+            lines.push_back(entry.message);
+        }
+    }
+    return lines;
 }
 
 } // namespace
@@ -263,6 +280,9 @@ TEST_CASE(
 
     run.client.ApplyEvents(Seconds{0.7});
     CHECK(run.client.PendingEvents() == 0);
+    // The events have the epoch of the Game Server, which is the current one: none is dropped.
+    CHECK(run.server.CurrentEpoch() == SessionEpoch{2});
+    CHECK(run.client.DroppedEvents() == 0);
     const auto& hero = run.client.View().HeroState();
     REQUIRE(hero.loaded);
     // The hero has the id that the Game Server gave (GameServerEntered), at the place of its data.
@@ -435,4 +455,78 @@ TEST_CASE("[0002-CA-01] the status of the online client follows the state of the
     server.state = ServerState::Failed;
     server.reason = "the recording ended early";
     CHECK(client.Status(Seconds{0.6}) == OnlineStatus::Failed);
+}
+
+TEST_CASE(
+    "[0002-CA-02] the tick drops and counts the events of an older epoch, and logs it once in the tick") {
+    nexum::test_support::MemoryLogSink sink;
+    nexum::debug::Logger log{sink};
+    ScriptedServer server;
+    server.batches = {
+        {EnteredAt(0x21, {.x = 10, .y = 10}), EnteredAt(0x22, {.x = 20, .y = 20})},
+        {EnteredAt(0x23, {.x = 30, .y = 30})},
+        {EnteredAt(0x24, {.x = 40, .y = 40})},
+        {EnteredAt(0x25, {.x = 50, .y = 50})},
+    };
+    OnlineClient client(server, log, std::nullopt);
+    client.Start(Seconds{0.0});
+
+    // Two events are taken in the epoch 1, and the epoch changes before the tick; one more comes in the
+    // epoch 2, for the same tick.
+    client.TakeEvents(Seconds{0.1});
+    server.epoch = SessionEpoch{2};
+    client.TakeEvents(Seconds{0.2});
+    REQUIRE(client.PendingEvents() == 3);
+    client.ApplyEvents(Seconds{0.2});
+
+    // The old ones never reach the view, which ignores nothing; the new one does.
+    CHECK(client.PendingEvents() == 0);
+    CHECK(client.View().Find(mu::world::ObjectId{0x21}) == nullptr);
+    CHECK(client.View().Find(mu::world::ObjectId{0x22}) == nullptr);
+    CHECK(client.View().Find(mu::world::ObjectId{0x23}) != nullptr);
+    CHECK(client.View().Objects().size() == 1);
+    CHECK(client.View().IgnoredEvents() == 0);
+    CHECK(client.DroppedEvents() == 2);
+    // The server hears of every event the tick took, applied or dropped (the tick of the .mucap).
+    CHECK(server.applied == std::vector<AppliedReport>{{.count = 3, .now = 0.2, .objectsInView = 1}});
+    CHECK(DropLines(sink) == std::vector<std::string>{"the tick dropped 2 events of an epoch older than 2"});
+
+    // A tick with only events of the current epoch drops nothing and says nothing.
+    client.TakeEvents(Seconds{0.3});
+    client.ApplyEvents(Seconds{0.3});
+    CHECK(client.View().Find(mu::world::ObjectId{0x24}) != nullptr);
+    CHECK(client.DroppedEvents() == 2);
+    CHECK(DropLines(sink).size() == 1);
+
+    // A tick whose events are all old applies none, still tells the server how many it took, and logs once
+    // more.
+    client.TakeEvents(Seconds{0.4});
+    server.epoch = SessionEpoch{3};
+    client.ApplyEvents(Seconds{0.4});
+    CHECK(client.View().Find(mu::world::ObjectId{0x25}) == nullptr);
+    CHECK(client.View().Objects().size() == 2);
+    CHECK(client.DroppedEvents() == 3);
+    CHECK(server.applied.size() == 3);
+    CHECK(server.applied.back() == AppliedReport{.count = 1, .now = 0.4, .objectsInView = 2});
+    CHECK(DropLines(sink) == std::vector<std::string>{"the tick dropped 2 events of an epoch older than 2",
+                                                      "the tick dropped 1 event of an epoch older than 3"});
+}
+
+TEST_CASE("[0002-CA-02] many old events in one tick give a single line of the log") {
+    nexum::test_support::MemoryLogSink sink;
+    nexum::debug::Logger log{sink};
+    ScriptedServer server;
+    std::vector<mu::world::WorldEvent> many;
+    for (std::uint16_t id = 0x30; id < 0x30 + 50; ++id) {
+        many.emplace_back(EnteredAt(id, {.x = 10, .y = 10}));
+    }
+    server.batches = {many};
+    OnlineClient client(server, log, std::nullopt);
+    client.Start(Seconds{0.0});
+    client.TakeEvents(Seconds{0.1});
+    server.epoch = SessionEpoch{2};
+    client.ApplyEvents(Seconds{0.1});
+    CHECK(client.View().Objects().empty());
+    CHECK(client.DroppedEvents() == 50);
+    CHECK(DropLines(sink) == std::vector<std::string>{"the tick dropped 50 events of an epoch older than 2"});
 }

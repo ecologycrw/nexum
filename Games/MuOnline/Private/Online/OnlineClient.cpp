@@ -5,11 +5,16 @@
 #include <cstdint>
 #include <string>
 
+#include "Mu/Session/SessionEpoch.hpp"
+#include "Nexum/Debug/LogLine.hpp"
+
 namespace mu::online {
 
 using nexum::time::Seconds;
 
 namespace {
+
+constexpr nexum::debug::LogCategory kOnline{"online"};
 
 // The room of the events that wait for the next tick. The first entry brings 15 to 20 messages (section 6.12
 // of the protocol spec), and a list of NPCs gives one event for each; past the room, the queue grows instead
@@ -19,7 +24,7 @@ constexpr std::size_t kEventRoom = 1024;
 } // namespace
 
 OnlineClient::OnlineClient(ServerAdapter& server, nexum::debug::Logger& log, std::optional<Seconds> stay)
-    : m_server(&server), m_events(kEventRoom), m_view(log), m_stay(stay) {}
+    : m_server(&server), m_log(&log), m_events(kEventRoom), m_view(log), m_stay(stay) {}
 
 void OnlineClient::Start(Seconds now) {
     m_server->Start(now);
@@ -37,10 +42,28 @@ void OnlineClient::AdvanceClock(Seconds now) {
 }
 
 void OnlineClient::ApplyEvents(Seconds now) {
-    const std::size_t applied =
-        m_events.Drain([this](const world::WorldEvent& event) { m_view.Apply(event); });
-    if (applied > 0) {
-        m_server->EventsApplied(m_view, applied, now);
+    const session::SessionEpoch current = m_server->CurrentEpoch();
+    std::uint64_t dropped = 0;
+    const std::size_t taken = m_events.Drain(
+        [this, current, &dropped](session::SessionEpoch epoch, const world::WorldEvent& event) {
+            if (epoch < current) {
+                ++dropped;
+                return;
+            }
+            m_view.Apply(event);
+        });
+    if (dropped > 0) {
+        m_droppedEvents += dropped;
+        nexum::debug::LogLine line;
+        line.Append("the tick dropped ")
+            .AppendNumber(dropped)
+            .Append(dropped == 1 ? " event" : " events")
+            .Append(" of an epoch older than ")
+            .AppendNumber(current.value);
+        m_log->Info(kOnline, line.View());
+    }
+    if (taken > 0) {
+        m_server->EventsApplied(m_view, taken, now);
     }
 }
 

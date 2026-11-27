@@ -47,8 +47,9 @@ public:
     void AdvanceClock(nexum::time::Seconds now);
 
     // The start of each tick, before the systems: applies the events, in the order they came (INV-01), and,
-    // when there were any, tells the server how many and how the view ended up. `now` is the time of the
-    // frame.
+    // when there were any, tells the server how many and how the view ended up. An event of an epoch older
+    // than the one of the server is dropped and counted instead, and the log says so once in the tick. `now`
+    // is the time of the frame.
     void ApplyEvents(nexum::time::Seconds now);
 
     [[nodiscard]] OnlineStatus Status(nexum::time::Seconds now) const noexcept;
@@ -59,13 +60,17 @@ public:
     [[nodiscard]] const world::WorldView& View() const noexcept { return m_view; }
     // The events taken and not yet applied.
     [[nodiscard]] std::size_t PendingEvents() const noexcept { return m_events.Count(); }
+    // The events that the ticks dropped for an older epoch, since the start.
+    [[nodiscard]] std::uint64_t DroppedEvents() const noexcept { return m_droppedEvents; }
 
 private:
     ServerAdapter* m_server;
+    nexum::debug::Logger* m_log;
     world::EventQueue m_events;
     world::WorldView m_view;
     std::optional<nexum::time::Seconds> m_stay;
     std::optional<nexum::time::Seconds> m_enteredWorld;
+    std::uint64_t m_droppedEvents = 0;
 };
 
 } // namespace mu::online

@@ -17,8 +17,10 @@
 
 #include <doctest/doctest.h>
 
+#include "Mu/Session/SessionEpoch.hpp"
 #include "Mu/Translate/Translator.hpp"
 #include "Mu/World/EventQueue.hpp"
+#include "Mu/World/WorldEvent.hpp"
 #include "Nexum/Debug/Logger.hpp"
 #include "Nexum/TestSupport/MemoryLogSink.hpp"
 
@@ -26,9 +28,12 @@ namespace {
 
 namespace world = mu::world;
 using Bytes = std::vector<std::byte>;
+using mu::session::SessionEpoch;
 using nexum::debug::LogLevel;
 
 constexpr world::ObjectId kHero{0x0200};
+// The second connection of a session, the Game Server.
+constexpr SessionEpoch kEpoch{2};
 
 [[nodiscard]] Bytes Make(std::initializer_list<std::uint8_t> values) {
     Bytes bytes;
@@ -99,13 +104,16 @@ struct Translation {
     mu::translate::Translator translator{kHero, log};
     world::EventQueue queue{64};
 
-    // The events of these messages, in order.
+    // The events of these messages, in order, all of the epoch of the Game Server of a session.
     std::vector<world::WorldEvent> Events(std::initializer_list<Bytes> messages) {
         for (const Bytes& message : messages) {
-            translator.Translate(message, queue);
+            translator.Translate(kEpoch, message, queue);
         }
         std::vector<world::WorldEvent> events;
-        queue.Drain([&](const world::WorldEvent& event) { events.push_back(event); });
+        queue.Drain([&](SessionEpoch epoch, const world::WorldEvent& event) {
+            CHECK(epoch == kEpoch);
+            events.push_back(event);
+        });
         return events;
     }
 
@@ -389,10 +397,36 @@ TEST_CASE("[0001-CA-09] a queue of events that passes its room grows, with one w
     mu::translate::Translator translator{kHero, log};
     world::EventQueue queue{1};
     const Bytes leaving = Make({0xC1, 0x08, 0x14, 0x02, 0x00, 0x21, 0x00, 0x22});
-    CHECK(translator.Translate(leaving, queue) == 2);
-    CHECK(translator.Translate(leaving, queue) == 2);
+    CHECK(translator.Translate(kEpoch, leaving, queue) == 2);
+    CHECK(translator.Translate(kEpoch, leaving, queue) == 2);
     CHECK(queue.Count() == 4);
     REQUIRE(sink.Entries().size() == 1);
     CHECK(sink.Entries()[0].level == LogLevel::Warning);
     CHECK(sink.Entries()[0].message.find("passed the reserved room") != std::string::npos);
+}
+
+TEST_CASE("[0002-CA-02] each event leaves the translation with the epoch of its message") {
+    Translation translation;
+    // Two objects leave in a message of the epoch 2, and one in a message of the epoch 3 (C1 14).
+    CHECK(translation.translator.Translate(SessionEpoch{2},
+                                           Make({0xC1, 0x08, 0x14, 0x02, 0x00, 0x21, 0x00, 0x22}),
+                                           translation.queue) == 2);
+    CHECK(translation.translator.Translate(SessionEpoch{3}, Make({0xC1, 0x06, 0x14, 0x01, 0x00, 0x23}),
+                                           translation.queue) == 1);
+
+    struct Taken {
+        SessionEpoch epoch;
+        world::ObjectId id;
+    };
+    std::vector<Taken> taken;
+    translation.queue.Drain([&](SessionEpoch epoch, const world::WorldEvent& event) {
+        taken.push_back({.epoch = epoch, .id = std::get<world::ObjectLeft>(event).id});
+    });
+    REQUIRE(taken.size() == 3);
+    CHECK(taken[0].epoch == SessionEpoch{2});
+    CHECK(taken[0].id == world::ObjectId{0x21});
+    CHECK(taken[1].epoch == SessionEpoch{2});
+    CHECK(taken[1].id == world::ObjectId{0x22});
+    CHECK(taken[2].epoch == SessionEpoch{3});
+    CHECK(taken[2].id == world::ObjectId{0x23});
 }

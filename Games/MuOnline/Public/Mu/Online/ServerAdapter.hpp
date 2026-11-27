@@ -11,7 +11,7 @@
 #include <string>
 #include <string_view>
 
-#include "Mu/Session/MessageQueue.hpp"
+#include "Mu/Session/SessionEpoch.hpp"
 #include "Mu/World/EventQueue.hpp"
 #include "Mu/World/WorldView.hpp"
 #include "Nexum/Time/Seconds.hpp"
@@ -42,18 +42,19 @@ public:
     virtual void Start(nexum::time::Seconds now) = 0;
 
     // Step 2 of the frame: puts at the end of `events` the events of the world that came since the last call,
-    // in their order. It never waits for the network or the disk (INV-06).
+    // in their order, each with the epoch of its message. It never waits for the network or the disk
+    // (INV-06).
     virtual void TakeEvents(nexum::time::Seconds now, world::EventQueue& events) = 0;
 
     // Step 3 of the frame: the wall clocks of the server, such as the deadlines and the ping.
     virtual void AdvanceClock(nexum::time::Seconds now) = 0;
 
-    // After each tick that took events out of the queue: how many it applied, and the view as they left it.
-    // `now` is the time of the frame of the tick.
+    // After each tick that took events out of the queue: how many it took, applied or dropped for their
+    // epoch, and the view as they left it. `now` is the time of the frame of the tick.
     virtual void EventsApplied(const world::WorldView& view, std::size_t count, nexum::time::Seconds now) = 0;
 
-    // The epoch of the events the server gives now; an event of an older epoch is from a session that is
-    // over.
+    // The epoch of the events the server gives now; the tick drops each event of an older epoch, which is
+    // from a session that is over.
     [[nodiscard]] virtual session::SessionEpoch CurrentEpoch() const noexcept = 0;
 
     [[nodiscard]] virtual ServerStatus Status() const noexcept = 0;

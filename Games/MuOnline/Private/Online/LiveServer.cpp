@@ -30,8 +30,8 @@ void LiveServer::TakeEvents(Seconds now, world::EventQueue& events) {
     }
     if (m_translator) {
         m_session.TakeWorldMessages(
-            [this, &events](session::SessionEpoch /*epoch*/, std::span<const std::byte> message) {
-                m_translator->Translate(message, events);
+            [this, &events](session::SessionEpoch epoch, std::span<const std::byte> message) {
+                m_translator->Translate(epoch, message, events);
             });
     }
 }

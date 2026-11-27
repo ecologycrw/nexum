@@ -16,7 +16,7 @@ Cabeçalho público em `Games/MuOnline/Public/Mu/Translate/Translator.hpp`.
 
 ## Conceitos
 
-- **`Translator`**: nasce com o id do herói (`Session::PlayerId()`). O `Translate(mensagem, fila)` põe na `EventQueue` os eventos de uma mensagem.
+- **`Translator`**: nasce com o id do herói (`Session::PlayerId()`). O `Translate(época, mensagem, fila)` põe na `EventQueue` os eventos de uma mensagem, cada um com a época da mensagem.
 - **Os pacotes traduzidos:** os dados do personagem (`C3 F3 03`), os jogadores que entram na visão (`C2 12`, inclusive o próprio herói), os NPCs e monstros (`C2 13`), os objetos que saem da visão (`C1 14`), o eco do andar (`C1 D4`), a posição corrigida (`C1 15`), os stats do herói (`C1 26 FF`), o inventário (`C4 F3 10`, só lido) e a mudança dos atributos do terreno (`C1 46`, só lida e registrada). A marca de "acabou de surgir" fica separada do id.
 - **As reações** (IV.14.6):
   - um pacote que não se lê vai para o log e é descartado inteiro;

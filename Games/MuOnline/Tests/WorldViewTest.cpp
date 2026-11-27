@@ -8,10 +8,14 @@
 #include <initializer_list>
 #include <string>
 #include <string_view>
+#include <variant>
+#include <vector>
 
 #include <doctest/doctest.h>
 
+#include "Mu/Session/SessionEpoch.hpp"
 #include "Mu/World/EventQueue.hpp"
+#include "Mu/World/WorldEvent.hpp"
 #include "Mu/World/WorldView.hpp"
 #include "Nexum/Debug/Logger.hpp"
 #include "Nexum/TestSupport/MemoryLogSink.hpp"
@@ -19,6 +23,7 @@
 namespace {
 
 namespace world = mu::world;
+using mu::session::SessionEpoch;
 using nexum::debug::LogLevel;
 
 constexpr world::ObjectId kHero{0x0200};
@@ -217,18 +222,59 @@ TEST_CASE("[0001-CA-09] the changes of the terrain are counted and logged") {
 TEST_CASE("[0001-CA-09] the events wait in their queue and are applied one by one, in the order they came") {
     View view;
     world::EventQueue queue{8};
-    queue.Push(Hero());
-    queue.Push(Monster(kMonster, 14, {135, 124}));
-    queue.Push(world::ObjectStartedWalking{.id = kMonster, .source = {135, 124}, .target = {137, 125}});
-    queue.Push(world::ObjectLeft{.id = kMonster});
+    const SessionEpoch epoch{2};
+    queue.Push(epoch, Hero());
+    queue.Push(epoch, Monster(kMonster, 14, {135, 124}));
+    queue.Push(epoch,
+               world::ObjectStartedWalking{.id = kMonster, .source = {135, 124}, .target = {137, 125}});
+    queue.Push(epoch, world::ObjectLeft{.id = kMonster});
     // Nothing changes before the tick takes the events.
     CHECK_FALSE(view.view.HeroState().loaded);
-    CHECK(queue.Drain([&](const world::WorldEvent& event) { view.view.Apply(event); }) == 4);
+    CHECK(queue.Drain(
+              [&](SessionEpoch /*epoch*/, const world::WorldEvent& event) { view.view.Apply(event); }) == 4);
     CHECK(queue.Empty());
     // In this order the walk finds the monster in view, and it leaves after: nothing is ignored.
     CHECK(view.view.HeroState().loaded);
     CHECK(view.view.Objects().empty());
     CHECK(view.view.IgnoredEvents() == 0);
+}
+
+TEST_CASE(
+    "[0002-CA-02] the queue keeps each event with the epoch of its message, in order, and keeps its room") {
+    world::EventQueue queue{2};
+    CHECK(queue.Push(SessionEpoch{1}, world::ObjectLeft{.id = world::ObjectId{0x21}}));
+    CHECK(queue.Push(SessionEpoch{2}, world::ObjectLeft{.id = world::ObjectId{0x22}}));
+    // Past the room, the queue grows and keeps the event, with its epoch.
+    CHECK_FALSE(queue.Push(SessionEpoch{1}, world::ObjectLeft{.id = world::ObjectId{0x23}}));
+
+    struct Taken {
+        SessionEpoch epoch;
+        world::ObjectId id;
+    };
+    std::vector<Taken> taken;
+    CHECK(queue.Drain([&](SessionEpoch epoch, const world::WorldEvent& event) {
+        taken.push_back({.epoch = epoch, .id = std::get<world::ObjectLeft>(event).id});
+    }) == 3);
+    REQUIRE(taken.size() == 3);
+    CHECK(taken[0].epoch == SessionEpoch{1});
+    CHECK(taken[0].id == world::ObjectId{0x21});
+    CHECK(taken[1].epoch == SessionEpoch{2});
+    CHECK(taken[1].id == world::ObjectId{0x22});
+    CHECK(taken[2].epoch == SessionEpoch{1});
+    CHECK(taken[2].id == world::ObjectId{0x23});
+
+    // The queue is empty, and the room it grew to stays: the next events fit.
+    CHECK(queue.Empty());
+    CHECK(queue.Push(SessionEpoch{3}, world::ObjectLeft{.id = world::ObjectId{0x24}}));
+    CHECK(queue.Push(SessionEpoch{3}, world::ObjectLeft{.id = world::ObjectId{0x25}}));
+    CHECK(queue.Push(SessionEpoch{3}, world::ObjectLeft{.id = world::ObjectId{0x26}}));
+}
+
+TEST_CASE("[0002-CA-02] a smaller epoch is an older one") {
+    CHECK(SessionEpoch{1} < SessionEpoch{2});
+    CHECK_FALSE(SessionEpoch{2} < SessionEpoch{2});
+    CHECK_FALSE(SessionEpoch{3} < SessionEpoch{2});
+    CHECK(SessionEpoch{} < SessionEpoch{1});
 }
 
 TEST_CASE("[0001-CA-09] the name of an object keeps at most 10 bytes, up to the first zero") {

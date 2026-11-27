@@ -18,6 +18,7 @@
 #include <span>
 #include <string_view>
 
+#include "Mu/Session/SessionEpoch.hpp"
 #include "Mu/World/EventQueue.hpp"
 #include "Mu/World/WorldEvent.hpp"
 #include "Nexum/Debug/Logger.hpp"
@@ -30,9 +31,11 @@ public:
     // translator.
     Translator(world::ObjectId hero, nexum::debug::Logger& log);
 
-    // Translates one message of the world into events at the end of `events`, in the order of the packet.
-    // Gives how many events it put there.
-    std::size_t Translate(std::span<const std::byte> message, world::EventQueue& events);
+    // Translates one message of the world into events at the end of `events`, in the order of the packet,
+    // each with `epoch`, the epoch of the message (D-10 of the reference spec, item 5). Gives how many events
+    // it put there.
+    std::size_t Translate(session::SessionEpoch epoch, std::span<const std::byte> message,
+                          world::EventQueue& events);
 
 private:
     using Message = std::span<const std::byte>;
@@ -57,6 +60,8 @@ private:
 
     world::ObjectId m_hero;
     nexum::debug::Logger* m_log;
+    // The epoch of the message being translated, which Put gives to each of its events.
+    session::SessionEpoch m_epoch;
     // One bit for each code (and subcode, for the codes that have them) already logged as unknown.
     std::bitset<0x10000> m_reported;
     bool m_queueGrew = false;
