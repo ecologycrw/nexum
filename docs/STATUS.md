@@ -1,6 +1,6 @@
 ---
-fase: em-andamento
-spec-atual: 0002
+fase: entre-fatias
+spec-atual:
 branch: fatia/0002-gravacao-e-replay
 atualizado-em: 2026-11-27
 ---
@@ -9,13 +9,15 @@ atualizado-em: 2026-11-27
 
 ## Agora
 
-**Fatia 2 fechada e testada pelo dono, esperando a retrospectiva: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [report](../specs/0002-gravacao-e-replay/report.md)), na branch `fatia/0002-gravacao-e-replay`. O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. Uma gravação de 20 s do OpenMU local está no repositório, e a CI a reproduz nos 3 sistemas. A fatia fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O [PR #12](https://github.com/ecologycrw/nexum/pull/12) saiu do rascunho, e o dono testou: tudo passou, com os 10 checks verdes.
+**Fatia 2 concluída, esperando o merge do dono: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [report](../specs/0002-gravacao-e-replay/report.md)), na branch `fatia/0002-gravacao-e-replay`. O dono testou, e a retrospectiva foi feita. O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. Com ela, a parte 1 do M2 está feita ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O [PR #12](https://github.com/ecologycrw/nexum/pull/12) está pronto para a aprovação.
+
+A próxima é a **fatia 3, o importador do M1** (`muimport`): ele lê os modelos e as texturas da instalação do jogo, grava o cache da engine e exporta glTF, com fuzzing, ainda sem desenhar. Ela traz também três correções pequenas: a falha de uma semente de fuzzing no Windows sem a janela que trava o teste (P-0021), os testes de recusa de antes da regra da P-0020 com o motivo exato (P-0023), e a checagem `docs` procurando a etiqueta do critério também nos testes em Python e em CMake (P-0024). Antes da spec, a central precisa descrever os formatos dos modelos e das texturas: hoje ela tem só o achado da leitura do `.bmd`, com perguntas em aberto.
 
 A fatia 1 (a rede até o mundo) está na `main` desde o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11), assim como a fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. `/retrospectiva` da fatia 2, numa sessão nova aberta pelo dono, na mesma branch, antes da aprovação e do merge do [PR #12](https://github.com/ecologycrw/nexum/pull/12). O dono já testou, e tudo passou.
+1. O dono lê o resumo de segurança e faz o squash merge do [PR #12](https://github.com/ecologycrw/nexum/pull/12). Depois, `/planejar` da fatia 3, a partir da `main`: ele confere na central o que o M1 manda investigar antes e escreve as perguntas prontas para o dono levar (agente `formatos`).
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -63,3 +65,4 @@ Nenhum.
 | 2026-11-27 | Revisão independente da fatia 2: nenhum achado crítico ou importante, e 11 menores. Cinco foram corrigidos (o replay interrompido passa a terminar com erro, os textos do cabeçalho da gravação são conferidos, um teste confere o motivo exato, e a página e a licença da gravação de referência); um virou o TD-0040, um virou a P-0022, três ficam para o report e um espera o "sim" do dono no `/fechar`. As correções vão até o commit `a97dc54` |
 | 2026-11-27 | Fatia 2 fechada: report com a prova dos 13 critérios, a medição de 60 s e a checklist de sala limpa. O teste que grava e reproduz passou de novo no OpenMU local, com o código final. O ROADMAP deixou de citar o TD-0037, com o "sim" do dono, e o PR #12 saiu do rascunho para o teste do dono |
 | 2026-11-27 | Teste do dono da fatia 2: tudo passou, os passos do report e a CI verde nos 10 checks |
+| 2026-11-27 | Retrospectiva da fatia 2: a próxima é a fatia 3, o importador do M1. A escada de erros não trouxe regra nova: o campo que o MSVC deixou passar foi pego pela CI do PR em rascunho (P-0019), e o teste de recusa sem o motivo exato, terceira ocorrência, virou a P-0023 (rever os testes de antes da regra), porque uma busca no texto não distingue um `Result` de um `std::optional`. A P-0021, a P-0023 e a P-0024 foram aceitas para a fatia 3, e a P-0022 para a parte 2 do M2. A P-0015 e a P-0018 ficaram como aplicadas, e o TD-0009 passou para o M1 |

@@ -223,7 +223,9 @@ Lições técnicas, sem erro da IA, que ficam para as próximas fatias:
 - **P-0021:** a falha de uma semente de fuzzing no Windows abre uma janela em vez de falhar na hora. Vinda da sabotagem da T11; aberta.
 - **P-0022:** a impressão do estado não pode esquecer um campo novo da visão do mundo, e o script do valor fixo da cena cheia vai para o repositório. Vinda da revisão (achado M5); aberta, para o M4.
 
-A [P-0015](../../docs/PROPOSALS.md) (a trava dos `NOLINT`) e a [P-0018](../../docs/PROPOSALS.md) (o adaptador de servidor), aceitas na retrospectiva da fatia 1, foram aplicadas nesta fatia: a T02 e a T05, com o ADR 0035. A `/retrospectiva` atualiza o status delas.
+A [P-0015](../../docs/PROPOSALS.md) (a trava dos `NOLINT`) e a [P-0018](../../docs/PROPOSALS.md) (o adaptador de servidor), aceitas na retrospectiva da fatia 1, foram aplicadas nesta fatia: a T02 e a T05, com o ADR 0035.
+
+Na retrospectiva (2026-11-27), a escada de erros não trouxe regra nova. O campo que o MSVC deixou passar é a terceira ocorrência do código que passa no Windows e quebra no Linux, e a defesa por máquina da P-0019 funcionou: a CI do PR em rascunho pegou o erro no push seguinte, antes da revisão. O teste de recusa sem o motivo exato é a terceira ocorrência do teste que passa sem provar o que diz. Uma conferência por máquina não basta, porque uma busca no texto não distingue um `Result` de um `std::optional`, e a revisão continua conferindo a regra. A mesma busca achou 8 conferências de antes da regra que só olham se houve recusa: elas viraram a **P-0023**, a revisão desses testes. A lição da checagem `docs` virou a **P-0024**. O commit sem a linha `Co-Authored-By` e os dois defeitos que só a revisão viu, primeiras ocorrências, ficam anotados. A P-0021, a P-0023 e a P-0024 foram aceitas para a fatia 3, e a P-0022 para a parte 2 do M2. A P-0015 e a P-0018 ficaram como aplicadas. A próxima fatia é a fatia 3, o importador do M1.
 
 O detalhe de cada uma está em [PROPOSALS.md](../../docs/PROPOSALS.md).
 
