@@ -59,6 +59,13 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: média (atrapalha o `verify` e a CI do Windows sempre que uma semente falha)
 - Status: aberta
 
+### P-0022: a impressão do estado não pode esquecer um campo novo da visão do mundo
+- Origem: fatia 2, revisão independente (achado M5)
+- Tipo: regra
+- Evidência: a impressão do estado (`StateDigestOf`, em `Games/MuOnline/Private/Recording/StateDigest.cpp`) cobre hoje todos os campos do herói, dos objetos na visão, da aparência, dos itens e do inventário, como o revisor conferiu struct por struct. Mas nada obriga a impressão a mudar quando a visão ganhar um campo. No M4, um campo novo no `WorldObject`, no `Item` ou no herói que o `StateDigestOf` esqueça deixa todos os testes verdes, inclusive os dois valores fixos do `StateDigestTest.cpp`, e o replay passa a ignorar esse campo sem que a versão da impressão mude. Além disso, o valor fixo da cena cheia (`kSceneDigest`) foi calculado por um script que não ficou no repositório, e ninguém consegue refazer a conta. O revisor sugere uma trava de forma no `StateDigest.cpp` (um `static_assert` de tamanho ou da quantidade de campos de cada struct, com a mensagem "atualize a impressão e a versão") e guardar o script ao lado do teste. Um `static_assert` de tamanho varia entre o MSVC, o Clang e o GCC quando a struct tem `std::string`, então a forma da trava precisa ser escolhida com cuidado
+- Prioridade sugerida: média (antes do M4, que acrescenta campos à visão do mundo)
+- Status: aberta
+
 ## Processadas
 
 ### P-0020: o teste de recusa confere o motivo, e os testes de risco são sabotados
