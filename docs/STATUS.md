@@ -1,6 +1,6 @@
 ---
-fase: em-andamento
-spec-atual: 0001
+fase: entre-fatias
+spec-atual:
 branch: fatia/0001-rede-ate-o-mundo
 atualizado-em: 2026-11-26
 ---
@@ -9,13 +9,15 @@ atualizado-em: 2026-11-26
 
 ## Agora
 
-**Fatia 1 fechada e testada pelo dono, esperando a retrospectiva: a rede até o mundo** ([spec](../specs/0001-rede-ate-o-mundo/spec.md) e [report](../specs/0001-rede-ate-o-mundo/report.md)), na branch `fatia/0001-rede-ate-o-mundo`. É a primeira das duas fatias da parte 1 do M2, que vem antes do M1 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O `MuClient` entra num OpenMU local sem modificações e fica no mundo; a fatia 2 traz a gravação `.mucap` e o replay. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) saiu do rascunho, e o dono testou: tudo passou, com a CI verde nos 10 checks.
+**Fatia 1 concluída, esperando o merge do dono: a rede até o mundo** ([spec](../specs/0001-rede-ate-o-mundo/spec.md) e [report](../specs/0001-rede-ate-o-mundo/report.md)), na branch `fatia/0001-rede-ate-o-mundo`. O dono testou, e a retrospectiva foi feita. O `MuClient` entra num OpenMU local sem modificações e fica no mundo. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está pronto para a aprovação.
+
+A próxima é a **fatia 2, a gravação `.mucap` e o replay**, que fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). Ela traz também o adaptador de servidor (P-0018), a época nos eventos neutros (TD-0037) e a conferência dos `NOLINT` novos (P-0015). A retrospectiva mudou duas regras: o PR da fatia abre em rascunho logo depois da lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo (P-0020).
 
 A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10) estão na `main`. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. `/retrospectiva` da fatia 1, na mesma branch. Depois, o dono aprova e faz o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11).
+1. O dono lê o resumo de segurança e faz o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11). Depois, `/planejar` da fatia 2, a partir da `main`.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -56,3 +58,4 @@ Nenhum.
 | 2026-11-26 | Revisão independente da fatia 1: nenhum achado crítico, 1 importante e 12 menores. O importante (o teste do checksum) e cinco menores foram corrigidos; quatro menores entraram no TD-0028 e no TD-0032 ou viraram o TD-0036 e o TD-0037; três ficam para o `/fechar`. As correções vão até o commit `18b8420` |
 | 2026-11-26 | Fatia 1 fechada: report com a prova dos 15 critérios, a contagem dos vetores (100% em cada grupo), a checklist de sala limpa e a medição de 30 minutos no mundo com a janela minimizada. O PR #11 saiu do rascunho para o teste do dono |
 | 2026-11-26 | Teste do dono da fatia 1: tudo passou, e a CI ficou verde nos 10 checks |
+| 2026-11-26 | Retrospectiva da fatia 1: a próxima é a fatia 2 (a gravação `.mucap` e o replay). A escada de erros trouxe a P-0019 (o PR em rascunho desde a lista de tarefas) e a P-0020 (o teste de recusa confere o motivo, e os testes de risco são sabotados), aplicadas. A P-0015 e a P-0018 foram aceitas para a fatia 2, e a P-0017 para o M7. A P-0014 fechou com a medição do custo da fatia |

@@ -257,6 +257,10 @@ Lições técnicas, sem erro da IA, que ficam para as próximas fatias:
 - **P-0017:** as mensagens de erro da rede em UTF-8 no Windows. Vinda da T14; aberta.
 - **P-0018:** o adaptador de servidor entre o protocolo e o jogo. Vinda de uma pergunta do dono depois da T18; aberta, para o `/planejar` da fatia 2.
 
-A P-0014 teve o item 2 decidido na aprovação da spec (o TD-0015 entrou nesta fatia); o item 8, medir o custo da fatia, fica para a `/retrospectiva`. O detalhe de cada uma está em [PROPOSALS.md](../../docs/PROPOSALS.md).
+A P-0014 teve o item 2 decidido na aprovação da spec (o TD-0015 entrou nesta fatia); o item 8, medir o custo da fatia, fica para a `/retrospectiva`.
+
+Na retrospectiva (2026-11-26), a escada de erros subiu dois degraus. As conversões de sinal, com o teste do assert da fatia 0, viraram a **P-0019**: o PR abre em rascunho logo depois da lista de tarefas, para a CI ver cada push. O teste que passava sem provar o que dizia, com o do CA-09 da fatia 0, virou a **P-0020**: todo teste de recusa confere o motivo exato, e os testes com risco real de falso positivo são sabotados uma vez. As duas foram aceitas e aplicadas. O `NOLINT` sem motivo, primeira ocorrência, fica anotado. A P-0015 e a P-0018 foram aceitas para a fatia 2, a P-0017 para o M7, e a P-0014 fechou com a medição do custo da fatia. A próxima fatia é a fatia 2, a gravação `.mucap` e o replay.
+
+O detalhe de cada uma está em [PROPOSALS.md](../../docs/PROPOSALS.md).
 
 **Para levar à sessão da central** (o bloco 3; não são propostas do Nexum, porque a central é quem muda a spec de referência): a IV.12 ainda oferece um radar no canto "como opção do modo Enhanced"; o Apêndice G não lista o `light-mood.md`; e a data do front matter da spec de referência ficou em 2026-11-20, depois das correções de 2026-11-22.

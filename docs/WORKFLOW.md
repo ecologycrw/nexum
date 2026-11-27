@@ -29,10 +29,10 @@ flowchart LR
 ```
 
 1. **`/planejar`** escolhe a próxima fatia, confere na central se o que o marco manda "investigar antes" já existe, e escreve `spec.md` e `plan.md`. O dono aprova a spec.
-2. **`/implementar`** cria o `tasks.md` e faz uma tarefa por vez: código, teste, verificação, checklist de sala limpa e commit.
+2. **`/implementar`** cria o `tasks.md`, abre o PR em rascunho e faz uma tarefa por vez: código, teste, verificação, checklist de sala limpa e commit. Com o PR aberto desde o começo, cada push roda a CI nos 3 sistemas, e um erro que só aparece no Linux ou no macOS aparece na própria tarefa (P-0019).
 3. **`/verificar`** roda formatação, build, testes, sanitizers e checagens, e mostra a saída real.
 4. **`/revisar`** chama o revisor e corrige os achados graves.
-5. **`/fechar`** escreve o `report.md`, atualiza a documentação viva e abre o PR.
+5. **`/fechar`** escreve o `report.md`, atualiza a documentação viva e tira o PR do rascunho.
 6. O dono testa e conta o que achou.
 7. **`/retrospectiva`** registra o feedback, processa as propostas e sugere de 1 a 3 próximas fatias, com uma recomendação. Ela roda **no mesmo PR**, para o dono aprovar uma vez só.
 8. O dono aprova o PR e faz o squash merge.
@@ -111,7 +111,7 @@ A lista oficial, com cada trava pelo nome, fica no [`AGENTS.md`](../AGENTS.md), 
 - A `main` é sempre a versão aprovada pelo dono. Ninguém envia nada direto para ela.
 - Cada fatia tem uma branch `fatia/NNNN-nome`.
 - A IA faz um commit ao terminar cada tarefa, **se o build e os testes passarem**, e envia a branch automaticamente.
-- O `/fechar` abre o PR. O dono aprova e faz o **squash merge** pelo navegador.
+- O `/implementar` abre o PR em rascunho logo depois da lista de tarefas, e o `/fechar` o tira do rascunho. O dono aprova e faz o **squash merge** pelo navegador.
 - Commits e PRs são feitos pela **conta de máquina** da IA, com a linha `Co-Authored-By` do Claude. Aprovações e merges são do dono.
 - O que nunca se faz no Git e no GitHub está na lista "Proibido" do [`AGENTS.md`](../AGENTS.md).
 - **A prova é o check verde no PR**, não a mensagem da IA.

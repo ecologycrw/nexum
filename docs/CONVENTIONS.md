@@ -138,6 +138,8 @@ A IA imita o código que já existe. Por isso, os melhores exemplos de cada padr
 - Um teste que prova um critério de aceitação leva a etiqueta no começo do nome: `TEST_CASE("[0000-CA-04] ...")`.
 - Tempo e sorteios nos testes vêm das fontes injetadas, nunca do sistema.
 - Todo leitor de dados externos tem testes com dados inválidos.
+- **Um teste de recusa confere o motivo exato** (a mensagem ou o código do erro), nunca só que falhou. Um teste que só espera "falhou" passa também quando a recusa vem de outro lugar ([P-0020](PROPOSALS.md)).
+- **A sabotagem**, onde há risco real de o teste passar pelo motivo errado: nos critérios críticos, nos testes de integração, nos leitores de dados de fora, nos checksums e na cifra, e nas medições de memória. Quando o teste nasce, a conferência que ele prova é desligada de propósito, o teste tem de falhar, e a conferência volta. O resultado vai no corpo do commit da tarefa. Quando não dá para desligar o que o teste mede, porque não é código do Nexum (a memória que o SDL pede, por exemplo), o teste ganha um caso de controle, que só passa se o instrumento enxergar o que mede. Os testes unitários simples, cujo resultado se confere à vista, dispensam a sabotagem.
 - Decodificadores de pacote são conferidos contra os vetores gerados pelo próprio OpenMU (a partir do M2).
 - Um teste nunca é apagado ou enfraquecido para "fazer passar".
 

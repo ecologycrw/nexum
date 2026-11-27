@@ -22,6 +22,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (decidir no ponto de decisão do M7)
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o ponto de decisão.
+- Revista na retrospectiva da fatia 1 (2026-11-26): continua aberta até o ponto de decisão.
 
 ### P-0008: a prova visual do M3 com as placas de vídeo por software da CI
 - Origem: feedback do dono, depois da revisão da fatia 0 (a pergunta sobre placa de vídeo nas máquinas do GitHub)
@@ -35,6 +36,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: média (decidir antes do M3)
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o planejamento do M3.
+- Revista na retrospectiva da fatia 1 (2026-11-26): continua aberta até o planejamento do M3.
 
 ### P-0009: as opções para a CI ter uma placa de vídeo de verdade
 - Origem: feedback do dono, na mesma conversa da P-0008
@@ -48,6 +50,58 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Prioridade sugerida: baixa (rever no M3 e no M7)
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
+- Revista na retrospectiva da fatia 1 (2026-11-26): continua aberta, para rever junto com a P-0008.
+
+## Processadas
+
+### P-0020: o teste de recusa confere o motivo, e os testes de risco são sabotados
+- Origem: escada de erros, na retrospectiva da fatia 1 (segunda ocorrência)
+- Tipo: regra
+- Evidência: duas vezes um teste passou sem provar o que dizia, e só a revisão viu. Na fatia 0, o teste do CA-09 não via a memória que o SDL pede por `malloc` (achado importante da revisão, [TD-0019](TECH_DEBT.md)). Na fatia 1, o teste do checksum errado (CA-02) falhava antes de chegar ao checksum: trocar 1 bit do checksum mudava também o tamanho lido, e o teste só esperava que a leitura falhasse (achado importante da revisão, corrigido no `8242de5`). A correção usou o jeito que pega o problema: desligar a conferência de propósito e ver o teste falhar. Uma ferramenta que sabota o código sozinha (o teste de mutação, como o Mull) faria isso por máquina, mas é uma ferramenta externa nova e pesada para a CI.
+- Prioridade sugerida: média
+- Status: aceita e aplicada na retrospectiva da fatia 1 (2026-11-26). O dono escolheu "Regra da sabotagem" e pediu um escopo enxuto, "para não multiplicar recompilações e gasto de tokens": "Obrigatório em todo teste de recusa: conferir o motivo/código exato da falha, nunca apenas que falhou" e "Sabotagem (desligar conferência → ver falhar → restaurar): aplicar apenas em critérios críticos, de integração ou com risco real de falso-positivo (ex.: memória/SDL, parsers, checksums e etc, o que você achar justificavel), dispensando em testes unitários triviais".
+- Destino: a seção "Testes" da [CONVENTIONS](CONVENTIONS.md) é a dona da regra; o `/implementar` a cita no passo do teste, e o `revisor` a confere (travas em `.claude/`). O teste de mutação fica de fora; ele pode voltar no M7, se a regra não bastar.
+
+### P-0019: o PR em rascunho desde a primeira tarefa, para a CI ver cada push
+- Origem: escada de erros, na retrospectiva da fatia 1 (terceira ocorrência)
+- Tipo: regra
+- Evidência: três vezes um código que passava no Windows quebrou no Linux ou no macOS, e só a CI viu. Na fatia 0, o teste do assert contava com o jeito como o Windows encerra o programa (T06). Na fatia 1, o teste de fuzzing da cifra somava um tamanho sem sinal a um iterador (T09, `18c4269`), e o GCC recusou a soma de um `std::size_t` com um `int`, que o Clang e o MSVC aceitaram (T14, `22b35ab`). Nada chegou à `main`, mas a CI só roda quando a branch tem PR (`.github/workflows/ci.yml`), e na fatia 1 o PR só foi aberto na T10, a pedido do dono. Num teste no computador do dono, o aviso C4365 do MSVC pegou o caso da T09, mas não o da T14, que só o GCC acusa. As opções eram: o PR em rascunho na primeira tarefa; o mesmo, com o aviso C4365 (trava `cmake/`); um build com o GCC num contêiner antes de cada push (um download de vários GB e alguns minutos a mais por tarefa); e deixar como estava.
+- Prioridade sugerida: média
+- Status: aceita e aplicada na retrospectiva da fatia 1 (2026-11-26). O dono escolheu "PR em rascunho na 1ª tarefa".
+- Destino: o `/implementar` abre o PR em rascunho logo depois do commit da lista de tarefas e oferece o aviso automático da CI; uma falha da CI é corrigida antes de a tarefa seguinte fechar (trava `.claude/skills/implementar/`). O [WORKFLOW](WORKFLOW.md) diz o mesmo no ciclo e na seção "Git".
+
+### P-0018: o adaptador de servidor entre o protocolo e o jogo
+- Origem: feedback do dono, em 2026-11-26, depois da T18 da fatia 1
+- Tipo: decisão
+- Evidência: o dono perguntou: "existe alguma forma de criar uma abstração para receber qualquer servidor ? Ou isso já existe ? Ou ainda não." Depois dos exemplos, disse: "Sim, registre". Hoje, a rede da engine (`Engine/Net`) só move bytes, e os eventos neutros (`Mu/World/WorldEvent.hpp`) já são o contrato com os sistemas do jogo (IV.14.4 da spec de referência e [ADR 0010](adr/0010-rede-adaptador-em-camadas.md)). Mas o `OnlineClient` (`Mu/Online`) guarda direto a sessão e a tradução do OpenMU 106.3, e ainda não existem comandos neutros de saída. O replay da fatia 2 é a primeira outra fonte de eventos: sem um encaixe, ele obrigaria a duplicar o cliente online ou a remendá-lo.
+  - **A proposta:** um contrato no módulo MU (por exemplo, `ServerAdapter`) com quatro partes: o começo da sessão (conta, senha, servidor e personagem), a entrega dos eventos neutros a cada quadro, o envio de comandos neutros (como andar até uma célula ou atacar um objeto) e o estado (conectando, no mundo, ou caiu, com o motivo). Os eventos e os comandos são valores de tamanho fixo, para o encaixe não pedir memória a cada quadro (INV-13). O contrato fica no módulo MU, e não na engine, porque os eventos e os comandos ainda falam de MU (INV-03).
+  - **Duas implementações na fatia 2:** o OpenMU 106.3 ao vivo, com as peças de hoje (`NetworkTransport`, `Session` e `Translator`), e o replay do `.mucap`. Os comandos neutros entram de verdade com o andar, na parte 2 do M2.
+  - **Fica fora:** apoiar oficialmente outros servidores (a [VISÃO](VISION.md) diz que o servidor é o OpenMU sem modificações), carregar adaptadores por plugins e descrever protocolos por arquivos de configuração. Um servidor novo exigiria a descrição da central (sala limpa, INV-16) e a origem conferida (INV-17). Reavaliar no ponto de decisão depois do M7.
+  - **O que pede:** um ADR, por ser uma mudança de arquitetura, e o "sim" do dono no `/planejar` da fatia 2. A [Regra de três](CONVENTIONS.md#regra-de-três) aceita a abstração antes do terceiro caso, porque é uma fronteira entre camadas.
+- Prioridade sugerida: média (entra no planejamento da fatia 2, junto com o replay)
+- Status: aceita
+- Destino: o `/planejar` da fatia 2, junto com o replay, com o ADR e o "sim" do dono na spec. Decidido na retrospectiva da fatia 1 (2026-11-26).
+
+### P-0017: as mensagens de erro da rede em UTF-8 no Windows
+- Origem: fatia 1, T14, no teste `muclient_reads_the_password_and_reports_a_closed_connect_server`
+- Tipo: bug
+- Evidência: no Windows, a razão do fim da conexão chegou ao log com as letras acentuadas trocadas: "could not connect to 127.0.0.1:1: Nenhuma conex�o p�de ser feita porque a m�quina de destino as recusou ativamente." O `Engine/Net` junta ao texto a mensagem de erro do Asio (`error.message()`, em `Engine/Net/Private/Connection.cpp`), e o mais provável é que ela venha do Windows na página de código do sistema, e não em UTF-8; isso precisa ser confirmado antes da correção. A [CONVENTIONS](CONVENTIONS.md) pede UTF-8 em tudo, com a conversão só na borda com o sistema operacional. O defeito é parecido com o [TD-0013](TECH_DEBT.md) (os argumentos da linha de comando na página de código). Hoje ele só atrapalha a leitura do log num Windows em português; as mensagens da sessão, como a recusa do login, são do próprio Nexum e não passam por aqui. Opções a comparar: converter a mensagem para UTF-8 no `Engine/Net`, na borda com o Asio; ou escrever a razão só com o código do erro e um texto próprio, sem a mensagem do sistema.
+- Prioridade sugerida: baixa (só a leitura do log no Windows; nenhum comportamento muda)
+- Status: aceita
+- Destino: o M7, junto com o [TD-0013](TECH_DEBT.md), que tem a mesma causa provável: o texto do Windows na página de código do sistema, e não em UTF-8. Antes da correção, confirmar de onde vem a página de código. Decidido na retrospectiva da fatia 1 (2026-11-26).
+
+### P-0015: uma trava que confira os `NOLINT` novos
+- Origem: achado 5 do `auditor`, na consolidação de 2026-11-25 (P-0013), deixado fora dela por ser escopo novo
+- Tipo: trava
+- Evidência: um comentário `NOLINT` ou `NOLINTNEXTLINE` desliga uma regra do clang-tidy naquela linha, e nada no Nexum confere quando um deles entra. A [CONVENTIONS](CONVENTIONS.md) pede que cada exceção tenha o motivo escrito no código, mas isso é só texto: um `NOLINT` novo apaga a checagem em silêncio, e só a revisão o vê. Hoje existem três, todos com motivo: o `currentLaunch` de `Engine/Platform/Private/Application.cpp` e os dois pontos do profiler em `Engine/Debug/Private/Profiler.cpp`. Depois da explicação, o dono disse "Sim, registre". Opções a comparar:
+  - **o resumo de segurança do PR contar os `NOLINT` acrescentados** e listar cada um, como já faz com os testes removidos. É o mais barato: não bloqueia nada e põe cada exceção nova diante do dono antes do merge. Trava: `scripts/checks/` (o `pr_summary.py` e os testes dele);
+  - **a checagem `cpp-rules` exigir um comentário com o motivo logo acima** de cada `NOLINT`, e que ele cite a regra desligada, sem `NOLINT` genérico. Trava: `scripts/checks/`;
+  - **uma lista fixa de arquivos onde o `NOLINT` é aceito**: a mais rígida, e cada exceção nova pediria uma mudança de trava.
+
+  A recomendação é a primeira, talvez junto com a segunda: a primeira mostra, a segunda impede o `NOLINT` sem motivo.
+- Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
+- Status: aceita
+- Destino: uma tarefa da fatia 2, com a primeira e a segunda opção: o resumo de segurança do PR lista cada `NOLINT` novo, e a checagem `cpp-rules` exige o motivo (trava `scripts/checks/`). Na fatia 1, um `NOLINTBEGIN` sem motivo entrou em todos os cabeçalhos gerados pelo `packetgen`, e só a revisão viu (achado 8, corrigido no `caaa674`). Como ele estava no modelo do gerador, escrito em Python, o resumo precisa olhar também os arquivos de `Tools/`, e não só o C++. Decidido na retrospectiva da fatia 1 (2026-11-26).
 
 ### P-0014: os achados da auditoria externa que esperam a parte 1 do M2
 - Origem: feedback do dono, em 2026-11-25, na mesma conversa da P-0013
@@ -62,40 +116,21 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 
   8. **Medir o custo da fatia.** A auditoria concluiu que o processo pesa mais que o código, e o PR #9 (P-0012) foi a resposta. **Ação:** na retrospectiva, anotar quantas sessões e quantas correções a fatia teve, e o tamanho do `tasks.md` e do report, e comparar com a fatia 0 (`specs/0000-fundacao/`: `tasks.md` com 78 KB e report com 24 KB). Os números mostram se a P-0012 bastou.
 - Prioridade sugerida: alta para o item 2 (antes da spec da parte 1 do M2); baixa para o item 8
-- Status: aberta
-- Item 2 decidido em 2026-11-25, na aprovação da spec da fatia 1: o TD-0015 entra nela. Fica aberto o item 8, para a retrospectiva.
+- Status: aceita
+- Item 2 decidido em 2026-11-25, na aprovação da spec da fatia 1: o TD-0015 entrou nela e saiu do TECH_DEBT na T18.
+- Item 8 feito na retrospectiva da fatia 1 (2026-11-26). O custo da fatia 1, comparado com a fatia 0:
 
-### P-0015: uma trava que confira os `NOLINT` novos
-- Origem: achado 5 do `auditor`, na consolidação de 2026-11-25 (P-0013), deixado fora dela por ser escopo novo
-- Tipo: trava
-- Evidência: um comentário `NOLINT` ou `NOLINTNEXTLINE` desliga uma regra do clang-tidy naquela linha, e nada no Nexum confere quando um deles entra. A [CONVENTIONS](CONVENTIONS.md) pede que cada exceção tenha o motivo escrito no código, mas isso é só texto: um `NOLINT` novo apaga a checagem em silêncio, e só a revisão o vê. Hoje existem três, todos com motivo: o `currentLaunch` de `Engine/Platform/Private/Application.cpp` e os dois pontos do profiler em `Engine/Debug/Private/Profiler.cpp`. Depois da explicação, o dono disse "Sim, registre". Opções a comparar:
-  - **o resumo de segurança do PR contar os `NOLINT` acrescentados** e listar cada um, como já faz com os testes removidos. É o mais barato: não bloqueia nada e põe cada exceção nova diante do dono antes do merge. Trava: `scripts/checks/` (o `pr_summary.py` e os testes dele);
-  - **a checagem `cpp-rules` exigir um comentário com o motivo logo acima** de cada `NOLINT`, e que ele cite a regra desligada, sem `NOLINT` genérico. Trava: `scripts/checks/`;
-  - **uma lista fixa de arquivos onde o `NOLINT` é aceito**: a mais rígida, e cada exceção nova pediria uma mudança de trava.
+  | Medida | Fatia 0 | Fatia 1 |
+  |---|---|---|
+  | Sessões | cerca de 8 | 11: o planejamento, 7 de implementação, a revisão, o fechamento com o teste do dono e a retrospectiva |
+  | Commits na branch (correções) | 56 (10) | 42 (6: 3 da CI e 3 da revisão) |
+  | Linhas novas, fora de `third_party/` | 11,3 mil | 13,7 mil |
+  | `tasks.md` | 78 KB | 27 KB |
+  | `report.md` | 24 KB | 42 KB |
+  | `plan.md` e `spec.md` | 17 KB e 11 KB | 35 KB e 16 KB |
 
-  A recomendação é a primeira, talvez junto com a segunda: a primeira mostra, a segunda impede o `NOLINT` sem motivo.
-- Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
-- Status: aberta
-
-### P-0017: as mensagens de erro da rede em UTF-8 no Windows
-- Origem: fatia 1, T14, no teste `muclient_reads_the_password_and_reports_a_closed_connect_server`
-- Tipo: bug
-- Evidência: no Windows, a razão do fim da conexão chegou ao log com as letras acentuadas trocadas: "could not connect to 127.0.0.1:1: Nenhuma conex�o p�de ser feita porque a m�quina de destino as recusou ativamente." O `Engine/Net` junta ao texto a mensagem de erro do Asio (`error.message()`, em `Engine/Net/Private/Connection.cpp`), e o mais provável é que ela venha do Windows na página de código do sistema, e não em UTF-8; isso precisa ser confirmado antes da correção. A [CONVENTIONS](CONVENTIONS.md) pede UTF-8 em tudo, com a conversão só na borda com o sistema operacional. O defeito é parecido com o [TD-0013](TECH_DEBT.md) (os argumentos da linha de comando na página de código). Hoje ele só atrapalha a leitura do log num Windows em português; as mensagens da sessão, como a recusa do login, são do próprio Nexum e não passam por aqui. Opções a comparar: converter a mensagem para UTF-8 no `Engine/Net`, na borda com o Asio; ou escrever a razão só com o código do erro e um texto próprio, sem a mensagem do sistema.
-- Prioridade sugerida: baixa (só a leitura do log no Windows; nenhum comportamento muda)
-- Status: aberta
-
-### P-0018: o adaptador de servidor entre o protocolo e o jogo
-- Origem: feedback do dono, em 2026-11-26, depois da T18 da fatia 1
-- Tipo: decisão
-- Evidência: o dono perguntou: "existe alguma forma de criar uma abstração para receber qualquer servidor ? Ou isso já existe ? Ou ainda não." Depois dos exemplos, disse: "Sim, registre". Hoje, a rede da engine (`Engine/Net`) só move bytes, e os eventos neutros (`Mu/World/WorldEvent.hpp`) já são o contrato com os sistemas do jogo (IV.14.4 da spec de referência e [ADR 0010](adr/0010-rede-adaptador-em-camadas.md)). Mas o `OnlineClient` (`Mu/Online`) guarda direto a sessão e a tradução do OpenMU 106.3, e ainda não existem comandos neutros de saída. O replay da fatia 2 é a primeira outra fonte de eventos: sem um encaixe, ele obrigaria a duplicar o cliente online ou a remendá-lo.
-  - **A proposta:** um contrato no módulo MU (por exemplo, `ServerAdapter`) com quatro partes: o começo da sessão (conta, senha, servidor e personagem), a entrega dos eventos neutros a cada quadro, o envio de comandos neutros (como andar até uma célula ou atacar um objeto) e o estado (conectando, no mundo, ou caiu, com o motivo). Os eventos e os comandos são valores de tamanho fixo, para o encaixe não pedir memória a cada quadro (INV-13). O contrato fica no módulo MU, e não na engine, porque os eventos e os comandos ainda falam de MU (INV-03).
-  - **Duas implementações na fatia 2:** o OpenMU 106.3 ao vivo, com as peças de hoje (`NetworkTransport`, `Session` e `Translator`), e o replay do `.mucap`. Os comandos neutros entram de verdade com o andar, na parte 2 do M2.
-  - **Fica fora:** apoiar oficialmente outros servidores (a [VISÃO](VISION.md) diz que o servidor é o OpenMU sem modificações), carregar adaptadores por plugins e descrever protocolos por arquivos de configuração. Um servidor novo exigiria a descrição da central (sala limpa, INV-16) e a origem conferida (INV-17). Reavaliar no ponto de decisão depois do M7.
-  - **O que pede:** um ADR, por ser uma mudança de arquitetura, e o "sim" do dono no `/planejar` da fatia 2. A [Regra de três](CONVENTIONS.md#regra-de-três) aceita a abstração antes do terceiro caso, porque é uma fronteira entre camadas.
-- Prioridade sugerida: média (entra no planejamento da fatia 2, junto com o replay)
-- Status: aberta
-
-## Processadas
+  A P-0012 bastou para o `tasks.md` (66% menor), e os documentos da fatia somam menos (120 KB contra 130 KB) numa fatia com mais código. O peso passou para o report e o plano.
+- Destino: nenhuma ação nova agora. O próximo `/consolidar` confere se o report e o plano repetem o que já está noutro lugar: a lista da revisão, por exemplo, aparece no `tasks.md` e no report.
 
 ### P-0016: o código gerado dos pacotes sem estourar a memória do build
 - Origem: medição na fatia 1, durante o `verify` da T13, a partir de uma pergunta do dono
