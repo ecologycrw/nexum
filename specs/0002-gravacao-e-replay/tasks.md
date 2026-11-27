@@ -48,6 +48,7 @@ Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o 
 - **2026-11-27, entre a T03 e a T04:** "Em outra sessão (eu abro)". A T04 começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI (Auto-fix) do PR #12 precisa ser ligado de novo.
 - **2026-11-27, na sessão nova, antes da T04:** "Sim, com Auto-fix". A T04 começou nesta sessão, e o aviso automático da CI (Auto-fix) do PR #12 foi ligado de novo aqui.
 - **2026-11-27, entre a T04 e a T05:** "Nesta sessão". A T05 foi feita nesta sessão.
+- **2026-11-27, entre a T05 e a T06:** "Em outra sessão". A T06 começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI (Auto-fix) do PR #12 precisa ser ligado de novo.
 
 ## Bloqueios
 
@@ -67,7 +68,7 @@ Contexto que a próxima sessão precisa saber e que não está em outro lugar.
 
 Os desvios do plano e as travas alteradas não ficam aqui: vão direto para o report.
 
-- **Onde parou (2026-11-27):** a T01 a T05 estão feitas e enviadas, com o `verify` verde em cada uma. A próxima é a **T06** (a época nos eventos). O Auto-fix do PR #12 foi ligado nesta sessão; numa sessão nova, ofereça ligar de novo.
+- **Onde parou (2026-11-27):** a T01 a T05 estão feitas e enviadas, com o `verify` verde em cada uma. A próxima é a **T06** (a época nos eventos), numa sessão nova aberta pelo dono: no começo dela, pergunte se a T06 começa ali e ofereça ligar o Auto-fix do PR #12 de novo. O Auto-fix ficou ligado na sessão da T04 e da T05; quando ele for ligado na sessão nova, lembre o dono de que a sessão anterior pode ser desligada, para as duas não corrigirem a mesma falha.
 - **O adaptador (T05), para a T06 e a T10:** o contrato já tem o `CurrentEpoch()`, e o `LiveServer` devolve a época da sessão; falta a época na fila e o descarte no `ApplyEvents`. O `ServerStatus::reason` é um `string_view` que vale até a próxima chamada ao servidor. O estado "terminou" vira o `OnlineStatus::ServerEnded`, que o `FoundationApp` encerra com sucesso: é o fim do replay. A `mu-online.md`, a `mu-session.md` e a `mu-translate.md` ainda descrevem o `OnlineClient` da fatia 1 e ficam para a T16, que no plano não cita as duas últimas.
 - **A leitura do arquivo (T04), para a T07:** `ReadFileBytes(caminho, limite)` recusa com a mensagem exata "the file <caminho> has <N> bytes, more than the limit of <L>", antes de pedir memória. A recusa dos 64 MiB do CA-03 usa esse limite, e o teste do formato pode conferir essa mensagem. O teste de memória fica em `nexum_platform_file_bytes_allocation_tests`.
 - **Rode os programas de teste pelo `ctest --test-dir build/windows-dev`,** nunca pelo `.exe` a partir da pasta do projeto: os testes gravam as pastas de saída na pasta atual. E compile pelo `py scripts/dev.py build`: o `cmake --build` direto fica sem o ambiente do compilador da Microsoft.
