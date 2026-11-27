@@ -43,7 +43,7 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
 
 Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a data e, na revisão, o commit. O hook do início da sessão lê esta lista para dizer a etapa e o próximo passo (`docs/WORKFLOW.md`).
 
-- [ ] Revisão (`/revisar`)
+- [x] Revisão (`/revisar`): 2026-11-27, commit `a97dc54`
 - [ ] Fechamento (`/fechar`)
 - [ ] Teste do dono
 - [ ] Retrospectiva (`/retrospectiva`)
@@ -77,6 +77,7 @@ Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o 
 - **2026-11-27, na sessão nova, antes da T15:** "Sim, com Auto-fix". A T15 começou nesta sessão, e o aviso automático da CI (Auto-fix) do PR #12 foi ligado de novo aqui.
 - **2026-11-27, entre a T15 e a T16:** "Nesta sessão". A T16 começou nesta sessão.
 - **2026-11-27, depois da T16:** "Em outra sessão". O `/revisar` começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI (Auto-fix) do PR #12 precisa ser ligado de novo.
+- **2026-11-27, na sessão nova, antes do `/revisar`:** "Sim, com Auto-fix". O `/revisar` foi feito nesta sessão, e o aviso automático da CI (Auto-fix) do PR #12 foi ligado de novo aqui.
 
 ## Bloqueios
 
@@ -90,13 +91,27 @@ Não se aplica: a janela continua com o cartão de teste da fatia 0.
 
 Achados do revisor e o que foi feito com cada um, uma linha por achado. Preenchido pelo `/revisar`.
 
+O revisor (2026-11-27, sobre o `a322d81`) não achou nada crítico nem importante, e achou 11 menores. Seis foram corrigidos, um virou item provisório, um virou proposta e três ficam para o report. As correções vão até o commit `a97dc54`, e o `verify` passou depois delas (55 testes, 56 com sanitizers, 44 no build de jogador, a análise estática sem problemas e as checagens OK).
+
+- **M1, a época avisada ao gravador só no passo 2, e não antes do tick:** procede, mas não acontece hoje, porque a época só muda no passo 2, e nenhum teste consegue mudá-la em outro passo. Virou o TD-0040 (destino M4), e a consequência do ADR 0035 diz isso. Commit `6df8398`.
+- **M2, um replay interrompido termina com sucesso:** procede. Corrigido: o replay que o `--frames` ou a janela fechada encerram antes do fim termina com 1 e a linha "the replay stopped before the end of the recording, so it checked only a part of it". Teste `muclient_fails_a_replay_stopped_before_its_end`, com a sabotagem. Commit `aab0a69`.
+- **M3, os textos do cabeçalho sem a conferência do UTF-8:** procede (INV-12). Corrigido na leitura e no escritor: UTF-8 pela RFC 3629, sem caracteres de controle, com o motivo exato e o byte. 2 casos novos, com a sabotagem. Commit `06d2b77`.
+- **M4, o gravador perde em silêncio uma mensagem fora de 3 a 65.535 bytes:** procede só em tese: a sessão só entrega mensagens que o leitor de mensagens já conferiu, com pelo menos o cabeçalho e o código e no máximo 65.535 bytes. Sem mudança; fica no report.
+- **M5, nada obriga a impressão do estado a mudar com um campo novo da visão, e o script do valor fixo da cena cheia não está no repositório:** procede, para o M4. Virou a P-0022. Commit `a97dc54`.
+- **M6, o teste de memória do `ReadFileBytes` sem o motivo exato da recusa:** procede. Corrigido, com a sabotagem (um arquivo que não existe passaria no teste antigo). Commit `fb1d5ea`.
+- **M7, código repetido (o plural em três lugares, o `CountOf` e o tempo de um registro em dois):** procede em parte. O plural tem duas formas de propósito: a do `LogLine`, que não pede memória e serve ao quadro, e a de `std::string`, fora do quadro, em dois lugares (`ReplayServer` e `RecordingTools`). O `CountOf` e o tempo do registro estão em dois lugares cada, abaixo da regra de três. Sem mudança; fica no report.
+- **M8, a página `mu-recording` dizia que a área não abre arquivo:** procede. Corrigido. Commit `6ab5b25`.
+- **M9, a gravação de referência sem o aviso da licença do OpenMU:** procede (decisão 5 da spec). Um README na pasta `Tests/Recordings`, com a origem, a licença MIT e a cópia da semente, e uma linha no THIRD_PARTY. Commit `6ab5b25`.
+- **M10, o ROADMAP cita o TD-0037, que já saiu:** procede. O ROADMAP muda só com o "sim" do dono, no `/fechar`.
+- **M11, três desvios de redação, com o comportamento certo e documentado:** procedem, e o report explica cada um ao dono. O CA-04 diz "um ponto de controle a cada 5 segundos", mas ele só vem no primeiro tick com eventos depois de cada 5 s (60 s parados deram 2, e não 12). O CA-05 e o item 9 do plano dizem que o replay entrega os registros cujo tempo já passou, mas ele entrega o grupo inteiro na hora do tick (commit `6947336`). O CA-10 diz "mensagens em cada quadro" no replay, mas só os quadros com tick recebem mensagens (commit `dd793d3`).
+
 ## Notas para a próxima sessão
 
 Contexto que a próxima sessão precisa saber e que não está em outro lugar.
 
 Os desvios do plano e as travas alteradas não ficam aqui: vão direto para o report.
 
-- **Onde parou (2026-11-27):** as 16 tarefas estão feitas e enviadas, com o `verify` verde em cada uma; a CI da T15 (`51e507b`) passou nos 10 checks, e a da T16 (`99ed471`) ainda rodava quando a sessão parou, com 8 de 10 verdes. A próxima etapa é o **`/revisar`**, numa sessão nova aberta pelo dono: no começo dela, pergunte se o `/revisar` começa ali, ofereça ligar o Auto-fix do PR #12 de novo e confira a CI do `99ed471`. O Auto-fix ficou ligado na sessão da T15 e da T16; quando ele for ligado na sessão nova, lembre o dono de que a sessão anterior pode ser desligada, para as duas não corrigirem a mesma falha. O servidor de teste ficou desligado: o revisor não precisa dele, mas, se quiser rodar o rótulo `openmu`, o dono liberou abrir e fechar o Docker.
+- **Onde parou (2026-11-27):** a revisão terminou, com as correções até o `a97dc54` e o registro na seção "Revisão". A próxima etapa é o **`/fechar`**. O Auto-fix do PR #12 ficou ligado na sessão da revisão; numa sessão nova, ofereça ligar de novo. Para o report: o TD-0040 entrou (destino M4) e a P-0022 foi aberta; o M4, o M7, o M10 e o M11 da revisão ficam explicados no report; a gravação de referência ganhou o `README.md` da pasta `Tests/Recordings`, com a licença, e a linha no THIRD_PARTY; o `MuClient` ganhou o teste `muclient_fails_a_replay_stopped_before_its_end`, e o replay interrompido agora termina com 1 (o passo 8 do "Como o dono testa" continua valendo, porque o replay inteiro termina com 0).
 - **A documentação (T16), para o `/fechar`:** o TD-0037 saiu do TECH_DEBT (a época nos eventos, T06), e a resolução vai para o report. Entraram o TD-0038 (os comandos do jogador, M2) e o TD-0039 (a gravação na memória até o fim, M4), as duas simplificações do plano. O ROADMAP ainda cita o TD-0037 e a fatia 2 em "Agora": ele muda só com o "sim" do dono, no `/fechar` ou na retrospectiva. A `mu-session` e a `mu-translate` também foram atualizadas (o `LiveServer` segura a sessão e a tradução), além das páginas do plano, e o glossário ganhou "adaptador de servidor" e "ponto de controle". O `Tools/CaptureReplay` saiu da ARCHITECTURE (o diagrama e a lista de pastas futuras), como diz o ADR 0035.
 - **A integração (T15), para a T16 e o report:** o `openmu_muclient_records_and_replays` (`tests/integration/openmu/RecordAndReplay.cmake`, só no build de desenvolvimento) inclui duas vezes o `CheckClientRun.cmake` e lê o `output` que ele deixa: grava 20 s com a `test0`, confere no arquivo que todo texto com "test0" é o nome do personagem `test0Dk` (a senha das contas de teste é o nome da conta), reproduz e exige as mesmas contagens, "every tick and checkpoint matched", os mesmos objetos na visão no fim e as mesmas linhas `world:`, na mesma ordem. Passou em 43 s (19 mensagens, 4 ticks e 1 ponto de controle; 9 linhas do mundo). As 2 sabotagens (o nome do personagem não é tirado antes da busca; uma linha do replay é trocada antes da comparação) estão no corpo do commit. Com o teste, o rótulo `openmu` leva uns 5 minutos: a T16 cita isso no `docs/setup/DEV.md`.
 - **A medição manual de 60 s do CA-12 (T15), para o report:** em 2026-11-27, com o OpenMU 0.10.1 local, o `MuClient` gravou 60 s com a `test0` (`--world-seconds 60 --record ... --server-version "OpenMU 0.10.1"`), e um segundo `MuClient` entrou com a `test1` uns 6 s depois, por 20 s. A gravação: 23 mensagens, 6 ticks e 2 pontos de controle, 3 pings, 4 objetos na visão no fim, nenhuma linha de erro ou de aviso; a `test1Dk` (0x033D) apareceu em (135, 125) e saiu da visão. Depois o servidor foi desligado (`docker compose ... down`, a porta 44406 fechada), e o replay terminou com 0: "every tick and checkpoint matched", "the replay checked 23 messages, 6 ticks and 2 checkpoints, objects in view: 4", e as 11 linhas `world:` iguais às da sessão. Uma sessão parada tem poucos pontos de controle, porque a marca do tick só é gravada quando o tick tira eventos da fila.
