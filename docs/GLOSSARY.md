@@ -5,6 +5,7 @@ Termos usados no projeto, em português simples.
 | Termo | Significado |
 |---|---|
 | **A\*** | O algoritmo clássico para calcular um caminho entre dois pontos desviando dos obstáculos. No MU, quem calcula o caminho é o cliente; o servidor só confere passo a passo |
+| **Adaptador de servidor** | O encaixe único entre o jogo e o servidor. Do outro lado pode estar o OpenMU ao vivo ou o replay de uma gravação, e o jogo não sabe qual dos dois é |
 | **ADR** | *Architecture Decision Record*: um registro curto de uma decisão importante, com o motivo e as alternativas. Fica em `docs/adr/` |
 | **Alocação de memória** | Quando o programa pede ao computador um pedaço novo de memória. Pedir no meio do jogo pode causar pequenos travamentos, por isso o caminho quente usa arenas |
 | **Antialiasing (MSAA)** | Suavizar os "serrilhados" nas bordas dos objetos. O MSAA faz isso calculando cada ponto da tela mais de uma vez (2, 4 ou 8 amostras). No Classic vem desligado, como no MuMain |
@@ -32,7 +33,7 @@ Termos usados no projeto, em português simples.
 | **Dialeto de pacotes** | A família de formatos que o OpenMU usa com um cliente, escolhida pela versão que o cliente manda no login. O Nexum usa o dialeto 106.3, o "Extended" |
 | **Enhanced** | O modo de aparência aprimorado, criado pelo MuMain: filtragem de textura, iluminação aprimorada, luzes dinâmicas, luz do sol, light mood, pós-processamento e antialiasing, sem compromisso de paridade. Não inclui o som |
 | **Enquadramento** | Cortar o fluxo contínuo de bytes do TCP em mensagens separadas, lendo o tamanho no cabeçalho |
-| **Época** | Um número local que muda a cada conexão e a cada troca de mapa. Mensagens de uma época velha são descartadas |
+| **Época** | Um número local que muda a cada conexão e a cada troca de mapa. Mensagens e eventos de uma época velha são descartados |
 | **Evento neutro** | A tradução de um pacote para algo que o jogo entende sem saber de bytes, como "o objeto X entrou na visão em P" |
 | **Fatia** | Uma etapa pequena e completa do desenvolvimento, que entrega algo que dá para ver funcionando ou medir |
 | **FPS** | Quadros por segundo: quantas vezes por segundo a janela é redesenhada |
@@ -58,6 +59,7 @@ Termos usados no projeto, em português simples.
 | **OpenMU** | O servidor open source em C#, com licença MIT. É o servidor do Nexum, sem modificações |
 | **Paridade (P0 a P3)** | Os níveis de fidelidade ao original: P0 protocolo, P1 comportamento, P2 visual clássico, P3 visual aprimorado. Cada nível tem um teste |
 | **Picking** | Descobrir o que está sob o cursor do mouse: uma célula do chão ou um objeto |
+| **Ponto de controle** | O retrato resumido do mundo (a impressão do estado, os objetos na visão e os itens) que a gravação guarda a cada 5 segundos e no fim. O replay confere se chegou ao mesmo retrato |
 | **Pilha de passes** | O jeito de descrever um material clássico: o modelo é desenhado mais de uma vez, com modos diferentes, e o nível do item escolhe quantos passes extras ele recebe |
 | **PR** | *Pull Request*: o pedido para juntar uma branch na `main`. É onde o dono revisa e aprova |
 | **Predição** | O cliente mostra uma ação antes da resposta do servidor (começar a andar, a animação de ataque), para parecer rápido |
@@ -68,7 +70,7 @@ Termos usados no projeto, em português simples.
 | **Quadro** | Uma imagem da janela. O quadro roda no ritmo do monitor; a lógica roda em ticks |
 | **RAII** | Uma regra de C++: todo recurso tem um dono, e ele é liberado automaticamente quando o dono deixa de existir |
 | **Render graph** | Uma descrição automática dos passes de desenho. Adiado: o Nexum usa uma lista fixa de passes |
-| **Replay** | Reproduzir uma sessão gravada (`.mucap`) sem servidor, para conferir que o estado final é o mesmo |
+| **Replay** | Reproduzir uma sessão gravada (`.mucap`) sem servidor, conferindo cada tick e cada ponto de controle, para saber que o jogo chega ao mesmo estado com as mesmas mensagens |
 | **Retrato** | A cópia interpolada do mundo que o desenho recebe. O desenho só lê o retrato |
 | **RHI** | A camada que esconde as diferenças entre Direct3D 12, Vulkan e Metal. No Nexum, é o SDL GPU |
 | **RmlUi** | A biblioteca de interface, que usa RML e RCSS, parecidos com HTML e CSS |

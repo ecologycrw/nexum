@@ -26,7 +26,7 @@ Cabeçalho público em `Games/MuOnline/Public/Mu/Translate/Translator.hpp`.
 
 ## Como usar
 
-No passo 2 do quadro, o `OnlineClient` passa cada mensagem do mundo ao `Translate` ([MU: Online](mu-online.md)). Os testes dão os bytes dos pacotes e conferem os eventos (`Games/MuOnline/Tests/TranslatorTest.cpp`).
+No passo 2 do quadro, o servidor passa cada mensagem do mundo ao `Translate` ([MU: Online](mu-online.md)): o `LiveServer`, com as mensagens que a sessão entrega, e o `ReplayServer`, com as mensagens da gravação. As duas implementações usam a mesma tradução, e por isso um erro dela aparece num replay, sem servidor. Os testes dão os bytes dos pacotes e conferem os eventos (`Games/MuOnline/Tests/TranslatorTest.cpp`).
 
 ## Fontes da central
 

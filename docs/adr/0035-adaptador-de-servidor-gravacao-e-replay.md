@@ -15,7 +15,7 @@ Na fatia 1, o cliente online (`OnlineClient`, em `Mu/Online`) guarda direto as p
 
 A spec de referência pede três coisas que tocam nesse encaixe:
 
-- **A época em cada evento** ([D-10](../referencia/especificacao-engine-propria-caminho-b.md#d-10--rede-adaptador-em-camadas-codec-gerado-dialeto-1063), item 5). Hoje a época só é conferida nas mensagens, antes da tradução. Quando a sessão cai, os eventos já traduzidos ainda chegam à visão do mundo no tick seguinte ([TD-0037](../TECH_DEBT.md)).
+- **A época em cada evento** ([D-10](../referencia/especificacao-engine-propria-caminho-b.md#d-10--rede-adaptador-em-camadas-codec-gerado-dialeto-1063), item 5). Hoje a época só é conferida nas mensagens, antes da tradução. Quando a sessão cai, os eventos já traduzidos ainda chegam à visão do mundo no tick seguinte (o TD-0037, que esta decisão resolveu na fatia 2).
 - **A gravação e o replay como ferramenta de desenvolvimento** ([III.8](../referencia/especificacao-engine-propria-caminho-b.md#iii8-modos-de-operação-runtime-e-authoring), [IV.18](../referencia/especificacao-engine-propria-caminho-b.md#iv18-diagnóstico-e-ferramentas-de-desenvolvimento) e [V.2.2](../referencia/especificacao-engine-propria-caminho-b.md#v22-gravação-e-replay)). No modo de autoria, o `MuClient` pode estar "reproduzindo uma gravação".
 - **Um lugar para essa ferramenta.** A árvore da [III.2](../referencia/especificacao-engine-propria-caminho-b.md#iii2-repositório-e-módulos) põe a gravação e o replay em `Tools/capture-replay/`. Mas é o próprio `MuClient` que grava e reproduz, e o jogo não pode depender de `Tools/` (INV-02).
 
@@ -38,7 +38,7 @@ O dono aprovou esta decisão junto com a spec da [fatia 2](../../specs/0002-grav
 
 4. **Cada evento leva a época** (D-10, item 5). A tradução recebe a época da mensagem, e a fila guarda cada evento com ela. No tick, o cliente online descarta e conta cada evento de uma época mais velha que a `CurrentEpoch()` do adaptador, antes de ele chegar à visão do mundo. A visão do mundo não sabe de época.
 
-5. **Os comandos do jogador** (andar, atacar) entram no contrato com o andar, na parte 2 do M2. Eles serão valores de tamanho fixo, como os eventos, para o encaixe não pedir memória a cada quadro (INV-13). Até lá, a V.2.2, que pede os comandos na gravação, fica cumprida pela metade. Isso é um item provisório: o `.mucap` versão 2 traz os comandos.
+5. **Os comandos do jogador** (andar, atacar) entram no contrato com o andar, na parte 2 do M2. Eles serão valores de tamanho fixo, como os eventos, para o encaixe não pedir memória a cada quadro (INV-13). Até lá, a V.2.2, que pede os comandos na gravação, fica cumprida pela metade. Isso é um item provisório ([TD-0038](../TECH_DEBT.md)): o `.mucap` versão 2 traz os comandos.
 
 6. **A gravação e o replay ficam no módulo MU, e não em `Tools/`.** O formato `.mucap`, a impressão do estado do mundo e o gravador ficam em `Mu/Recording`. O replay fica em `Mu/Online/ReplayServer`, por ser uma implementação do contrato. Isso é um desvio da árvore da III.2: o `MuClient` grava e reproduz, e o jogo não pode depender de `Tools/` (INV-02). Um programa à parte, `Tools/CaptureReplay`, só nasce quando houver uma necessidade dele, e usaria as mesmas peças do módulo.
 

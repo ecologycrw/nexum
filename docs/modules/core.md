@@ -4,7 +4,7 @@
 
 ## Responsabilidade
 
-A base que todos os outros módulos usam: o assert, os erros por valor, os handles geracionais, a memória do quadro e uma imagem RGBA simples. Não depende de nenhum outro módulo da engine, não abre arquivo, não fala com o sistema operacional e não sabe o que é MU.
+A base que todos os outros módulos usam: o assert, os erros por valor, os handles geracionais, a memória do quadro, uma imagem RGBA simples e o FNV-1a de 64 bits. Não depende de nenhum outro módulo da engine, não abre arquivo, não fala com o sistema operacional e não sabe o que é MU.
 
 ## Onde fica
 
@@ -22,6 +22,7 @@ Cabeçalhos públicos em `Engine/Core/Public/Nexum/Core/`.
 - **`FrameArena`** (`FrameArena.hpp`): memória reservada de uma vez, entregue em pedaços alinhados e zerada a cada quadro (`Reset`). Sem espaço, devolve um erro e não muda nada. Nunca roda destrutores, por isso o `AllocateArray<T>` só aceita tipos que não precisam deles.
 - **`Image` e `Rgba8`** (`Image.hpp`, `Rgba8.hpp`): largura × altura pixels, linha a linha a partir do canto de cima à esquerda. O `FromPixels` recusa uma lista com o tamanho errado. O `At(x, y)` fora da imagem é um assert.
 - **`Version`** (`Version.hpp`): a versão da engine e a leitura de um texto de versão, tratado como dado de fora.
+- **`Fnv1a64`** (`Fnv1a.hpp`, só no cabeçalho e `constexpr`): o FNV-1a de 64 bits (Fowler, Noll e Vo). Cada byte entra no estado com um "ou exclusivo" e uma multiplicação pelo primo. Não usa tabela nem memória, então serve para a impressão de um estado que muda a cada tick, como a da gravação ([MU: Recording](mu-recording.md)). Entram bytes (`Add`), textos sem o terminador e números (`AddLittleEndian`), estes sempre em little-endian, um byte por vez: o resultado é o mesmo em todo sistema. O `Fnv1a64Of` dá o valor de uma vez. Não é um hash criptográfico: ele acha diferenças por acidente, não as feitas de propósito.
 
 ## Como usar
 
@@ -40,7 +41,7 @@ Não se aplica: o módulo não reproduz nada do original.
 
 ## Testes
 
-Em `Engine/Core/Tests/` (`nexum_core_tests`): `HandlePoolTest.cpp`, `FrameArenaTest.cpp`, `ImageTest.cpp`, `AssertTest.cpp`, `ResultTest.cpp` e `VersionTest.cpp`. O `ParseVersion` tem um alvo de fuzzing (`ParseVersionFuzzTest.cpp`, com as sementes em `FuzzSeeds/ParseVersion`), que roda as sementes como um teste comum nos 3 sistemas e roda de verdade na CI do Linux com Clang. O assert falso roda num programa próprio, conferido pelo script `CheckAssertFailure.cmake` (teste do CTest `nexum_core_assert_failure_tests`), porque o assert encerra o programa inteiro.
+Em `Engine/Core/Tests/` (`nexum_core_tests`): `HandlePoolTest.cpp`, `FrameArenaTest.cpp`, `ImageTest.cpp`, `AssertTest.cpp`, `ResultTest.cpp`, `VersionTest.cpp` e `Fnv1aTest.cpp` (os valores de teste publicados do algoritmo no documento do IETF, o mesmo valor em partes, os números em little-endian com o seu tamanho, os negativos e o cálculo em tempo de compilação). O `ParseVersion` tem um alvo de fuzzing (`ParseVersionFuzzTest.cpp`, com as sementes em `FuzzSeeds/ParseVersion`), que roda as sementes como um teste comum nos 3 sistemas e roda de verdade na CI do Linux com Clang. O assert falso roda num programa próprio, conferido pelo script `CheckAssertFailure.cmake` (teste do CTest `nexum_core_assert_failure_tests`), porque o assert encerra o programa inteiro.
 
 ## Itens provisórios
 

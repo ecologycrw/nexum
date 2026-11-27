@@ -85,6 +85,8 @@ O programa fica na pasta de build do preset, como `build/windows-dev/Games/MuOnl
 | Entrar num OpenMU: o Connect Server e a conta. A senha é pedida no terminal, sem aparecer, e nunca vem pela linha de comando | `--connect HOST:PORTA --account NOME` |
 | Escolher o servidor e o personagem (sem as opções, o primeiro da lista) | `--server ID`, `--character NOME` |
 | Encerrar com sucesso depois de N segundos no mundo | `--world-seconds N` |
+| Gravar a sessão no mundo num arquivo `.mucap`, com a versão do servidor no cabeçalho (só no build de desenvolvimento; vem com `--connect`) | `--record ARQUIVO.mucap [--server-version TEXTO]` |
+| Reproduzir uma gravação sem servidor (só no build de desenvolvimento; sem as opções do caminho até o mundo, `--record` e `--capture`) | `--replay ARQUIVO.mucap` |
 
 O teste `visual_proof_0000_test_card` faz a captura e a compara com `tests/visual/approved/0000-test-card.png`: `ctest --preset windows-dev -R visual_proof`. A captura fica em `build/windows-dev/tests/visual/0000-test-card.png`. A comparação sozinha é `visualproof CAPTURA.png APROVADA.png --tolerance NÍVEIS`, que termina com 0 quando aprova, 1 quando recusa e 2 quando a linha de comando está errada. Só o dono põe imagens em `tests/visual/approved/` ([VISUAL](../VISUAL.md#prova-visual)).
 
@@ -99,12 +101,45 @@ docker compose -f tests/integration/openmu/compose.yaml logs
 docker compose -f tests/integration/openmu/compose.yaml down
 ```
 
-O servidor fica pronto em poucos segundos, quando o log mostra "Client Listener started, Port 44406". Os testes com a etiqueta `openmu` só rodam quando a variável `NEXUM_OPENMU_ADDRESS` diz o endereço do Connect Server. Sem ela, como no `verify` e na CI, o CTest os marca como pulados ([TD-0034](../TECH_DEBT.md)). Com o servidor no ar, eles levam cerca de 3 minutos:
+O servidor fica pronto em poucos segundos, quando o log mostra "Client Listener started, Port 44406". Os testes com a etiqueta `openmu` só rodam quando a variável `NEXUM_OPENMU_ADDRESS` diz o endereço do Connect Server. Sem ela, como no `verify` e na CI, o CTest os marca como pulados ([TD-0034](../TECH_DEBT.md)). Com o servidor no ar, os três levam cerca de 5 minutos: 3 minutos no mundo, a senha errada, e 20 segundos gravados e reproduzidos (`openmu_muclient_records_and_replays`, só no build de desenvolvimento):
 
 ```powershell
 $env:NEXUM_OPENMU_ADDRESS = "127.0.0.1:44406"
 ctest --preset windows-dev -L openmu
 ```
+
+### Gravar e reproduzir uma sessão
+
+Só o build de desenvolvimento grava e reproduz ([MU: Recording](../modules/mu-recording.md)). A gravação começa na entrada no mundo e guarda só o que chega do servidor, então a conta e a senha nunca vão para o arquivo. Ela fica na memória, com até 16 MiB, e o arquivo é escrito quando o cliente termina ([TD-0039](../TECH_DEBT.md)). Com o servidor de teste no ar, grave 60 segundos e reproduza com o servidor desligado:
+
+```powershell
+.\build\windows-dev\Games\MuOnline\App\MuClient.exe --connect 127.0.0.1:44406 --account test0 --world-seconds 60 --record build\sessao.mucap --server-version "OpenMU 0.10.1"
+docker compose -f tests/integration/openmu/compose.yaml down
+.\build\windows-dev\Games\MuOnline\App\MuClient.exe --replay build\sessao.mucap
+```
+
+A gravação termina com a linha "client: wrote the recording to ...: N messages, N ticks and N checkpoints". O replay roda no ritmo gravado e confere cada tick e cada ponto de controle. Sem diferença, ele termina com 0 e a linha "the replay checked N messages, N ticks and N checkpoints". Uma diferença termina com 1, e a mensagem diz em qual tick ou ponto de controle ela aconteceu, com o valor gravado e o do replay. As linhas `world:` dos dois terminais são as mesmas: os mesmos objetos entram na visão e saem dela, na mesma ordem.
+
+### Refazer a gravação de referência
+
+A gravação de referência (`Games/MuOnline/Tests/Recordings/openmu-two-players.mucap`) muda quando uma mudança legítima na tradução ou na visão do mundo muda o que o replay confere: o replay acusa a diferença, e a gravação é refeita contra o servidor de teste, em poucos minutos.
+
+1. Suba o servidor de teste e grave 20 segundos com a `test0`, digitando `test0` como senha:
+
+   ```powershell
+   .\build\windows-dev\Games\MuOnline\App\MuClient.exe --connect 127.0.0.1:44406 --account test0 --world-seconds 20 --record Games\MuOnline\Tests\Recordings\openmu-two-players.mucap --server-version "OpenMU 0.10.1"
+   ```
+
+2. Uns 3 segundos depois, num segundo terminal, entre com a `test1` por 8 segundos, digitando `test1` como senha:
+
+   ```powershell
+   .\build\windows-dev\Games\MuOnline\App\MuClient.exe --connect 127.0.0.1:44406 --account test1 --world-seconds 8
+   ```
+
+3. Confira no log da `test0` as linhas "the player test1Dk (...) appeared at" e "left the view". A posição de entrada da `test0Dk` muda de uma entrada para outra: se ela nascer longe da `test1Dk`, a `test1` não entra na visão, e é preciso gravar de novo.
+4. Confira que a conta e a senha não estão no arquivo: todo texto com `test0` dentro dele precisa ser o nome do personagem, `test0Dk`.
+5. Copie o arquivo para `Games/MuOnline/Tests/FuzzSeeds/Recording/openmu-two-players.bin`, a semente do fuzzing, que é uma cópia igual.
+6. Mude os números que os testes conferem: o teste da biblioteca em `Games/MuOnline/Tests/ReplayServerTest.cpp` e o `muclient_replays_the_reference_recording` em `Games/MuOnline/App/CMakeLists.txt` (as mensagens, os ticks, os pontos de controle, o id e a posição da `test1Dk` e os objetos na visão no fim).
 
 ### Fuzzing
 
