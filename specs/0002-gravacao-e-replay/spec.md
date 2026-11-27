@@ -1,7 +1,7 @@
 ---
 id: 0002
 titulo: A gravação e o replay
-status: aprovada
+status: em-andamento
 aprovada-em: 2026-11-26
 marco: M2
 ---
