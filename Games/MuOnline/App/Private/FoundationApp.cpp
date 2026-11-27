@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "ClientStart.hpp"
+#include "Mu/Online/LiveServer.hpp"
 #include "Nexum/Debug/Profiler.hpp"
 #include "Nexum/Platform/Wait.hpp"
 #include "Nexum/Render/OffscreenTarget.hpp"
@@ -46,7 +47,8 @@ constexpr auto kTextureCapacity = static_cast<std::uint32_t>(foundation::Foundat
         stay = nexum::time::Seconds{static_cast<double>(*options.worldSeconds)};
     }
     parts.transport = std::make_unique<online::NetworkTransport>();
-    parts.client = std::make_unique<online::OnlineClient>(std::move(*session), *parts.transport, log, stay);
+    parts.server = std::make_unique<online::LiveServer>(std::move(*session), *parts.transport, log);
+    parts.client = std::make_unique<online::OnlineClient>(*parts.server, log, stay);
     return parts;
 }
 
@@ -144,6 +146,9 @@ AppStatus FoundationApp::CheckSession(nexum::time::Seconds now) {
         return AppStatus::Continue;
     case online::OnlineStatus::StayedLongEnough:
         m_log->Info(kClient, "stayed in the world as long as --world-seconds asked");
+        return End(AppStatus::Success);
+    case online::OnlineStatus::ServerEnded:
+        m_log->Info(kClient, "the server ended the session");
         return End(AppStatus::Success);
     case online::OnlineStatus::Failed:
         return End(AppStatus::Failure);

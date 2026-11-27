@@ -13,6 +13,7 @@
 #include "AllocationCounter.hpp"
 #include "Mu/Foundation/FoundationScreen.hpp"
 #include "Mu/Foundation/ProofScene.hpp"
+#include "Mu/Online/LiveServer.hpp"
 #include "Mu/Online/OnlineClient.hpp"
 #include "Mu/Online/Transport.hpp"
 #include "Mu/Session/Session.hpp"
@@ -236,7 +237,8 @@ TEST_CASE(
     nexum::debug::Logger log(sink);
     // Before the screen, which points to the client.
     FrameTransport transport;
-    mu::online::OnlineClient client(TestOptions(), transport, log, std::nullopt);
+    mu::online::LiveServer server(TestOptions(), transport, log);
+    mu::online::OnlineClient client(server, log, std::nullopt);
     auto screen = FoundationScreen::Create(gpu.store, log, Seconds{0.0});
     REQUIRE_MESSAGE(screen.has_value(), (screen ? "" : screen.error().message));
     auto target = nexum::render::OffscreenTarget::Create(gpu.device, mu::foundation::kProofSceneSize);
@@ -246,7 +248,7 @@ TEST_CASE(
 
     FrameLoop loop(*screen, *target, gpu.store);
     REQUIRE(loop.Run(transport.StageCount()) == 0);
-    REQUIRE(client.State() == SessionState::InWorld);
+    REQUIRE(server.State() == SessionState::InWorld);
     REQUIRE(loop.Run(kWarmUpFrames) == 0);
     REQUIRE(client.View().HeroState().loaded);
 
@@ -270,7 +272,7 @@ TEST_CASE(
     // translation and the view, in the ticks. The 60 seconds of frames also sent the ping, every 20 s.
     CHECK(transport.Delivered() - deliveredBefore ==
           std::uint64_t{kMeasuredFrames} * FrameTransport::kMessagesPerFrame);
-    CHECK(client.State() == SessionState::InWorld);
+    CHECK(server.State() == SessionState::InWorld);
     CHECK(client.View().IgnoredEvents() == ignoredBefore);
     CHECK(client.View().HeroState().stats.attackSpeed == 29);
     CHECK(client.View().HeroState().position == mu::world::Cell{.x = 144, .y = 126});

@@ -64,8 +64,9 @@ public:
     [[nodiscard]] static nexum::core::Result<FoundationScreen>
     Create(nexum::render::TextureStore& store, nexum::debug::Logger& log, nexum::time::Seconds start);
 
-    // The client in the world whose steps each frame runs in their places: the network, the wall clocks and
-    // the events at the start of each tick (Mu/Online/OnlineClient.hpp). Null, the frames have no network.
+    // The client in the world whose steps each frame runs in their places: the events of the server, the wall
+    // clocks and the events at the start of each tick (Mu/Online/OnlineClient.hpp). Null, the frames have no
+    // server.
     // The client must outlive the screen, or be detached first.
     void Attach(online::OnlineClient* online) noexcept { m_online = online; }
 
@@ -86,7 +87,8 @@ private:
                      nexum::time::Seconds start);
 
     void ReportTicks(nexum::time::Seconds now) noexcept;
-    void RunTicks(nexum::time::Seconds frameTime);
+    // `now` is the time of the frame, which the ticks give to the client with the events they applied.
+    void RunTicks(nexum::time::Seconds now, nexum::time::Seconds frameTime);
     [[nodiscard]] nexum::core::Result<void> Draw(nexum::render::TargetSize target);
 
     nexum::debug::Logger* m_log;

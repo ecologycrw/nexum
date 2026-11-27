@@ -9,6 +9,7 @@ nexum_add_library(MuOnline
         Private/Foundation/ProofScene.cpp
         Private/Foundation/TickReportText.cpp
         Private/ModuleIdentity.cpp
+        Private/Online/LiveServer.cpp
         Private/Online/NetworkTransport.cpp
         Private/Online/OnlineClient.cpp
         Private/Protocol/CharacterInformation.cpp

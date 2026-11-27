@@ -14,7 +14,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
   - `Nexum/Core/Fnv1a.hpp` (`Fnv1a64`, só no cabeçalho e `constexpr`): bytes, texto e números em little-endian; os 3 valores do documento do IETF passam; 5 casos novos. Commit: este.
 - [x] T04: `ReadFileBytes`, com o limite conferido antes de ler, e `WriteFileBytes` (`Engine/Platform`, pelo SDL) (CA-03, CA-04). Verificação: `verify`.
   - `Nexum/Platform/FileBytes.hpp`: o arquivo acima do limite é recusado sem pedir memória para o conteúdo (programa de teste próprio, com o contador de memória); o `ToUtf8` e o `Stream` do PNG foram para `Private/SdlFile.hpp`; 10 casos novos, com 3 sabotagens. Commit: este.
-- [ ] T05: O adaptador de servidor (`Mu/Online/ServerAdapter.hpp`), o `LiveServer` com as peças de hoje e o `OnlineClient` só pelo contrato; os testes da fatia 1 montam o `LiveServer`, e um adaptador de teste prova a ordem (CA-01). Verificação: `verify`.
+- [x] T05: O adaptador de servidor (`Mu/Online/ServerAdapter.hpp`), o `LiveServer` com as peças de hoje e o `OnlineClient` só pelo contrato; os testes da fatia 1 montam o `LiveServer`, e um adaptador de teste prova a ordem (CA-01). Verificação: `verify`.
+  - O contrato com os 4 estados e o motivo; o `LiveServer` com a sessão e a tradução; o `OnlineClient` só com a fila, a visão e o tempo no mundo, e o `ApplyEvents(now)` avisa o servidor. 3 casos novos e 2 conferências a mais nos da fatia 1, com 3 sabotagens; os 2 testes `openmu` passaram no OpenMU local. Commit: este.
 - [ ] T06: A época nos eventos (TD-0037): a fila guarda a época, a tradução recebe a da mensagem, e o tick descarta e conta os velhos, com a sabotagem (CA-02). Verificação: `verify`.
 - [ ] T07: O formato `.mucap` (`Mu/Recording/Recording.hpp`): a escrita num espaço reservado e a leitura com cada recusa e o motivo exato, os bytes fixos de uma gravação pequena e a sabotagem do tamanho e da ordem (CA-03). Verificação: `verify`.
 - [ ] T08: A impressão do estado, versão 1 (`Mu/Recording/StateDigest.hpp`): a ordem que não importa e cada campo que importa (CA-06). Verificação: `verify`.
@@ -46,6 +47,7 @@ Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o 
 - **2026-11-27, antes da T03:** "Nesta sessão". A T03 foi feita nesta sessão.
 - **2026-11-27, entre a T03 e a T04:** "Em outra sessão (eu abro)". A T04 começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI (Auto-fix) do PR #12 precisa ser ligado de novo.
 - **2026-11-27, na sessão nova, antes da T04:** "Sim, com Auto-fix". A T04 começou nesta sessão, e o aviso automático da CI (Auto-fix) do PR #12 foi ligado de novo aqui.
+- **2026-11-27, entre a T04 e a T05:** "Nesta sessão". A T05 foi feita nesta sessão.
 
 ## Bloqueios
 
@@ -65,7 +67,8 @@ Contexto que a próxima sessão precisa saber e que não está em outro lugar.
 
 Os desvios do plano e as travas alteradas não ficam aqui: vão direto para o report.
 
-- **Onde parou (2026-11-27):** a T01 a T04 estão feitas e enviadas, com o `verify` verde em cada uma. A próxima é a **T05** (o adaptador de servidor). O Auto-fix do PR #12 foi ligado nesta sessão; numa sessão nova, ofereça ligar de novo.
+- **Onde parou (2026-11-27):** a T01 a T05 estão feitas e enviadas, com o `verify` verde em cada uma. A próxima é a **T06** (a época nos eventos). O Auto-fix do PR #12 foi ligado nesta sessão; numa sessão nova, ofereça ligar de novo.
+- **O adaptador (T05), para a T06 e a T10:** o contrato já tem o `CurrentEpoch()`, e o `LiveServer` devolve a época da sessão; falta a época na fila e o descarte no `ApplyEvents`. O `ServerStatus::reason` é um `string_view` que vale até a próxima chamada ao servidor. O estado "terminou" vira o `OnlineStatus::ServerEnded`, que o `FoundationApp` encerra com sucesso: é o fim do replay. A `mu-online.md`, a `mu-session.md` e a `mu-translate.md` ainda descrevem o `OnlineClient` da fatia 1 e ficam para a T16, que no plano não cita as duas últimas.
 - **A leitura do arquivo (T04), para a T07:** `ReadFileBytes(caminho, limite)` recusa com a mensagem exata "the file <caminho> has <N> bytes, more than the limit of <L>", antes de pedir memória. A recusa dos 64 MiB do CA-03 usa esse limite, e o teste do formato pode conferir essa mensagem. O teste de memória fica em `nexum_platform_file_bytes_allocation_tests`.
 - **Rode os programas de teste pelo `ctest --test-dir build/windows-dev`,** nunca pelo `.exe` a partir da pasta do projeto: os testes gravam as pastas de saída na pasta atual. E compile pelo `py scripts/dev.py build`: o `cmake --build` direto fica sem o ambiente do compilador da Microsoft.
 - **PR em rascunho:** o [PR #12](https://github.com/ecologycrw/nexum/pull/12) foi aberto em 2026-11-26, logo depois da lista de tarefas (P-0019). O aviso automático da CI (Auto-fix) vale só para a sessão que o ligou: numa sessão nova, ofereça ligar de novo. O `/fechar` atualiza a descrição e tira do rascunho; nunca abra um segundo PR.

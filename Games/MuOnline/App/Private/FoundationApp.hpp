@@ -8,6 +8,7 @@
 #include "Mu/Foundation/FoundationScreen.hpp"
 #include "Mu/Online/NetworkTransport.hpp"
 #include "Mu/Online/OnlineClient.hpp"
+#include "Mu/Online/ServerAdapter.hpp"
 #include "Mu/Session/Session.hpp"
 #include "Nexum/Core/Result.hpp"
 #include "Nexum/Debug/Logger.hpp"
@@ -37,9 +38,11 @@ struct FoundationParts {
 };
 
 // The way to the world, when the command line asks for it (specs/0001-rede-ate-o-mundo/spec.md): the
-// transport of the real network and the client that uses it. Both are empty without --connect.
+// transport of the real network, the server behind its contract (ADR 0035) and the client that uses it, in
+// the order they start; they stop in the reverse order. All are empty without --connect.
 struct OnlineParts {
     std::unique_ptr<online::NetworkTransport> transport;
+    std::unique_ptr<online::ServerAdapter> server;
     std::unique_ptr<online::OnlineClient> client;
 };
 
