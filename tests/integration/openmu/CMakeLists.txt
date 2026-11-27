@@ -1,7 +1,7 @@
 # CA-14 of specs/0001-rede-ate-o-mundo/spec.md: MuClient against a real OpenMU without modifications, the test
 # server of compose.yaml. The tests run only when NEXUM_OPENMU_ADDRESS names its Connect Server; without it, as in
 # the CI, CTest reports them as skipped (TD-0034). With the server up, the label "openmu" runs only them, in about
-# 4 minutes:
+# 5 minutes:
 #
 #   docker compose -f tests/integration/openmu/compose.yaml up -d
 #   $env:NEXUM_OPENMU_ADDRESS = "127.0.0.1:44406"
@@ -66,3 +66,20 @@ openmu_add_session_test(openmu_muclient_reports_a_wrong_password "--account;test
     "session: the login was refused: invalid password;client: the session ends: never in the world"
     "${openmu_test_dir}/wrong-password.txt"
     ABSENT "${wrong_password}")
+
+# CA-12 of specs/0002-gravacao-e-replay/spec.md: 20 seconds in the world recorded with --record, then replayed with
+# --replay and no server, in about 1 minute (RecordAndReplay.cmake has the checks). Only the development build
+# records and replays (INV-19).
+if(NEXUM_AUTHORING)
+    add_test(NAME openmu_muclient_records_and_replays
+        COMMAND ${CMAKE_TEST_LAUNCHER} "${CMAKE_COMMAND}"
+            "-DCLIENT_RUN_CHECK=${PROJECT_SOURCE_DIR}/Games/MuOnline/App/CheckClientRun.cmake"
+            -DPROGRAM=$<TARGET_FILE:MuClient>
+            "-DINPUT=${openmu_test_dir}/test0-password.txt"
+            "-DRECORDING=${openmu_test_dir}/session.mucap"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/RecordAndReplay.cmake")
+    set_tests_properties(openmu_muclient_records_and_replays PROPERTIES
+        LABELS openmu
+        SKIP_REGULAR_EXPRESSION "skipped: NEXUM_OPENMU_ADDRESS"
+        RESOURCE_LOCK openmu)
+endif()

@@ -23,6 +23,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o ponto de decisão.
 - Revista na retrospectiva da fatia 1 (2026-11-26): continua aberta até o ponto de decisão.
+- Revista na retrospectiva da fatia 2 (2026-11-27): continua aberta até o ponto de decisão.
 
 ### P-0008: a prova visual do M3 com as placas de vídeo por software da CI
 - Origem: feedback do dono, depois da revisão da fatia 0 (a pergunta sobre placa de vídeo nas máquinas do GitHub)
@@ -37,6 +38,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta até o planejamento do M3.
 - Revista na retrospectiva da fatia 1 (2026-11-26): continua aberta até o planejamento do M3.
+- Revista na retrospectiva da fatia 2 (2026-11-27): continua aberta até o planejamento do M3.
 
 ### P-0009: as opções para a CI ter uma placa de vídeo de verdade
 - Origem: feedback do dono, na mesma conversa da P-0008
@@ -51,8 +53,41 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 - Status: aberta
 - Revista na retrospectiva da fatia 0 (2026-11-25): continua aberta, para rever junto com a P-0008.
 - Revista na retrospectiva da fatia 1 (2026-11-26): continua aberta, para rever junto com a P-0008.
+- Revista na retrospectiva da fatia 2 (2026-11-27): continua aberta, para rever junto com a P-0008.
 
 ## Processadas
+
+### P-0024: a checagem `docs` procurar a etiqueta do critério também nos testes em Python e em CMake
+- Origem: fatia 2, `/fechar` (a lição da checagem `docs` no report)
+- Tipo: trava
+- Evidência: a checagem `docs` (`_test_sources`, em `scripts/checks/nexum_checks/docs_check.py`) procura a etiqueta `[NNNN-CA-xx]` só nos arquivos `.cpp` das pastas de teste. Na fatia 2, 2 dos 13 critérios não tinham um teste em C++: o CA-11, provado por 8 testes em Python em `scripts/checks/tests`, e o CA-12, provado pelo teste de integração `tests/integration/openmu/RecordAndReplay.cmake`. Os dois precisaram de uma verificação manual no report, e a checagem recusou o fechamento até ela entrar. Uma verificação manual não liga o critério ao teste que o prova. A mudança: os arquivos `.py` e `.cmake` das pastas de teste (`tests/`, `Tests/` e `scripts/checks/tests/`) entram na busca, com um teste para cada tipo de arquivo e a sabotagem
+- Prioridade sugerida: baixa
+- Status: aceita na retrospectiva da fatia 2 (2026-11-27). O dono escolheu "Tarefas na próxima fatia".
+- Destino: uma tarefa da fatia 3, com a mudança na trava `scripts/checks/` pedida na spec, para o "sim" do dono.
+
+### P-0023: os testes de recusa de antes da regra da P-0020 conferem só que houve recusa
+- Origem: escada de erros, na retrospectiva da fatia 2 (terceira ocorrência)
+- Tipo: regra
+- Evidência: três vezes um teste passou sem provar o que dizia: o do CA-09 da fatia 0 e o do checksum da fatia 1, que originaram a [P-0020](#p-0020-o-teste-de-recusa-confere-o-motivo-e-os-testes-de-risco-são-sabotados), e, na fatia 2, o teste de memória do `ReadFileBytes` (T04, achado M6 da revisão, corrigido no `fb1d5ea`), escrito um dia depois da regra. A escada pede uma conferência por máquina, mas uma busca no texto não basta: nos testes, uma recusa sem um `.error()` nas linhas seguintes (`CHECK_FALSE(x.has_value())` e parecidos) aparece 28 vezes, e a maioria é de um `std::optional`, que não tem motivo. Só o tipo distingue os dois casos, e isso pediria uma checagem própria do clang-tidy ou o teste de mutação, que a P-0020 deixou para o M7. A revisão pegou o caso da fatia 2 e continua conferindo a regra. A mesma busca achou 8 conferências, de antes da regra, que só olham se um `Result` falhou: o contador errado da cifra (`ClientCodecTest.cpp`), a senha longa demais (`PacketExamplesTest.cpp`), o mapa pronto antes dos dados do personagem (`SessionTest.cpp`), quatro da arena do quadro (`FrameArenaTest.cpp`) e o depósito sem espaço (`HandlePoolTest.cpp`)
+- Prioridade sugerida: média
+- Status: aceita na retrospectiva da fatia 2 (2026-11-27). O dono escolheu "Tarefas na próxima fatia".
+- Destino: uma tarefa da fatia 3: rever os testes de recusa das fatias 0 e 1, e não só os 8 da busca, cada um com o motivo exato e a sabotagem onde há risco real de falso positivo (a seção "Testes" da [CONVENTIONS](CONVENTIONS.md)). Nenhuma checagem nova; o teste de mutação continua para o M7, se a regra não bastar.
+
+### P-0022: a impressão do estado não pode esquecer um campo novo da visão do mundo
+- Origem: fatia 2, revisão independente (achado M5)
+- Tipo: regra
+- Evidência: a impressão do estado (`StateDigestOf`, em `Games/MuOnline/Private/Recording/StateDigest.cpp`) cobre hoje todos os campos do herói, dos objetos na visão, da aparência, dos itens e do inventário, como o revisor conferiu struct por struct. Mas nada obriga a impressão a mudar quando a visão ganhar um campo. No M4, um campo novo no `WorldObject`, no `Item` ou no herói que o `StateDigestOf` esqueça deixa todos os testes verdes, inclusive os dois valores fixos do `StateDigestTest.cpp`, e o replay passa a ignorar esse campo sem que a versão da impressão mude. Além disso, o valor fixo da cena cheia (`kSceneDigest`) foi calculado por um script que não ficou no repositório, e ninguém consegue refazer a conta. O revisor sugere uma trava de forma no `StateDigest.cpp` (um `static_assert` de tamanho ou da quantidade de campos de cada struct, com a mensagem "atualize a impressão e a versão") e guardar o script ao lado do teste. Um `static_assert` de tamanho varia entre o MSVC, o Clang e o GCC quando a struct tem `std::string`, então a forma da trava precisa ser escolhida com cuidado
+- Prioridade sugerida: média (antes do M4, que acrescenta campos à visão do mundo)
+- Status: aceita na retrospectiva da fatia 2 (2026-11-27). O dono escolheu "Parte 2 do M2".
+- Destino: a parte 2 do M2, a próxima que mexe na visão do mundo (o andar), antes do primeiro campo novo. O plano dela escolhe a forma da trava, que não pode variar entre os três compiladores, e põe o script do valor fixo ao lado do teste.
+
+### P-0021: a falha de uma semente de fuzzing no Windows abre uma janela em vez de falhar na hora
+- Origem: fatia 2, T11 (a sabotagem do alvo `muonline_recording`), e feedback do dono
+- Tipo: bug
+- Evidência: o programa que roda as sementes de cada alvo de fuzzing (`tests/support/FuzzSeedMain.cpp`) não troca por texto a janela "Debug Error! ... abort() has been called" do MSVC, como o `tests/support/DoctestMain.cpp` já faz para os testes comuns. No Windows, quando uma semente falha, o teste fica parado até alguém clicar ou até o limite de 300 s do CTest, em vez de falhar na hora com a mensagem. Na T11, a sabotagem da gravação com o maior tempo levou 312 s para falhar, e a janela apareceu na tela do dono, que mandou a imagem: "Em algum momento isso aqui apareceu, não sei se foi a causa que levou você a corrigir. Mas mesmo assim mandando o que de fato apareceu." O `tests/support/` não é trava; a mudança seria a mesma função do `DoctestMain.cpp` no começo do `main` do `FuzzSeedMain.cpp`, com um teste como o `DoctestMainTest.cpp`
+- Prioridade sugerida: média (atrapalha o `verify` e a CI do Windows sempre que uma semente falha)
+- Status: aceita na retrospectiva da fatia 2 (2026-11-27). O dono escolheu "Tarefas na próxima fatia".
+- Destino: uma tarefa da fatia 3, antes do primeiro alvo de fuzzing novo do importador, que traz o fuzzing dos formatos do jogo (1 hora sem falha no M1). O `tests/support/` não é trava.
 
 ### P-0020: o teste de recusa confere o motivo, e os testes de risco são sabotados
 - Origem: escada de erros, na retrospectiva da fatia 1 (segunda ocorrência)
@@ -79,8 +114,8 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
   - **Fica fora:** apoiar oficialmente outros servidores (a [VISÃO](VISION.md) diz que o servidor é o OpenMU sem modificações), carregar adaptadores por plugins e descrever protocolos por arquivos de configuração. Um servidor novo exigiria a descrição da central (sala limpa, INV-16) e a origem conferida (INV-17). Reavaliar no ponto de decisão depois do M7.
   - **O que pede:** um ADR, por ser uma mudança de arquitetura, e o "sim" do dono no `/planejar` da fatia 2. A [Regra de três](CONVENTIONS.md#regra-de-três) aceita a abstração antes do terceiro caso, porque é uma fronteira entre camadas.
 - Prioridade sugerida: média (entra no planejamento da fatia 2, junto com o replay)
-- Status: aceita
-- Destino: o `/planejar` da fatia 2, junto com o replay, com o ADR e o "sim" do dono na spec. Decidido na retrospectiva da fatia 1 (2026-11-26).
+- Status: aceita na retrospectiva da fatia 1 (2026-11-26) e aplicada na fatia 2 (T05, [ADR 0035](adr/0035-adaptador-de-servidor-gravacao-e-replay.md)).
+- Destino: o `/planejar` da fatia 2, junto com o replay, com o ADR e o "sim" do dono na spec. O contrato `Mu/Online/ServerAdapter.hpp` tem duas implementações, o `LiveServer` (o OpenMU ao vivo) e o `ReplayServer` (o `.mucap`). Os comandos neutros ficam para a parte 2 do M2 ([TD-0038](TECH_DEBT.md)).
 
 ### P-0017: as mensagens de erro da rede em UTF-8 no Windows
 - Origem: fatia 1, T14, no teste `muclient_reads_the_password_and_reports_a_closed_connect_server`
@@ -100,7 +135,7 @@ Formato de cada entrada (o modelo completo fica em `templates/proposal.md`):
 
   A recomendação é a primeira, talvez junto com a segunda: a primeira mostra, a segunda impede o `NOLINT` sem motivo.
 - Prioridade sugerida: baixa (hoje são só três, todos explicados; cresce com o código do M2 e do M1)
-- Status: aceita
+- Status: aceita na retrospectiva da fatia 1 (2026-11-26) e aplicada na fatia 2 (T02): a checagem `cpp-rules` recusa o `NOLINT` sem cada regra ou sem o motivo na linha de cima, e o resumo de segurança do PR lista cada linha nova com `NOLINT`.
 - Destino: uma tarefa da fatia 2, com a primeira e a segunda opção: o resumo de segurança do PR lista cada `NOLINT` novo, e a checagem `cpp-rules` exige o motivo (trava `scripts/checks/`). Na fatia 1, um `NOLINTBEGIN` sem motivo entrou em todos os cabeçalhos gerados pelo `packetgen`, e só a revisão viu (achado 8, corrigido no `caaa674`). Como ele estava no modelo do gerador, escrito em Python, o resumo precisa olhar também os arquivos de `Tools/`, e não só o C++. Decidido na retrospectiva da fatia 1 (2026-11-26).
 
 ### P-0014: os achados da auditoria externa que esperam a parte 1 do M2

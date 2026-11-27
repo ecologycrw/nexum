@@ -9,7 +9,7 @@ Cada ADR registra uma decisão importante, o motivo e as alternativas. Um ADR ac
 - quando a spec muda uma decisão que já tem ADR aqui: um ADR novo substitui o antigo, como os 0029 a 0031;
 - uma decisão nova da spec que o Nexum só segue não ganha ADR: os documentos a citam pelo número (D-xx).
 
-Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referência](../referencia/README.md), adotadas uma por uma. Os ADRs 0021 a 0028 são decisões do Nexum, a maioria sobre o ambiente de desenvolvimento. Os ADRs 0029 a 0031 trazem as versões novas de D-04, D-09 e D-12, depois que a spec reescreveu o Enhanced. O ADR 0032 muda a ordem do roteiro da Parte VI: a rede do M2 vem antes do M1. O ADR 0033 dá um dono a cada biblioteca externa. O ADR 0034 põe o gerador do codec, o `packetgen`, em Python, rodando no build.
+Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referência](../referencia/README.md), adotadas uma por uma. Os ADRs 0021 a 0028 são decisões do Nexum, a maioria sobre o ambiente de desenvolvimento. Os ADRs 0029 a 0031 trazem as versões novas de D-04, D-09 e D-12, depois que a spec reescreveu o Enhanced. O ADR 0032 muda a ordem do roteiro da Parte VI: a rede do M2 vem antes do M1. O ADR 0033 dá um dono a cada biblioteca externa. O ADR 0034 põe o gerador do codec, o `packetgen`, em Python, rodando no build. O ADR 0035 põe o adaptador de servidor entre o protocolo e o jogo, e a gravação e o replay no módulo MU.
 
 | ADR | Decisão | Status |
 |---|---|---|
@@ -47,3 +47,4 @@ Os ADRs 0001 a 0020 são as decisões D-01 a D-20 da [especificação de referê
 | [0032](0032-rede-antes-do-importador.md) | A rede antes do importador, com o M2 dividido em duas partes | aceita |
 | [0033](0033-dono-de-cada-biblioteca-externa.md) | O módulo dono de cada biblioteca externa e os tipos de vocabulário | aceita |
 | [0034](0034-packetgen-em-python-no-build.md) | O gerador do codec (packetgen) em Python, rodando no build | aceita |
+| [0035](0035-adaptador-de-servidor-gravacao-e-replay.md) | O adaptador de servidor, e a gravação e o replay no módulo MU | aceita |

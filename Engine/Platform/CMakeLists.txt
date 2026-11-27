@@ -5,6 +5,7 @@ nexum_add_library(nexum_platform
     SOURCES
         Private/Application.cpp
         Private/FailureReports.cpp
+        Private/FileBytes.cpp
         Private/PlatformInfo.cpp
         Private/Png.cpp
         Private/SdlLogRoute.cpp

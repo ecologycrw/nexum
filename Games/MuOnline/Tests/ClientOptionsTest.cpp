@@ -248,6 +248,99 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "[0002-CA-08] --record takes the file of the recording on the way to the world, and --server-version "
+    "the text of its header") {
+    const auto recorded = ParseOnline({"--record", "build/session.mucap"});
+    REQUIRE(recorded.has_value());
+    CHECK(recorded->recordPath == "build/session.mucap");
+    CHECK_FALSE(recorded->serverVersion.has_value());
+    CHECK(recorded->Online());
+
+    const auto named = ParseOnline({"--server-version", "OpenMU 0.10.1", "--record", "a.mucap"});
+    REQUIRE(named.has_value());
+    CHECK(named->serverVersion == "OpenMU 0.10.1");
+    // The header of the recording holds texts of up to 64 bytes.
+    const std::string longest(64, 'v');
+    CHECK(ParseOnline({"--record", "a.mucap", "--server-version", longest})->serverVersion == longest);
+    const std::string tooLong(65, 'v');
+    CHECK(ErrorOf(ParseOnline({"--record", "a.mucap", "--server-version", tooLong})) ==
+          "--server-version needs a text of 1 to 64 bytes, not '" + tooLong + "'");
+    CHECK(ErrorOf(ParseOnline({"--record", "a.mucap", "--server-version", ""})) ==
+          "--server-version needs a text of 1 to 64 bytes, not ''");
+
+    CHECK(ErrorOf(ParseOnline({"--record", ""})) == "--record needs the path of a .mucap file");
+    CHECK(ErrorOf(ParseOnline({"--record"})) == "--record needs a value");
+    CHECK(ErrorOf(ParseOnline({"--record", "a.mucap", "--record", "b.mucap"})) == "--record was given twice");
+    CHECK(ErrorOf(ParseOnline({"--record", "a.mucap", "--server-version", "a", "--server-version", "b"})) ==
+          "--server-version was given twice");
+}
+
+TEST_CASE("[0002-CA-08] --record comes with --connect, and --server-version with --record") {
+    CHECK(ErrorOf(Parse({"--record", "a.mucap"})) == "--record comes with --connect, the Connect Server");
+    CHECK(ErrorOf(Parse({"--record", "a.mucap", "--frames", "5"})) ==
+          "--record comes with --connect, the Connect Server");
+    const std::string withoutRecord = "--server-version comes with --record, the file of the recording";
+    CHECK(ErrorOf(ParseOnline({"--server-version", "OpenMU 0.10.1"})) == withoutRecord);
+    CHECK(ErrorOf(Parse({"--server-version", "OpenMU 0.10.1"})) == withoutRecord);
+    CHECK(ErrorOf(Parse({"--replay", "a.mucap", "--server-version", "OpenMU 0.10.1"})) == withoutRecord);
+}
+
+TEST_CASE("[0002-CA-08] --replay takes the file of a recording, alone or with --frames and --gpu-driver") {
+    const auto alone = Parse({"--replay", "Tests/Recordings/openmu-two-players.mucap"});
+    REQUIRE(alone.has_value());
+    CHECK(alone->replayPath == "Tests/Recordings/openmu-two-players.mucap");
+    CHECK_FALSE(alone->Online());
+
+    const auto drawn = Parse({"--frames", "100", "--replay", "a.mucap", "--gpu-driver", "vulkan"});
+    REQUIRE(drawn.has_value());
+    CHECK(drawn->replayPath == "a.mucap");
+    CHECK(drawn->frameLimit == 100U);
+    CHECK(drawn->gpuBackend == GpuBackend::Vulkan);
+
+    CHECK(ErrorOf(Parse({"--replay", ""})) == "--replay needs the path of a .mucap file");
+    CHECK(ErrorOf(Parse({"--replay"})) == "--replay needs a value");
+    CHECK(ErrorOf(Parse({"--replay", "a.mucap", "--replay", "b.mucap"})) == "--replay was given twice");
+}
+
+TEST_CASE("[0002-CA-08] --replay comes without the options of the way to the world, --record and --capture") {
+    const std::vector<std::vector<std::string_view>> others{
+        {"--connect", "127.0.0.1:44406"}, {"--account", "test0"},    {"--server", "1"},
+        {"--character", "test0Dk"},       {"--world-seconds", "60"}, {"--record", "b.mucap"},
+        {"--capture", "scene.png"},
+    };
+    for (const auto& other : others) {
+        CAPTURE(other.front());
+        std::vector<std::string_view> arguments{"MuClient", "--replay", "a.mucap"};
+        arguments.insert(arguments.end(), other.begin(), other.end());
+        CHECK(ErrorOf(ParseClientOptions(arguments, BuildKind::Development)) ==
+              "--replay plays a recording without a server, so it comes without " +
+                  std::string(other.front()));
+    }
+    // The whole way to the world, with the recording: the first of them is named.
+    CHECK(ErrorOf(ParseOnline({"--record", "b.mucap", "--replay", "a.mucap"})) ==
+          "--replay plays a recording without a server, so it comes without --connect");
+}
+
+TEST_CASE("[0002-CA-08] the player build refuses --record, --server-version and --replay, and its usage has "
+          "none of them") {
+    for (const std::string_view option : {"--record", "--server-version", "--replay"}) {
+        CAPTURE(option);
+        const std::string refused = std::string(option) + " exists only in the development build";
+        CHECK(ErrorOf(Parse({option, "a.mucap"}, BuildKind::Player)) == refused);
+        CHECK(ErrorOf(Parse({option}, BuildKind::Player)) == refused);
+        CHECK(ClientUsage(BuildKind::Player).find(option) == std::string_view::npos);
+    }
+    CHECK(
+        ErrorOf(ParseClientOptions(std::vector<std::string_view>{"MuClient", "--connect", "127.0.0.1:44406",
+                                                                 "--account", "test0", "--record", "a.mucap"},
+                                   BuildKind::Player)) == "--record exists only in the development build");
+
+    const std::string_view development = ClientUsage(BuildKind::Development);
+    CHECK(development.find("[--record FILE.mucap [--server-version TEXT]]") != std::string_view::npos);
+    CHECK(development.find("MuClient --replay FILE.mucap") != std::string_view::npos);
+}
+
+TEST_CASE(
     "[0001-CA-12] the session gets the options and the password, refused empty or too long without a trace") {
     const auto options = Parse(
         {"--connect", "10.0.0.5:44406", "--account", "test0", "--server", "1", "--character", "test0Dk"});

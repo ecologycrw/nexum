@@ -74,6 +74,50 @@ class PrSummaryTests(unittest.TestCase):
         self.assertIn(":(glob)**/Tests/**", pr_summary.TEST_PATHSPECS)
         self.assertIn("scripts/checks/tests/", pr_summary.TEST_PATHSPECS)
 
+    def test_new_nolints_are_listed_with_the_file_and_the_line(self) -> None:
+        diff = (
+            "diff --git a/Engine/Core/Private/A.cpp b/Engine/Core/Private/A.cpp\n"
+            "--- a/Engine/Core/Private/A.cpp\n"
+            "+++ b/Engine/Core/Private/A.cpp\n"
+            "@@ -10,0 +11,2 @@ namespace {\n"
+            "+// The reason.\n"
+            "+// NOLINTNEXTLINE(misc-check)\n"
+            "@@ -20 +22 @@\n"
+            "-int a = 1; // NOLINT(misc-old)\n"
+            "+int a = `2`; // NOLINT(misc-new)\n"
+            "diff --git a/Tools/PacketGen/Private/template.py b/Tools/PacketGen/Private/template.py\n"
+            "new file mode 100644\n"
+            "--- /dev/null\n"
+            "+++ b/Tools/PacketGen/Private/template.py\n"
+            "@@ -0,0 +1,3 @@\n"
+            "+HEADER = '''\n"
+            "+// NOLINTBEGIN(readability-function-size)\n"
+            "+'''\n"
+        )
+        summary = pr_summary.build([], "", diff)
+        self.assertIn("### `NOLINT` novos (3)", summary)
+        self.assertIn("- `Engine/Core/Private/A.cpp`, linha 12: `// NOLINTNEXTLINE(misc-check)`", summary)
+        self.assertIn("- `Engine/Core/Private/A.cpp`, linha 22: `int a = '2'; // NOLINT(misc-new)`", summary)
+        self.assertIn("- `Tools/PacketGen/Private/template.py`, linha 2: `// NOLINTBEGIN(readability-function-size)`",
+                      summary)
+        self.assertNotIn("misc-old", summary)
+        self.assertIn("cada `NOLINT` novo desliga uma conferência", summary)
+
+    def test_nolints_of_the_documents_and_of_removed_files_are_not_listed(self) -> None:
+        diff = (
+            "diff --git a/docs/A.md b/docs/A.md\n--- a/docs/A.md\n+++ b/docs/A.md\n@@ -1,0 +2 @@\n"
+            "+Um `NOLINT` explicado.\n"
+            "diff --git a/Engine/Core/Private/B.cpp b/Engine/Core/Private/B.cpp\ndeleted file mode 100644\n"
+            "--- a/Engine/Core/Private/B.cpp\n+++ /dev/null\n@@ -1 +0,0 @@\n-int b; // NOLINT(misc-check)\n"
+        )
+        summary = pr_summary.build([], "", diff)
+        self.assertIn("### `NOLINT` novos (0)", summary)
+        self.assertIn("Nenhum.", summary)
+        self.assertNotIn("desliga uma conferência", summary)
+
+    def test_the_diff_of_the_code_leaves_out_only_the_documents(self) -> None:
+        self.assertEqual(pr_summary.CODE_PATHSPECS, (".", ":(exclude)*.md"))
+
 
 if __name__ == "__main__":
     unittest.main()

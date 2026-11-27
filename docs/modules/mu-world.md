@@ -16,13 +16,13 @@ Cabeçalhos públicos em `Games/MuOnline/Public/Mu/World/`.
 
 ## Conceitos
 
-- **Os eventos** (`WorldEvent.hpp`): valores simples, de tamanho fixo, como `HeroLoaded`, `ObjectEntered`, `HeroStatsChanged` e os de saída da visão, de andar e de posição corrigida. A tradução os monta a partir dos pacotes, e o replay da fatia 2 vai montar os mesmos.
-- **`EventQueue`** (`EventQueue.hpp`): os eventos que esperam o tick. O espaço é reservado uma vez. Se passar do espaço, a fila cresce em vez de descartar, porque a ordem importa. O `Drain` entrega cada evento, na ordem.
+- **Os eventos** (`WorldEvent.hpp`): valores simples, de tamanho fixo, como `HeroLoaded`, `ObjectEntered`, `HeroStatsChanged` e os de saída da visão, de andar e de posição corrigida. A tradução os monta a partir dos pacotes, ao vivo e no replay, com as mesmas mensagens ([MU: Recording](mu-recording.md)).
+- **`EventQueue`** (`EventQueue.hpp`): os eventos que esperam o tick, cada um com a época da sua mensagem (`SessionEpoch`, de `Mu/Session/SessionEpoch.hpp`). O espaço é reservado uma vez. Se passar do espaço, a fila cresce em vez de descartar, porque a ordem importa. O `Drain` entrega cada evento com a época, na ordem. A visão não sabe de época.
 - **`WorldView`** (`WorldView.hpp`): aplica os eventos um a um, dentro do tick. Hoje é uma tabela por id, sem entidades, porque nada é desenhado nem anda ainda. Um id desconhecido é ignorado e registrado. Cada mudança vira uma linha na categoria `world`, como "the NPC or monster of type 257 (0x0212) came into view at (130, 128)", montada no lugar, sem pedir memória.
 
 ## Como usar
 
-No começo de cada tick, o `OnlineClient` chama o `Drain` da fila e entrega cada evento ao `WorldView::Apply` ([MU: Online](mu-online.md)). O resumo do fim da sessão conta os objetos da visão (`WorldView::Objects`).
+No começo de cada tick, o `OnlineClient` chama o `Drain` da fila e entrega cada evento ao `WorldView::Apply` ([MU: Online](mu-online.md)). Um evento de uma época mais velha que a atual do servidor é descartado e contado antes, sem chegar à visão. O resumo do fim da sessão conta os objetos da visão (`WorldView::Objects`). A impressão do estado da gravação e do replay (`StateDigestOf`, do [MU: Recording](mu-recording.md)) lê a visão inteira: o herói, os objetos, o inventário e as duas contagens (`TerrainChanges` e `IgnoredEvents`). Por isso, um campo novo na visão pede uma versão nova da impressão, e não só um valor novo nos testes.
 
 ## Fontes da central
 
@@ -36,9 +36,8 @@ Os eventos seguem a IV.14.4 da spec de referência. O que cada evento carrega ve
 
 ## Testes
 
-Em `Games/MuOnline/Tests/WorldViewTest.cpp` (`muonline_tests`), só com eventos, sem rede: a entrada e a saída da visão, o andar, a correção, os stats, o inventário, o terreno, o id desconhecido e a fila de eventos.
+Em `Games/MuOnline/Tests/WorldViewTest.cpp` (`muonline_tests`), só com eventos, sem rede: a entrada e a saída da visão, o andar, a correção, os stats, o inventário, o terreno, o id desconhecido e a fila de eventos, com a época de cada um.
 
 ## Itens provisórios
 
 - [TD-0029](../TECH_DEBT.md): a visão é uma tabela por id no módulo MU, sem entidades; no M4, os objetos viram entidades do `Engine/World`.
-- [TD-0037](../TECH_DEBT.md): os eventos neutros ainda não levam a época.

@@ -18,11 +18,18 @@ nexum_add_tests(muonline_tests
         PacketExamplesTest.cpp
         PacketLogTest.cpp
         PingTest.cpp
+        RecorderTest.cpp
+        RecordingTest.cpp
+        ReplayServerTest.cpp
         SessionTest.cpp
+        StateDigestTest.cpp
         TickReportTextTest.cpp
         TranslatorTest.cpp
         WorldViewTest.cpp
     DEPS MuOnline nexum_test_log Nexum::NetTestServer)
+# CA-07 of slice 2: the reference recording of the local OpenMU 0.10.1, which the replay tests read.
+target_compile_definitions(muonline_tests PRIVATE
+    NEXUM_REFERENCE_RECORDING="${CMAKE_CURRENT_SOURCE_DIR}/Recordings/openmu-two-players.mucap")
 
 # CA-03: for each packet of the OpenMU XML files, a test generated with the code of the packet (Tools/PacketGen):
 # the fixed bytes, the length and the refusal of a shorter packet. The tests come in files of a few dozen packets,
@@ -39,10 +46,12 @@ nexum_add_tests(muonline_frame_allocation_tests
     SOURCES FrameAllocationTest.cpp
     DEPS MuOnline nexum_test_allocation_counter)
 
-# CA-10: a fuzz target for each reader of outside data: the frames, the encryption, the item, the appearance and
-# the packets the client receives. The seeds of each run here as a test on every system.
+# A fuzz target for each reader of outside data: the frames, the encryption, the item, the appearance and the
+# packets the client receives (CA-10 of slice 1), and the recording, whose valid cases are also replayed (CA-09
+# of slice 2). The seeds of each run here as a test on every system.
 foreach(fuzzed IN ITEMS "FrameReader;frame_reader" "Cipher;cipher" "ExtendedItem;extended_item"
-                        "ExtendedAppearance;extended_appearance" "DialectPackets;dialect_packets")
+                        "ExtendedAppearance;extended_appearance" "DialectPackets;dialect_packets"
+                        "Recording;recording")
     list(GET fuzzed 0 reader)
     list(GET fuzzed 1 target)
     nexum_add_fuzz_target(muonline_${target}

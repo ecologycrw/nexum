@@ -6,20 +6,12 @@
 // that passes the room grows instead of dropping anything, because the order matters (IV.14.6).
 
 #include <cstddef>
-#include <cstdint>
 #include <span>
 #include <vector>
 
+#include "Mu/Session/SessionEpoch.hpp"
+
 namespace mu::session {
-
-// Counts the connections of the session: each new connection gets the next number, so an event of a
-// connection that is already over is told apart and dropped (D-10 of the reference spec, item 5). From M4 on,
-// each change of map also moves it.
-struct SessionEpoch {
-    std::uint32_t value = 0;
-
-    friend constexpr bool operator==(SessionEpoch, SessionEpoch) noexcept = default;
-};
 
 class MessageQueue {
 public:

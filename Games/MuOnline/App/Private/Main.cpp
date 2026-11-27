@@ -20,12 +20,14 @@
 
 #if NEXUM_AUTHORING_ENABLED
 #include "ProofCapture.hpp"
+#include "RecordingTools.hpp"
 #endif
 
 namespace {
 
 #if NEXUM_AUTHORING_ENABLED
 constexpr mu::BuildKind kBuildKind = mu::BuildKind::Development;
+constexpr nexum::debug::LogCategory kClient{"client"};
 #else
 constexpr mu::BuildKind kBuildKind = mu::BuildKind::Player;
 #endif
@@ -34,6 +36,10 @@ constexpr mu::BuildKind kBuildKind = mu::BuildKind::Player;
 constexpr int kUsageError = 2;
 // The exit code of a password that cannot be read or used.
 constexpr int kPasswordError = 1;
+#if NEXUM_AUTHORING_ENABLED
+// The exit code of a recording that cannot be read, or whose file cannot be written.
+constexpr int kRecordingError = 1;
+#endif
 
 using OptionalSession = std::optional<mu::session::SessionOptions>;
 
@@ -71,12 +77,6 @@ int main(int argc, char* argv[]) {
         std::puts(mu::DescribeBuild(kBuildKind).c_str());
         return 0;
     }
-    auto session = ReadSession(*options);
-    if (!session) {
-        const std::string message = "MuClient: " + session.error().message + "\n";
-        std::fputs(message.c_str(), stderr);
-        return kPasswordError;
-    }
 
     nexum::debug::TerminalLogSink terminal;
     nexum::debug::Logger log(terminal);
@@ -85,11 +85,39 @@ int main(int argc, char* argv[]) {
     if (options->capturePath) {
         return mu::app::RunProofCapture(*options, log);
     }
+    // The recording to play is read, and the file of a new one started, before the password, the connection
+    // and the window (CA-04 and CA-08 of slice 2).
+    auto recordingTools = mu::app::RecordingTools::Prepare(*options, log);
+    if (!recordingTools) {
+        log.Error(kClient, recordingTools.error().message);
+        return kRecordingError;
+    }
+    mu::app::RecordingTools* const tools = &*recordingTools;
+#else
+    mu::app::RecordingTools* const tools = nullptr;
 #endif
-    return nexum::platform::RunApplication(
+
+    auto session = ReadSession(*options);
+    if (!session) {
+        const std::string message = "MuClient: " + session.error().message + "\n";
+        std::fputs(message.c_str(), stderr);
+#if NEXUM_AUTHORING_ENABLED
+        // The file of the recording already has its header: it ends as a session that failed, still valid.
+        return tools->WriteRecording(kPasswordError);
+#else
+        return kPasswordError;
+#endif
+    }
+    const int exitCode = nexum::platform::RunApplication(
         argc, argv,
-        [&options, &session, &log](std::span<const std::string_view> /*arguments*/) {
-            return mu::app::FoundationApp::Create(*options, std::move(*session), log);
+        [&options, &session, tools, &log](std::span<const std::string_view> /*arguments*/) {
+            return mu::app::FoundationApp::Create(*options, std::move(*session), tools, log);
         },
         log);
+#if NEXUM_AUTHORING_ENABLED
+    // After the last frame, outside the frames (INV-06).
+    return tools->WriteRecording(exitCode);
+#else
+    return exitCode;
+#endif
 }

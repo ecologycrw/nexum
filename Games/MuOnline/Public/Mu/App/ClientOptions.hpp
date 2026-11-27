@@ -48,6 +48,17 @@ struct ClientOptions {
     // closed.
     std::optional<std::uint32_t> worldSeconds;
 
+    // The recording and the replay of a session (specs/0002-gravacao-e-replay/spec.md, CA-08). Only the
+    // development build has them.
+    // --record FILE: record the session in the world to this .mucap file. It comes with --connect.
+    std::optional<std::string> recordPath;
+    // --server-version TEXT: the version of the server, for the header of the recording, with 1 to 64 bytes.
+    // It comes with --record. Empty: the header says "unknown".
+    std::optional<std::string> serverVersion;
+    // --replay FILE: play this .mucap recording without a server. It comes without the options of the way to
+    // the world, without --record and without --capture.
+    std::optional<std::string> replayPath;
+
     // True when the client goes to the world.
     [[nodiscard]] bool Online() const noexcept { return connectServer.has_value(); }
 };
@@ -58,8 +69,9 @@ struct ClientOptions {
 // Reads the command line (INV-12). The first argument is the name of the program. Each option comes at most
 // once, --version comes alone, the number of frames and of seconds goes from 1 to 4294967295, and --capture,
 // which draws without a window, comes without --frames and without --connect. --connect comes with --account,
-// and the other options of the way to the world come with --connect. The player build refuses --capture
-// (INV-19).
+// and the other options of the way to the world, --record among them, come with --connect. --server-version
+// comes with --record, and --replay without the way to the world, --record and --capture. The player build
+// refuses --capture, --record, --server-version and --replay (INV-19).
 [[nodiscard]] nexum::core::Result<ClientOptions>
 ParseClientOptions(std::span<const std::string_view> arguments, BuildKind build);
 

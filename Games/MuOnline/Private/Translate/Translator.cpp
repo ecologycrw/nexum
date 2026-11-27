@@ -146,7 +146,8 @@ std::size_t ForEachInventoryEntry(std::span<const std::byte> entries, std::size_
 
 Translator::Translator(ObjectId hero, nexum::debug::Logger& log) : m_hero(hero), m_log(&log) {}
 
-std::size_t Translator::Translate(Message message, world::EventQueue& events) {
+std::size_t Translator::Translate(session::SessionEpoch epoch, Message message, world::EventQueue& events) {
+    m_epoch = epoch;
     const std::size_t before = events.Count();
     if (!TranslateWorldPacket(message, events) && !IsAny(message, kIgnored)) {
         ReportUnknown(message);
@@ -385,7 +386,7 @@ void Translator::TranslateTerrain(Message message, world::EventQueue& events) {
 }
 
 void Translator::Put(world::EventQueue& events, const world::WorldEvent& event) {
-    if (!events.Push(event) && !m_queueGrew) {
+    if (!events.Push(m_epoch, event) && !m_queueGrew) {
         m_queueGrew = true;
         m_log->Warning(kTranslate,
                        "the events of the world passed the reserved room; the queue grows, because "

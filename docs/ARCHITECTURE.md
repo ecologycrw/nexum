@@ -2,7 +2,7 @@
 
 > Documento vivo: descreve como o Nexum é **agora** e para onde vai. É atualizado no mesmo PR do código que muda o que ele descreve. A fonte é a Parte III da [especificação de referência](referencia/especificacao-engine-propria-caminho-b.md#parte-iii--arquitetura).
 
-**Como é agora (fatia 1, a rede até o mundo):** a engine tem estas peças:
+**Como é agora (fatia 2, a gravação e o replay):** a engine tem estas peças:
 
 - a base (`nexum_core`);
 - o tempo e o laço de ticks (`nexum_time`);
@@ -11,7 +11,7 @@
 - a placa de vídeo pelo SDL GPU (`nexum_render`);
 - as conexões TCP (`nexum_net`).
 
-O kit (`nexum_gridrpg`) ainda é mínimo. O módulo MU fala o protocolo do cliente 106.3, com o código dos pacotes gerado pelo `packetgen` a partir dos XML do OpenMU. Com `--connect`, o `MuClient` entra num OpenMU sem modificações, fica no mundo e conta no log o que vê. A janela continua com o cartão de teste da fatia 0, e o build de desenvolvimento tem a prova visual (`--capture` e `visualproof`). Cada módulo que já existe tem a sua página em [docs/modules](modules/README.md). Todo o resto desta página é o destino.
+O kit (`nexum_gridrpg`) ainda é mínimo. O módulo MU fala o protocolo do cliente 106.3, com o código dos pacotes gerado pelo `packetgen` a partir dos XML do OpenMU. Com `--connect`, o `MuClient` entra num OpenMU sem modificações, fica no mundo e conta no log o que vê. No build de desenvolvimento, com `--record`, ele grava a sessão no mundo num arquivo `.mucap`, e com `--replay` a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. A janela continua com o cartão de teste da fatia 0, e o build de desenvolvimento tem a prova visual (`--capture` e `visualproof`). Cada módulo que já existe tem a sua página em [docs/modules](modules/README.md). Todo o resto desta página é o destino.
 
 ## Visão geral
 
@@ -31,10 +31,10 @@ O jogador importa uma vez os arquivos que já tem, e o `MuClient` passa a ler s�
 ```mermaid
 flowchart TB
     subgraph TOOLS["Tools/: usam qualquer camada, nunca entram no build de jogador"]
-        T["visualproof · muimport · packetgen · capture-replay · parity"]
+        T["visualproof · muimport · packetgen · parity"]
     end
     subgraph GAME["Games/MuOnline: módulo MU"]
-        G["Protocol · Session · Translate · Online · Rules<br/>Characters · Items · Effects · World · Ui · App"]
+        G["Protocol · Session · Translate · Online · Recording · Rules<br/>Characters · Items · Effects · World · Ui · App"]
     end
     subgraph KIT["Kit/GridRpg: kit do gênero"]
         K["Grid · Movement · Camera · Light · Inventory<br/>FloatingText · Cursor · Minimap"]
@@ -84,20 +84,20 @@ Cada módulo segue o mesmo formato:
 
 | Pasta | O que guarda | Alvos do build | Camada |
 |---|---|---|---|
-| `Engine/Core` | tipos básicos, `Result`, versão, `NEXUM_ASSERT`, handles geracionais e pools, a arena do quadro e a imagem RGBA | `nexum_core` (`Nexum::Core`), `nexum_core_tests`, `nexum_core_assert_failure_tests` | Engine |
+| `Engine/Core` | tipos básicos, `Result`, versão, `NEXUM_ASSERT`, handles geracionais e pools, a arena do quadro, a imagem RGBA e o FNV-1a de 64 bits | `nexum_core` (`Nexum::Core`), `nexum_core_tests`, `nexum_core_assert_failure_tests` | Engine |
 | `Engine/Time` | o relógio de ticks, os temporizadores de parede e de tick, o diagnóstico do laço e o relógio monotônico | `nexum_time` (`Nexum::Time`), `nexum_time_tests` | Engine |
 | `Engine/Debug` | o log com categorias e níveis, a linha de log montada sem pedir memória (`LogLine`) e as marcações do profiler (o Tracy, opcional) | `nexum_debug` (`Nexum::Debug`), `nexum_debug_tests` | Engine |
-| `Engine/Platform` | a fronteira com o SDL3 e o sistema operacional: a entrada pelos *main callbacks*, o vídeo, a janela, a espera precisa, a linha do terminal lida sem eco, o PNG e as falhas escritas como texto nos testes | `nexum_platform` (`Nexum::Platform`), `nexum_platform_tests` | Engine |
+| `Engine/Platform` | a fronteira com o SDL3 e o sistema operacional: a entrada pelos *main callbacks*, o vídeo, a janela, a espera precisa, a linha do terminal lida sem eco, o PNG, a leitura e a escrita de um arquivo inteiro e as falhas escritas como texto nos testes | `nexum_platform` (`Nexum::Platform`), `nexum_platform_tests` | Engine |
 | `Engine/Render` | a placa de vídeo pelo SDL GPU: o dispositivo e a escolha do backend, o alvo da janela, o alvo sem janela com a leitura dos pixels, as texturas por handle, a lista de cópias e o cartão de teste | `nexum_render` (`Nexum::Render`), `nexum_render_tests` | Engine |
 | `Engine/Net` | as conexões TCP, cada uma numa thread própria com o Asio, com a fila de entrada, a única fila de saída e a interface da transformação de bytes que o jogo implementa; um servidor TCP local, só para os testes | `nexum_net` (`Nexum::Net`), `nexum_net_test_server`, `nexum_net_tests` | Engine |
 | `Kit/GridRpg` | o kit do gênero | `nexum_gridrpg` (`Nexum::GridRpg`), `nexum_gridrpg_tests` | Kit |
-| `Games/MuOnline` | o módulo MU: o protocolo do 106.3 (`Mu/Protocol`, com os pacotes gerados), a sessão (`Mu/Session`), a tradução em eventos neutros (`Mu/Translate`), a visão do mundo (`Mu/World`), o cliente online (`Mu/Online`), a tela da fundação e a cena de prova | `MuOnline`, `muonline_tests`, `muonline_packet_tests`, `muonline_frame_allocation_tests`, os alvos de fuzzing `muonline_*` | Games |
+| `Games/MuOnline` | o módulo MU: o protocolo do 106.3 (`Mu/Protocol`, com os pacotes gerados), a sessão (`Mu/Session`), a tradução em eventos neutros (`Mu/Translate`), a visão do mundo (`Mu/World`), o cliente online com o adaptador de servidor e o replay (`Mu/Online`), a gravação `.mucap` (`Mu/Recording`), a tela da fundação e a cena de prova | `MuOnline`, `muonline_tests`, `muonline_packet_tests`, `muonline_frame_allocation_tests`, os alvos de fuzzing `muonline_*` | Games |
 | `Games/MuOnline/App` | o ponto de entrada do jogo | `MuClient` | Games |
 | `Tools/PacketGen` | o gerador do codec, em Python, que todo build roda pelo `cmake/NexumPacketGen.cmake`; a pasta do build só tem os testes do gerador, no build de desenvolvimento | `packetgen_tests`, `packetgen_script_tests` | Tools |
 | `Tools/VisualProof` | a comparação de imagens da prova visual; só no build de desenvolvimento | `visualproof_comparison`, `visualproof`, `visualproof_tests` | Tools |
 | `third_party/openmu` | os XML de pacotes e o esquema do OpenMU (MIT), da base `b53c704c6`, com o aviso da licença | — | terceiros |
 | `tests/architecture` | provas de arquitetura: um "outro jogo" que usa só a Engine e o Kit, o contador de alocações do quadro e os canários dos sanitizers | `other_game`, `other_game_tests`, `nexum_test_allocation_counter`, `sanitizer_canary_*` | testes |
-| `tests/integration/openmu` | o servidor de teste (o OpenMU 0.10.1 no Docker) e o teste de integração do `MuClient`, que só roda com o endereço do servidor configurado | `openmu_muclient_*` | testes |
+| `tests/integration/openmu` | o servidor de teste (o OpenMU 0.10.1 no Docker) e os testes de integração do `MuClient`, inclusive o que grava e reproduz, que só rodam com o endereço do servidor configurado | `openmu_muclient_*` | testes |
 | `tests/support` | o `main` comum dos testes, o log em memória e o `main` que roda as sementes de cada alvo de fuzzing | `nexum_test_main`, `nexum_test_main_tests`, `nexum_test_log`, `nexum_fuzz_seed_main` | testes |
 | `tests/visual` | os testes da prova visual e as imagens aprovadas pelo dono (`approved/`, uma trava) | `visual_proof_0000_test_card` | testes |
 | `scripts/` | comando único (`dev.py`) e checagens em Python | — | infraestrutura |
@@ -108,14 +108,13 @@ Pastas que ainda não existem e quando entram:
 
 | Pasta | O que vai guardar | Marco |
 |---|---|---|
-| `Tools/CaptureReplay` | a gravação `.mucap` e o replay | M2, parte 1, na fatia 2 (antes do M1, [ADR 0032](adr/0032-rede-antes-do-importador.md)) |
 | `Engine/Jobs`, `Engine/Assets` | workers; VFS e cache | M1 |
 | `Tools/MuImport` (programa `muimport`) | o conversor offline | M1 |
 | `Engine/Animation`, `Engine/World` | esqueletos e clipes; a fachada sobre o EnTT | M1 (o `World` chega antes, na parte 1 do M2, se ela precisar dele) |
 | `Tools/Parity`, `Content/` | cenas de referência; conteúdo próprio de teste, sem nada da Webzen | M3 |
 | `Engine/Vfx`, `Engine/Ui`, `Engine/Audio` | partículas e rastros; host do RmlUi; miniaudio | M5 a M7 |
 
-Uma pasta só nasce na fatia que precisa dela ([ADR 0022](adr/0022-organizacao-do-repositorio.md)). As pastas de `Tools/` também usam PascalCase, como os módulos; o programa pode ter um nome em minúsculas (`Tools/VisualProof` gera o `visualproof`).
+Uma pasta só nasce na fatia que precisa dela ([ADR 0022](adr/0022-organizacao-do-repositorio.md)). A gravação e o replay ficaram no módulo MU, e não em `Tools/CaptureReplay`, porque o próprio `MuClient` grava e reproduz; esse programa à parte só nasce quando houver uma necessidade dele ([ADR 0035](adr/0035-adaptador-de-servidor-gravacao-e-replay.md)). As pastas de `Tools/` também usam PascalCase, como os módulos; o programa pode ter um nome em minúsculas (`Tools/VisualProof` gera o `visualproof`).
 
 ## O quadro
 
@@ -134,7 +133,8 @@ flowchart TB
 - Os eventos do servidor são aplicados **antes** dos comandos e dos sistemas, para o tick ver o mundo já corrigido.
 - O desenho recebe um **retrato** interpolado com α e não tem como escrever no mundo.
 - Comandos de jogo nunca são repetidos para "recuperar" ticks; o excesso de atraso é descartado ([ADR 0005](adr/0005-tick-fixo-de-25-hz.md)).
-- Hoje, o laço do `MuClient` já segue essa ordem. Com `--connect`, a rede, os relógios de parede e o começo de cada tick rodam o cliente online (`Mu/Online`). O passo das cargas ainda não existe e está marcado no código, vazio.
+- Hoje, o laço do `MuClient` já segue essa ordem. Com `--connect` ou `--replay`, a rede, os relógios de parede e o começo de cada tick rodam o cliente online (`Mu/Online`). O passo das cargas ainda não existe e está marcado no código, vazio.
+- O cliente online fala com o servidor só pelo **adaptador de servidor**, que tem duas implementações: o OpenMU ao vivo e o replay de uma gravação `.mucap`. O cliente não sabe de onde vêm os eventos. Cada evento leva a época da sua mensagem, e o tick descarta os de uma época velha antes de aplicar os outros ([ADR 0035](adr/0035-adaptador-de-servidor-gravacao-e-replay.md)).
 
 ## Threads e filas
 
@@ -175,10 +175,10 @@ Interfaces conceituais. Os nomes finais nascem nas fatias.
 |---|---|---|
 | Executável | `MuClient` (Release) | `MuClient` (Dev) com `--authoring` |
 | Rede | conectada ao OpenMU | conectada, offline ou reproduzindo uma gravação |
-| Escrita em disco | só configuração e logs | formatos da engine e o `.att` do servidor |
+| Escrita em disco | só configuração e logs | formatos da engine, as gravações `.mucap` e o `.att` do servidor |
 | Ferramentas | nenhuma (removidas na compilação) | ImGui: inspetores, editores, console, profiler |
 
-A opção do CMake `NEXUM_AUTHORING` liga o modo de autoria no build de desenvolvimento e o desliga no build de jogador. Hoje o `MuClient --version` já diz qual dos dois é. A captura da prova visual (`--capture`) e o `Tools/VisualProof` só existem no build de desenvolvimento, e o build de jogador recusa a opção.
+A opção do CMake `NEXUM_AUTHORING` liga o modo de autoria no build de desenvolvimento e o desliga no build de jogador. Hoje o `MuClient --version` já diz qual dos dois é. A captura da prova visual (`--capture`), a gravação e o replay (`--record`, `--server-version` e `--replay`) e o `Tools/VisualProof` só existem no build de desenvolvimento, e o build de jogador recusa as opções.
 
 ## Invariantes
 
@@ -194,7 +194,7 @@ Regras que nunca mudam sem um ADR. A coluna **Garantia** diz quem confere cada u
 | INV-06 | **O quadro nunca espera** por rede ou disco | testes e revisão |
 | INV-07 | **Aleatoriedade determinística:** gerador próprio, com fluxos separados para simulação, desenho e UI; o `rand()` do sistema é proibido | checagem `cpp-rules` e testes |
 | INV-08 | **O jogo nunca abre um arquivo original:** só os formatos da engine, pelo VFS. Só o `muimport` lê os originais | checagem `terms` (nomes de formato só em `Tools/`) e revisão |
-| INV-09 | **Rede em ordem:** os eventos recebidos são aplicados um a um, na ordem de chegada, com a época; toda saída passa por uma única fila, e a cifra e o contador só existem na thread de rede | testes e replay (M2) |
+| INV-09 | **Rede em ordem:** os eventos recebidos são aplicados um a um, na ordem de chegada, com a época; toda saída passa por uma única fila, e a cifra e o contador só existem na thread de rede | testes e o replay das gravações `.mucap` (desde a fatia 2) |
 | INV-10 | **Cada biblioteca externa tem um dono declarado** e só aparece nele: SDL em Platform e Render (o SDL GPU só no Render); Asio em Net; EnTT em World; RmlUi em Ui; ImGui e Tracy em Debug; miniaudio em Audio. Os cabeçalhos públicos não a expõem. A exceção são os **tipos de vocabulário** (`tl::expected` e GLM): eles aparecem num único cabeçalho do Core, que lhes dá nomes da engine. Os donos das bibliotecas planejadas estão no [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md) | checagem `architecture` |
 | INV-11 | **Memória com dono claro:** RAII; handles geracionais para tudo o que pode morrer; sem `new` e `delete` soltos | checagem `cpp-rules`, clang-tidy e sanitizers |
 | INV-12 | **Dados de fora não são confiáveis:** todo dado de rede ou de arquivo é validado, com limites, antes do uso; leitores e decodificadores passam por fuzzing | testes com dados inválidos, sanitizers e fuzzing (M1 e M2) |

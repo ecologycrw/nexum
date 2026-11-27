@@ -22,6 +22,7 @@ Ficam numa opção (*feature*) do `vcpkg.json` e só entram no build quando ela 
 Arquivos de outros projetos guardados no próprio repositório, cada um com a licença ao lado. A checagem `structure` não confere esta lista, porque ela não vem do `vcpkg.json`.
 
 - **OpenMU, as definições de pacotes** (MIT, Copyright 2017 MUnique): os XML de pacotes, o `CommonEnums.xml`, o `PacketHeaders.xml` e o esquema `PacketDefinitions.xsd`, da base `b53c704c6`, em [`third_party/openmu`](../third_party/openmu/README.md), com o aviso da licença. O `packetgen` lê esses arquivos no build e gera o código dos pacotes. O código gerado entra no jogo distribuído. Aprovado pelo dono com a spec da fatia 1.
+- **OpenMU, a gravação de referência** (MIT, Copyright 2017 MUnique): o que o OpenMU 0.10.1 local enviou em cerca de 20 segundos no mundo, gravado pelo `MuClient`, em [`Games/MuOnline/Tests/Recordings`](../Games/MuOnline/Tests/Recordings/README.md), com o aviso da licença, e a cópia igual da semente `Games/MuOnline/Tests/FuzzSeeds/Recording/openmu-two-players.bin`. Só os testes a usam, e ela não entra no jogo distribuído. Aprovado pelo dono com a spec da fatia 2 (decisão 5).
 
 ## Planejadas
 

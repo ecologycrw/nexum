@@ -7,11 +7,16 @@
 #include <utility>
 
 #include "ClientStart.hpp"
+#include "Mu/Online/LiveServer.hpp"
 #include "Nexum/Debug/Profiler.hpp"
 #include "Nexum/Platform/Wait.hpp"
 #include "Nexum/Render/OffscreenTarget.hpp"
 #include "Nexum/Render/TestCard.hpp"
 #include "Nexum/Time/Seconds.hpp"
+
+#if NEXUM_AUTHORING_ENABLED
+#include "RecordingTools.hpp"
+#endif
 
 namespace mu::app {
 
@@ -36,8 +41,20 @@ constexpr auto kTextureCapacity = static_cast<std::uint32_t>(foundation::Foundat
 
 [[nodiscard]] OnlineParts MakeOnlineParts(const ClientOptions& options,
                                           std::optional<session::SessionOptions> session,
-                                          nexum::debug::Logger& log) {
+                                          [[maybe_unused]] RecordingTools* tools, nexum::debug::Logger& log) {
     OnlineParts parts;
+    recording::Recorder* recorder = nullptr;
+#if NEXUM_AUTHORING_ENABLED
+    if (tools != nullptr) {
+        // The replay takes the place of the live server, without a transport.
+        if (auto replay = tools->MakeReplayServer()) {
+            parts.server = std::move(replay);
+            parts.client = std::make_unique<online::OnlineClient>(*parts.server, log, std::nullopt);
+            return parts;
+        }
+        recorder = tools->Recorder();
+    }
+#endif
     if (!session) {
         return parts;
     }
@@ -46,7 +63,8 @@ constexpr auto kTextureCapacity = static_cast<std::uint32_t>(foundation::Foundat
         stay = nexum::time::Seconds{static_cast<double>(*options.worldSeconds)};
     }
     parts.transport = std::make_unique<online::NetworkTransport>();
-    parts.client = std::make_unique<online::OnlineClient>(std::move(*session), *parts.transport, log, stay);
+    parts.server = std::make_unique<online::LiveServer>(std::move(*session), *parts.transport, log, recorder);
+    parts.client = std::make_unique<online::OnlineClient>(*parts.server, log, stay);
     return parts;
 }
 
@@ -54,7 +72,7 @@ constexpr auto kTextureCapacity = static_cast<std::uint32_t>(foundation::Foundat
 
 core::Result<std::unique_ptr<platform::Application>>
 FoundationApp::Create(const ClientOptions& options, std::optional<session::SessionOptions> session,
-                      nexum::debug::Logger& log) {
+                      RecordingTools* tools, nexum::debug::Logger& log) {
     auto sdlLog = std::make_unique<platform::SdlLogRoute>(log);
     auto video = StartVideo(log);
     if (!video) {
@@ -82,8 +100,12 @@ FoundationApp::Create(const ClientOptions& options, std::optional<session::Sessi
     }
     FoundationParts parts{std::move(sdlLog),    std::move(*video),  std::move(*window), std::move(*device),
                           std::move(*textures), std::move(*target), std::move(*screen)};
-    return std::unique_ptr<platform::Application>(std::make_unique<FoundationApp>(
-        std::move(parts), MakeOnlineParts(options, std::move(session), log), log, options.frameLimit));
+    auto app = std::make_unique<FoundationApp>(
+        std::move(parts), MakeOnlineParts(options, std::move(session), tools, log), log, options.frameLimit);
+#if NEXUM_AUTHORING_ENABLED
+    app->m_tools = tools;
+#endif
+    return std::unique_ptr<platform::Application>(std::move(app));
 }
 
 FoundationApp::FoundationApp(FoundationParts parts, OnlineParts online, nexum::debug::Logger& log,
@@ -145,6 +167,9 @@ AppStatus FoundationApp::CheckSession(nexum::time::Seconds now) {
     case online::OnlineStatus::StayedLongEnough:
         m_log->Info(kClient, "stayed in the world as long as --world-seconds asked");
         return End(AppStatus::Success);
+    case online::OnlineStatus::ServerEnded:
+        m_log->Info(kClient, "the server ended the session");
+        return End(AppStatus::Success);
     case online::OnlineStatus::Failed:
         return End(AppStatus::Failure);
     }
@@ -153,7 +178,16 @@ AppStatus FoundationApp::CheckSession(nexum::time::Seconds now) {
 
 AppStatus FoundationApp::End(AppStatus status) {
     if (m_online.client) {
-        m_log->Info(kClient, m_online.client->Summary(m_clock.Elapsed()));
+        const nexum::time::Seconds now = m_clock.Elapsed();
+        // The messages that came after the last tick get their tick, so the view, and the recording, end with
+        // every message that came (Mu/Recording/Recorder.hpp, Finish).
+        m_online.client->ApplyEvents(now);
+#if NEXUM_AUTHORING_ENABLED
+        if (m_tools != nullptr && !m_tools->EndSession(*m_online.client, now)) {
+            status = AppStatus::Failure;
+        }
+#endif
+        m_log->Info(kClient, m_online.client->Summary(now));
     }
     return status;
 }

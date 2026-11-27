@@ -14,6 +14,8 @@
 
 #include <SDL3/SDL.h>
 
+#include "SdlFile.hpp"
+
 namespace nexum::platform {
 
 namespace {
@@ -28,17 +30,6 @@ struct DestroySurface {
 
 using Surface = std::unique_ptr<SDL_Surface, DestroySurface>;
 
-// SDL takes paths in UTF-8.
-[[nodiscard]] std::string ToUtf8(const std::filesystem::path& path) {
-    const std::u8string text = path.u8string();
-    std::string converted;
-    converted.reserve(text.size());
-    for (const char8_t unit : text) {
-        converted.push_back(static_cast<char>(unit));
-    }
-    return converted;
-}
-
 [[nodiscard]] bool FitsTheLimit(std::uint32_t width, std::uint32_t height) noexcept {
     return width > 0 && height > 0 && width <= kMaxPngSide && height <= kMaxPngSide;
 }
@@ -46,12 +37,6 @@ using Surface = std::unique_ptr<SDL_Surface, DestroySurface>;
 [[nodiscard]] std::string SizeText(std::uint32_t width, std::uint32_t height) {
     return std::to_string(width) + "x" + std::to_string(height);
 }
-
-struct CloseStream {
-    void operator()(SDL_IOStream* stream) const noexcept { static_cast<void>(SDL_CloseIO(stream)); }
-};
-
-using Stream = std::unique_ptr<SDL_IOStream, CloseStream>;
 
 // The start of every PNG file, from the PNG specification (W3C, sections 5.2 and 11.2.2): the signature of 8
 // bytes, then the first chunk, which is always IHDR: its length (13, big-endian), its type, and the width and

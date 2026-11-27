@@ -2,6 +2,7 @@ nexum_add_tests(nexum_platform_tests
     SOURCES
         ApplicationTest.cpp
         FailureReportsTest.cpp
+        FileBytesTest.cpp
         PlatformInfoTest.cpp
         PngTest.cpp
         SdlLogRouteTest.cpp
@@ -9,6 +10,13 @@ nexum_add_tests(nexum_platform_tests
         WaitTest.cpp
         WindowTest.cpp
     DEPS Nexum::Platform Nexum::Time nexum_test_log)
+
+# CA-03 of slice 2: a file above the limit is refused before any memory is asked for its content. It is a test
+# program of its own, because the allocation counter replaces the global allocation functions of C++ for the
+# whole program that links it (tests/architecture/frame_allocations).
+nexum_add_tests(nexum_platform_file_bytes_allocation_tests
+    SOURCES FileBytesAllocationTest.cpp
+    DEPS Nexum::Platform nexum_test_allocation_counter)
 
 # A fuzz target for each reader of outside data: its seeds run here as a test on every system.
 nexum_add_fuzz_target(nexum_platform_load_png

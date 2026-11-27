@@ -9,8 +9,10 @@ nexum_add_library(MuOnline
         Private/Foundation/ProofScene.cpp
         Private/Foundation/TickReportText.cpp
         Private/ModuleIdentity.cpp
+        Private/Online/LiveServer.cpp
         Private/Online/NetworkTransport.cpp
         Private/Online/OnlineClient.cpp
+        Private/Online/ReplayServer.cpp
         Private/Protocol/CharacterInformation.cpp
         Private/Protocol/Cipher.cpp
         Private/Protocol/ClientCodec.cpp
@@ -20,6 +22,9 @@ nexum_add_library(MuOnline
         Private/Protocol/LoginMessage.cpp
         Private/Protocol/PacketFields.cpp
         Private/Protocol/PacketLog.cpp
+        Private/Recording/Recorder.cpp
+        Private/Recording/Recording.cpp
+        Private/Recording/StateDigest.cpp
         Private/Session/MessageQueue.cpp
         Private/Session/Ping.cpp
         Private/Session/Session.cpp
@@ -27,7 +32,8 @@ nexum_add_library(MuOnline
         Private/World/EventQueue.cpp
         Private/World/WorldEvent.cpp
         Private/World/WorldView.cpp
-    PUBLIC_DEPS Nexum::Core Nexum::Debug Nexum::Net Nexum::Render Nexum::Time Nexum::GridRpg)
+    PUBLIC_DEPS Nexum::Core Nexum::Debug Nexum::Net Nexum::Render Nexum::Time Nexum::GridRpg
+    PRIVATE_DEPS Nexum::Platform)
 
 # The code that reads and writes every packet of OpenMU, generated from its XML files (third_party/openmu) at each
 # build, into the build folder (docs/adr/0034-packetgen-em-python-no-build.md). Each packet is a header of its own,

@@ -94,7 +94,7 @@ core::Result<void> FoundationScreen::Frame(Seconds now, Seconds frameTime, rende
     //    that needs them.
     // 2. Network: the translated server events are taken here, without being applied yet.
     if (m_online != nullptr) {
-        m_online->TakeNetwork(now);
+        m_online->TakeEvents(now);
     }
     // 3. Wall timers: the deadlines and the ping of the session, and the reports.
     if (m_online != nullptr) {
@@ -103,7 +103,7 @@ core::Result<void> FoundationScreen::Frame(Seconds now, Seconds frameTime, rende
     ReportTicks(now);
     // 4. Finished loads go to the GPU here, within their time budget (M1).
     // 5. Fixed ticks.
-    RunTicks(frameTime);
+    RunTicks(now, frameTime);
     // 6. Drawing, which only reads the snapshot.
     return Draw(target);
 }
@@ -116,14 +116,14 @@ void FoundationScreen::ReportTicks(Seconds now) noexcept {
     m_log->Info(kTimeCategory, text.Format(m_diagnostics.TakeReport()));
 }
 
-void FoundationScreen::RunTicks(Seconds frameTime) {
+void FoundationScreen::RunTicks(Seconds now, Seconds frameTime) {
     const nexum::time::FrameTicks frame = m_ticks.AdvanceFrame(frameTime);
     for (std::uint32_t tick = 0; tick < frame.count; ++tick) {
         NEXUM_PROFILE_SCOPE("tick");
         const Seconds started = m_tickStopwatch.Elapsed();
         // The events of the server come before the systems, so the tick sees the world already corrected.
         if (m_online != nullptr) {
-            m_online->ApplyEvents();
+            m_online->ApplyEvents(now);
         }
         m_scene.Tick();
         m_diagnostics.RecordTickTime(m_tickStopwatch.Elapsed() - started);

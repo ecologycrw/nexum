@@ -21,17 +21,19 @@ Cabeçalhos públicos em `Games/MuOnline/Public/Mu/Session/`.
   - O `Handle(época, evento, agora)` recebe cada evento de uma conexão. Um evento de uma época velha é descartado.
   - O `AdvanceClock(agora)`, chamado a cada quadro, cuida dos prazos e do ping.
   - O `FinishLoading()` diz que o mapa está pronto e leva a sessão de "Carregando" a "No mundo".
-  - O `TakeWorldMessages` entrega ao tick as mensagens do mundo, na ordem, primeiro os dados do personagem.
+  - O `TakeWorldMessages` entrega as mensagens do mundo que esperam, na ordem, primeiro os dados do personagem.
+  - O `Epoch()` é a época atual, que o `LiveServer` dá como a época do servidor.
   - Cada resposta esperada tem um prazo de 10 segundos, e um prazo vencido diz o que faltou. Uma recusa de login diz o significado do código (por exemplo, "invalid password") e encerra.
 - **`SessionLink`** (`Session.hpp`): o que a sessão pede ao app: `Open` (abrir uma conexão com um endereço e uma cifra), `Send` e `Close`. A cada `Open`, a época aumenta.
 - **`SessionOptions`**: a conta, a senha, o servidor e o personagem escolhidos. Sem servidor ou personagem, vale o primeiro da lista. A sessão recebe a senha como valor, sem saber de onde ela veio.
-- **`MessageQueue`** (`MessageQueue.hpp`): as mensagens do mundo que esperam o tick, cada uma com a época da conexão. O espaço é reservado uma vez. Se passar do espaço, a fila cresce em vez de descartar, porque a ordem importa.
+- **`SessionEpoch`** (`SessionEpoch.hpp`): o número da época, um valor à parte, com a ordem (um número menor é uma época mais velha). Cada conexão nova recebe o seguinte. A fila de eventos do [MU: World](mu-world.md) e a [gravação](mu-recording.md) guardam a época sem conhecer a sessão.
+- **`MessageQueue`** (`MessageQueue.hpp`): as mensagens do mundo que esperam a tradução, cada uma com a época da conexão. O espaço é reservado uma vez. Se passar do espaço, a fila cresce em vez de descartar, porque a ordem importa.
 - **O ping** (`Ping.hpp`): o `PingClock` manda o `C3 0E 00` a cada 20 s de relógio de parede, desde a entrada no Game Server, como o cliente real. O `WritePing` leva o tempo em ms e as velocidades de ataque e de magia conhecidas (0 e 0 até o personagem entrar).
 - **O log:** cada passo vira uma linha na categoria `session`, como "the login was accepted". O log de pacotes (`session.packets`) esconde o usuário e a senha.
 
 ## Como usar
 
-O `OnlineClient` ([MU: Online](mu-online.md)) segura a sessão: o passo 2 do quadro entrega os eventos da rede ao `Handle`, o passo 3 chama o `AdvanceClock`, e o tick tira as mensagens com o `TakeWorldMessages`. Os testes usam mensagens em memória e um relógio de teste (`Games/MuOnline/Tests/SessionTest.cpp`, com as mensagens em `SessionMessages.hpp`).
+O `LiveServer` ([MU: Online](mu-online.md)) segura a sessão. No passo 2 do quadro, ele entrega os eventos da rede ao `Handle`, chama o `FinishLoading` quando os dados do personagem chegam e tira as mensagens do mundo com o `TakeWorldMessages`, para a tradução. O passo 3 chama o `AdvanceClock`. Os testes usam mensagens em memória e um relógio de teste (`Games/MuOnline/Tests/SessionTest.cpp`, com as mensagens em `SessionMessages.hpp`).
 
 ## Fontes da central
 

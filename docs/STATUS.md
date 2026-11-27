@@ -1,23 +1,23 @@
 ---
 fase: entre-fatias
 spec-atual:
-branch: fatia/0001-rede-ate-o-mundo
-atualizado-em: 2026-11-26
+branch: fatia/0002-gravacao-e-replay
+atualizado-em: 2026-11-27
 ---
 
 # Status
 
 ## Agora
 
-**Fatia 1 concluída, esperando o merge do dono: a rede até o mundo** ([spec](../specs/0001-rede-ate-o-mundo/spec.md) e [report](../specs/0001-rede-ate-o-mundo/report.md)), na branch `fatia/0001-rede-ate-o-mundo`. O dono testou, e a retrospectiva foi feita. O `MuClient` entra num OpenMU local sem modificações e fica no mundo. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está pronto para a aprovação.
+**Fatia 2 concluída, esperando o merge do dono: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [report](../specs/0002-gravacao-e-replay/report.md)), na branch `fatia/0002-gravacao-e-replay`. O dono testou, e a retrospectiva foi feita. O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. Com ela, a parte 1 do M2 está feita ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O [PR #12](https://github.com/ecologycrw/nexum/pull/12) está pronto para a aprovação.
 
-A próxima é a **fatia 2, a gravação `.mucap` e o replay**, que fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). Ela traz também o adaptador de servidor (P-0018), a época nos eventos neutros (TD-0037) e a conferência dos `NOLINT` novos (P-0015). A retrospectiva mudou duas regras: o PR da fatia abre em rascunho logo depois da lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo (P-0020).
+A próxima é a **fatia 3, o importador do M1** (`muimport`): ele lê os modelos e as texturas da instalação do jogo, grava o cache da engine e exporta glTF, com fuzzing, ainda sem desenhar. Ela traz também três correções pequenas: a falha de uma semente de fuzzing no Windows sem a janela que trava o teste (P-0021), os testes de recusa de antes da regra da P-0020 com o motivo exato (P-0023), e a checagem `docs` procurando a etiqueta do critério também nos testes em Python e em CMake (P-0024). Antes da spec, a central precisa descrever os formatos dos modelos e das texturas: hoje ela tem só o achado da leitura do `.bmd`, com perguntas em aberto.
 
-A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10) estão na `main`. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
+A fatia 1 (a rede até o mundo) está na `main` desde o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11), assim como a fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. O dono lê o resumo de segurança e faz o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11). Depois, `/planejar` da fatia 2, a partir da `main`.
+1. O dono lê o resumo de segurança e faz o squash merge do [PR #12](https://github.com/ecologycrw/nexum/pull/12). Depois, `/planejar` da fatia 3, a partir da `main`: ele confere na central o que o M1 manda investigar antes e escreve as perguntas prontas para o dono levar (agente `formatos`).
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -59,3 +59,10 @@ Nenhum.
 | 2026-11-26 | Fatia 1 fechada: report com a prova dos 15 critérios, a contagem dos vetores (100% em cada grupo), a checklist de sala limpa e a medição de 30 minutos no mundo com a janela minimizada. O PR #11 saiu do rascunho para o teste do dono |
 | 2026-11-26 | Teste do dono da fatia 1: tudo passou, e a CI ficou verde nos 10 checks |
 | 2026-11-26 | Retrospectiva da fatia 1: a próxima é a fatia 2 (a gravação `.mucap` e o replay). A escada de erros trouxe a P-0019 (o PR em rascunho desde a lista de tarefas) e a P-0020 (o teste de recusa confere o motivo, e os testes de risco são sabotados), aplicadas. A P-0015 e a P-0018 foram aceitas para a fatia 2, e a P-0017 para o M7. A P-0014 fechou com a medição do custo da fatia |
+| 2026-11-26 | O dono fez o squash merge do PR #11: a fatia 1 está na `main` |
+| 2026-11-26 | Spec da fatia 2 (A gravação e o replay, M2 parte 1) aprovada pelo dono, com o adaptador de servidor (P-0018, ADR 0035), o formato `.mucap` versão 1, a gravação e o replay só no build de desenvolvimento e no módulo MU, a gravação na memória até o fim (16 MiB), a gravação de referência do OpenMU local e a trava dos `NOLINT` (P-0015) |
+| 2026-11-27 | Fatia 2: as 16 tarefas feitas. O `MuClient` gravou 60 s no OpenMU 0.10.1 local, com a `test1Dk` entrando na visão e saindo, e o replay da gravação, com o servidor desligado, conferiu cada tick e ponto de controle e mostrou as mesmas linhas do mundo. A gravação de referência de 20 s está no repositório e é reproduzida nos 3 sistemas. Saiu o TD-0037; entraram o TD-0038 e o TD-0039 |
+| 2026-11-27 | Revisão independente da fatia 2: nenhum achado crítico ou importante, e 11 menores. Cinco foram corrigidos (o replay interrompido passa a terminar com erro, os textos do cabeçalho da gravação são conferidos, um teste confere o motivo exato, e a página e a licença da gravação de referência); um virou o TD-0040, um virou a P-0022, três ficam para o report e um espera o "sim" do dono no `/fechar`. As correções vão até o commit `a97dc54` |
+| 2026-11-27 | Fatia 2 fechada: report com a prova dos 13 critérios, a medição de 60 s e a checklist de sala limpa. O teste que grava e reproduz passou de novo no OpenMU local, com o código final. O ROADMAP deixou de citar o TD-0037, com o "sim" do dono, e o PR #12 saiu do rascunho para o teste do dono |
+| 2026-11-27 | Teste do dono da fatia 2: tudo passou, os passos do report e a CI verde nos 10 checks |
+| 2026-11-27 | Retrospectiva da fatia 2: a próxima é a fatia 3, o importador do M1. A escada de erros não trouxe regra nova: o campo que o MSVC deixou passar foi pego pela CI do PR em rascunho (P-0019), e o teste de recusa sem o motivo exato, terceira ocorrência, virou a P-0023 (rever os testes de antes da regra), porque uma busca no texto não distingue um `Result` de um `std::optional`. A P-0021, a P-0023 e a P-0024 foram aceitas para a fatia 3, e a P-0022 para a parte 2 do M2. A P-0015 e a P-0018 ficaram como aplicadas, e o TD-0009 passou para o M1 |

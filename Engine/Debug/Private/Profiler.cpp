@@ -31,6 +31,7 @@ namespace {
 // of the engine can own them, and the profiling macros reach them from any function.
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::array<ProfileSite, kMaxProfileSites> sites{};
+// How many sites are in use: global for the same reason, and atomic because any thread may register a site.
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::atomic<std::size_t> siteCount{0};
 

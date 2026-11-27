@@ -13,6 +13,7 @@
 #include "Mu/Protocol/Dialect/World.hpp"
 #include "Mu/Protocol/ExtendedAppearance.hpp"
 #include "Mu/Protocol/ExtendedItem.hpp"
+#include "Mu/Session/SessionEpoch.hpp"
 #include "Mu/Translate/Translator.hpp"
 #include "Mu/World/EventQueue.hpp"
 #include "Mu/World/WorldView.hpp"
@@ -213,9 +214,10 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     nexum::debug::Logger log{silent, nexum::debug::LogLevel::Trace};
     mu::translate::Translator translator{mu::world::ObjectId{0x0200}, log};
     mu::world::EventQueue events{16};
-    static_cast<void>(translator.Translate(message, events));
+    static_cast<void>(translator.Translate(mu::session::SessionEpoch{1}, message, events));
     mu::world::WorldView view{log};
-    events.Drain([&](const mu::world::WorldEvent& event) { view.Apply(event); });
+    events.Drain(
+        [&](mu::session::SessionEpoch /*epoch*/, const mu::world::WorldEvent& event) { view.Apply(event); });
     sink.Take(view.Objects().size());
     return 0;
 }

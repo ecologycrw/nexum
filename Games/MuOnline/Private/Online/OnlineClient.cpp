@@ -3,9 +3,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <span>
 #include <string>
-#include <utility>
+
+#include "Mu/Session/SessionEpoch.hpp"
+#include "Nexum/Debug/LogLine.hpp"
 
 namespace mu::online {
 
@@ -22,50 +23,59 @@ constexpr std::size_t kEventRoom = 1024;
 
 } // namespace
 
-OnlineClient::OnlineClient(session::SessionOptions options, Transport& transport, nexum::debug::Logger& log,
-                           std::optional<Seconds> stay)
-    : m_transport(&transport), m_log(&log), m_session(std::move(options), transport, log),
-      m_events(kEventRoom), m_view(log), m_stay(stay) {}
+OnlineClient::OnlineClient(ServerAdapter& server, nexum::debug::Logger& log, std::optional<Seconds> stay)
+    : m_server(&server), m_log(&log), m_events(kEventRoom), m_view(log), m_stay(stay) {}
 
 void OnlineClient::Start(Seconds now) {
-    m_started = true;
-    m_session.Start(now);
+    m_server->Start(now);
 }
 
-void OnlineClient::TakeNetwork(Seconds now) {
-    m_transport->Deliver(m_session, now);
-    if (m_session.WaitsForMap()) {
-        EnterWorld(now);
+void OnlineClient::TakeEvents(Seconds now) {
+    m_server->TakeEvents(now, m_events);
+    if (!m_enteredWorld && m_server->Status().state == ServerState::InWorld) {
+        m_enteredWorld = now;
     }
-    if (m_translator) {
-        m_session.TakeWorldMessages(
-            [this](session::SessionEpoch /*epoch*/, std::span<const std::byte> message) {
-                m_translator->Translate(message, m_events);
-            });
-    }
-}
-
-// There is no map to load yet, so the map is ready as soon as the data of the character came (TD-0033, M3).
-void OnlineClient::EnterWorld(Seconds now) {
-    if (auto finished = m_session.FinishLoading(); !finished) {
-        m_log->Error(kOnline, finished.error().message);
-        return;
-    }
-    m_translator.emplace(world::ObjectId{m_session.PlayerId()}, *m_log);
-    m_enteredWorld = now;
 }
 
 void OnlineClient::AdvanceClock(Seconds now) {
-    m_session.AdvanceClock(now);
+    m_server->AdvanceClock(now);
 }
 
-void OnlineClient::ApplyEvents() {
-    m_events.Drain([this](const world::WorldEvent& event) { m_view.Apply(event); });
+void OnlineClient::ApplyEvents(Seconds now) {
+    const session::SessionEpoch current = m_server->CurrentEpoch();
+    std::uint64_t dropped = 0;
+    const std::size_t taken = m_events.Drain(
+        [this, current, &dropped](session::SessionEpoch epoch, const world::WorldEvent& event) {
+            if (epoch < current) {
+                ++dropped;
+                return;
+            }
+            m_view.Apply(event);
+        });
+    if (dropped > 0) {
+        m_droppedEvents += dropped;
+        nexum::debug::LogLine line;
+        line.Append("the tick dropped ")
+            .AppendNumber(dropped)
+            .Append(dropped == 1 ? " event" : " events")
+            .Append(" of an epoch older than ")
+            .AppendNumber(current.value);
+        m_log->Info(kOnline, line.View());
+    }
+    if (taken > 0) {
+        m_server->EventsApplied(m_view, taken, now);
+    }
 }
 
 OnlineStatus OnlineClient::Status(Seconds now) const noexcept {
-    if (m_started && m_session.State() == session::SessionState::Disconnected) {
+    switch (m_server->Status().state) {
+    case ServerState::Failed:
         return OnlineStatus::Failed;
+    case ServerState::Ended:
+        return OnlineStatus::ServerEnded;
+    case ServerState::Connecting:
+    case ServerState::InWorld:
+        break;
     }
     if (m_stay && m_enteredWorld && now - *m_enteredWorld >= *m_stay) {
         return OnlineStatus::StayedLongEnough;
@@ -74,13 +84,13 @@ OnlineStatus OnlineClient::Status(Seconds now) const noexcept {
 }
 
 std::string OnlineClient::Summary(Seconds now) const {
-    const std::string pings = "pings sent: " + std::to_string(m_session.PingsSent());
+    const std::string server = m_server->Summary(now);
     if (!m_enteredWorld) {
-        return "the session ends: never in the world, " + pings;
+        return "the session ends: never in the world, " + server;
     }
     const double inWorld = std::max(0.0, (now - *m_enteredWorld).count());
     return "the session ends: " + std::to_string(static_cast<std::uint64_t>(inWorld)) + " s in the world, " +
-           pings + ", objects in view: " + std::to_string(m_view.Objects().size());
+           server + ", objects in view: " + std::to_string(m_view.Objects().size());
 }
 
 } // namespace mu::online
