@@ -7,6 +7,7 @@
 #include <ios>
 #include <string>
 #include <system_error>
+#include <utility>
 
 #include "AllocationCounter.hpp"
 #include "Nexum/Platform/FileBytes.hpp"
@@ -37,6 +38,14 @@ std::filesystem::path MakeFileOfOneMebibyte() {
     return file;
 }
 
+std::string Utf8(const std::filesystem::path& path) {
+    std::string text;
+    for (const char8_t unit : path.u8string()) {
+        text.push_back(static_cast<char>(unit));
+    }
+    return text;
+}
+
 } // namespace
 
 // The counter sees the memory of the content only when it is asked for, so a limit checked after the reading
@@ -47,13 +56,18 @@ TEST_CASE("[0002-CA-03] a file above the limit is refused before any memory is a
     REQUIRE(std::filesystem::file_size(file) == kFileSize);
 
     AllocationTally tally;
-    bool refused = false;
+    std::string reason;
     {
         const AllocationCounter counter;
-        refused = !ReadFileBytes(file, kFileSize - 1).has_value();
+        auto read = ReadFileBytes(file, kFileSize - 1);
         tally = counter.Tally();
+        if (!read) {
+            reason = std::move(read.error().message);
+        }
     }
-    CHECK(refused);
+    // The refusal for the size, and not another one that also asks for little memory, such as a file that
+    // does not open.
+    CHECK(reason == "the file " + Utf8(file) + " has 1048576 bytes, more than the limit of 1048575");
     CHECK_MESSAGE(tally.bytes < kMostBytesWithoutTheContent, tally.bytes, " bytes asked in ", tally.requests,
                   " requests");
 }
