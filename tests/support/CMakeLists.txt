@@ -13,3 +13,8 @@ nexum_add_tests(nexum_test_main_tests
 add_library(nexum_test_log INTERFACE)
 target_include_directories(nexum_test_log INTERFACE Public)
 target_link_libraries(nexum_test_log INTERFACE Nexum::Debug)
+
+# The main function of a fuzz target built as a normal test: it runs the target once on each of its seeds
+# (cmake/NexumFuzzing.cmake).
+add_library(nexum_fuzz_seed_main OBJECT FuzzSeedMain.cpp)
+nexum_apply_defaults(nexum_fuzz_seed_main)

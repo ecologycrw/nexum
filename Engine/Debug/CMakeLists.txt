@@ -3,6 +3,7 @@ nexum_add_library(nexum_debug
     ALIAS Nexum::Debug
     SOURCES
         Private/Logger.cpp
+        Private/LogLine.cpp
         Private/Profiler.cpp
         Private/TerminalLogSink.cpp)
 

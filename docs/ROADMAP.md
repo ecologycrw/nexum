@@ -14,15 +14,19 @@
 
 - **Fatia 0, Fundação** (marco M0): [spec](../specs/0000-fundacao/spec.md) e [report](../specs/0000-fundacao/report.md). O `MuClient` abre uma janela e desenha um cartão de teste pela placa de vídeo, com o laço de ticks, as peças de base, o profiler e a ferramenta de prova visual. A CI fica verde nos 3 sistemas.
 
+- **Fatia 1, a rede até o mundo** (M2, parte 1): [spec](../specs/0001-rede-ate-o-mundo/spec.md) e [report](../specs/0001-rede-ate-o-mundo/report.md). O `MuClient` entra num OpenMU 0.10.1 local sem modificações, faz o login, escolhe o personagem e fica no mundo, recebendo os objetos que entram e saem da visão. 100% dos vetores passam, e o cliente ficou 30 minutos no mundo sem queda.
+
 ## Agora
 
-Nenhuma fatia em andamento. A fatia 0 está na `main`, e a próxima é a parte 1 do M2, que começa pelo `/planejar`.
+Nenhuma fatia em andamento. A fatia 1 espera o merge do dono, e a próxima é a fatia 2, que começa pelo `/planejar`.
 
 ## Próximas
 
 ### Fase 1: do zero a jogável
 
 A ordem segue o [ADR 0032](adr/0032-rede-antes-do-importador.md): a rede do M2 vem antes do M1, e o M2 fica dividido em duas partes. Só a segunda parte depende do ImGui e do importador do M1.
+
+A parte 1 do M2 tem duas fatias. A fatia 1, a rede até o mundo, está feita. A próxima é a **fatia 2, a gravação `.mucap` e o replay**, recomendada na retrospectiva da fatia 1 e escolhida pelo dono. Ela traz também o adaptador de servidor ([P-0018](PROPOSALS.md)), a época nos eventos neutros ([TD-0037](TECH_DEBT.md)) e a conferência dos `NOLINT` novos ([P-0015](PROPOSALS.md)). O formato `.mucap` é do Nexum (V.2.2 da spec de referência), então não há nada a investigar na central; a spec da fatia pede o "sim" do dono para o formato.
 
 | Marco | Tamanho | O que entrega, do ponto de vista de quem testa | Investigar antes (central) |
 |---|---|---|---|

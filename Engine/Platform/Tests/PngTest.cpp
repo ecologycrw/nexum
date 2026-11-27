@@ -1,9 +1,12 @@
 #include <doctest/doctest.h>
 
+#include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <span>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -14,8 +17,10 @@
 
 using nexum::core::Image;
 using nexum::core::Rgba8;
+using nexum::platform::DecodePng;
 using nexum::platform::kMaxPngSide;
 using nexum::platform::LoadPng;
+using nexum::platform::ReadPngSize;
 using nexum::platform::SavePng;
 
 namespace {
@@ -134,4 +139,60 @@ TEST_CASE("an empty image or one above the size limit is not written") {
               std::string::npos);
     }
     CHECK_FALSE(std::filesystem::exists(folder / "image.png"));
+}
+
+TEST_CASE("[0001-CA-10] a small PNG file that declares a huge image is refused by its header") {
+    // The signature and the IHDR chunk of 60000x60000 pixels, then nothing: SDL would ask for about 14 GB
+    // before seeing that the rest is missing, as it did before slice 1 (specs/0001-rede-ate-o-mundo/spec.md).
+    std::array<unsigned char, 33> huge{};
+    std::copy_n(kKnownPng.begin(), huge.size(), huge.begin());
+    for (const std::size_t offset : {std::size_t{16}, std::size_t{20}}) {
+        huge[offset + 2] = 0xEA; // 60000 = 0x0000EA60, big-endian
+        huge[offset + 3] = 0x60;
+    }
+    const std::filesystem::path file = FreshFolder("huge") / "huge.png";
+    {
+        std::ofstream output(file, std::ios::binary);
+        for (const unsigned char byte : huge) {
+            output.put(static_cast<char>(byte));
+        }
+    }
+    const auto read = LoadPng(file);
+    REQUIRE_FALSE(read.has_value());
+    MESSAGE(read.error().message);
+    CHECK(read.error().message.find("is 60000x60000 pixels; an image must be between 1 and 16384") !=
+          std::string::npos);
+
+    const auto decoded = DecodePng(std::as_bytes(std::span(huge)));
+    REQUIRE_FALSE(decoded.has_value());
+    CHECK(decoded.error().message ==
+          "the PNG file in memory is 60000x60000 pixels; an image must be between 1 "
+          "and 16384 pixels on each side");
+}
+
+TEST_CASE("[0001-CA-10] the size of a PNG comes from its first 24 bytes") {
+    const auto bytes = std::as_bytes(std::span(kKnownPng));
+    const auto size = ReadPngSize(bytes);
+    REQUIRE(size.has_value());
+    CHECK(size->width == 2);
+    CHECK(size->height == 1);
+
+    CHECK(ReadPngSize(bytes.first(23)).error().message ==
+          "it has 23 bytes, fewer than the 24 of a PNG header");
+    auto wrong = kKnownPng;
+    wrong[1] = 'X';
+    CHECK(ReadPngSize(std::as_bytes(std::span(wrong))).error().message ==
+          "it does not start with the PNG signature");
+    wrong = kKnownPng;
+    wrong[12] = 'X';
+    CHECK(ReadPngSize(std::as_bytes(std::span(wrong))).error().message ==
+          "its first chunk is not the 13 bytes of IHDR");
+}
+
+TEST_CASE("[0001-CA-10] a PNG in memory is read like a file") {
+    const auto read = DecodePng(std::as_bytes(std::span(kKnownPng)));
+    REQUIRE_MESSAGE(read.has_value(), (read ? "" : read.error().message));
+    CHECK(read->Width() == 2);
+    CHECK(read->Height() == 1);
+    CHECK(read->At(0, 0) == Rgba8{.r = 255, .g = 0, .b = 0, .a = 255});
 }

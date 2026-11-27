@@ -1,17 +1,22 @@
 #include <cstddef>
 #include <cstdio>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "FoundationApp.hpp"
 #include "Mu/App/ClientOptions.hpp"
 #include "Mu/ModuleIdentity.hpp"
+#include "Mu/Session/Session.hpp"
+#include "Nexum/Core/Result.hpp"
 #include "Nexum/Debug/Logger.hpp"
 #include "Nexum/Debug/TerminalLogSink.hpp"
 #include "Nexum/Platform/Application.hpp"
 #include "Nexum/Platform/FailureReports.hpp"
+#include "Nexum/Platform/Terminal.hpp"
 
 #if NEXUM_AUTHORING_ENABLED
 #include "ProofCapture.hpp"
@@ -27,6 +32,27 @@ constexpr mu::BuildKind kBuildKind = mu::BuildKind::Player;
 
 // The exit code of a command line that cannot be read.
 constexpr int kUsageError = 2;
+// The exit code of a password that cannot be read or used.
+constexpr int kPasswordError = 1;
+
+using OptionalSession = std::optional<mu::session::SessionOptions>;
+
+// The options of the session, with the password typed in the terminal, when the command line goes to the
+// world. The password is read before the window opens, and never comes from the command line (CA-12).
+[[nodiscard]] nexum::core::Result<OptionalSession> ReadSession(const mu::app::ClientOptions& options) {
+    if (!options.Online()) {
+        return OptionalSession{};
+    }
+    auto password = nexum::platform::ReadHiddenLine("Password of the account " + *options.account + ": ");
+    if (!password) {
+        return nexum::core::MakeError("could not read the password: " + password.error().message);
+    }
+    auto session = mu::app::MakeSessionOptions(options, std::move(*password));
+    if (!session) {
+        return tl::unexpected(session.error());
+    }
+    return OptionalSession{std::move(*session)};
+}
 
 } // namespace
 
@@ -45,6 +71,12 @@ int main(int argc, char* argv[]) {
         std::puts(mu::DescribeBuild(kBuildKind).c_str());
         return 0;
     }
+    auto session = ReadSession(*options);
+    if (!session) {
+        const std::string message = "MuClient: " + session.error().message + "\n";
+        std::fputs(message.c_str(), stderr);
+        return kPasswordError;
+    }
 
     nexum::debug::TerminalLogSink terminal;
     nexum::debug::Logger log(terminal);
@@ -56,8 +88,8 @@ int main(int argc, char* argv[]) {
 #endif
     return nexum::platform::RunApplication(
         argc, argv,
-        [&options, &log](std::span<const std::string_view> /*arguments*/) {
-            return mu::app::FoundationApp::Create(*options, log);
+        [&options, &session, &log](std::span<const std::string_view> /*arguments*/) {
+            return mu::app::FoundationApp::Create(*options, std::move(*session), log);
         },
         log);
 }

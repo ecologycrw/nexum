@@ -50,6 +50,18 @@ std::uint64_t TickClock::ElapsedTicks() const noexcept {
     return m_elapsedTicks;
 }
 
+std::chrono::nanoseconds TickClock::UntilNextTick(Seconds sinceFrame) const noexcept {
+    constexpr std::chrono::nanoseconds kNow{0};
+    if (m_paused && m_requestedSteps > 0) {
+        return kNow;
+    }
+    // The accumulator is always below one tick, so the next tick is due within one tick of the last frame.
+    const std::chrono::nanoseconds due = m_paused ? kTickDuration : kTickDuration - m_accumulator;
+    // Capped at one tick before it becomes nanoseconds, so a huge time cannot overflow them.
+    const Seconds spent = std::min(UsableDuration(sinceFrame), Seconds{kTickDuration});
+    return std::max(due - std::chrono::round<std::chrono::nanoseconds>(spent), kNow);
+}
+
 void TickClock::Pause() noexcept {
     m_paused = true;
 }

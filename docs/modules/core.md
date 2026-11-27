@@ -40,7 +40,7 @@ Não se aplica: o módulo não reproduz nada do original.
 
 ## Testes
 
-Em `Engine/Core/Tests/` (`nexum_core_tests`): `HandlePoolTest.cpp`, `FrameArenaTest.cpp`, `ImageTest.cpp`, `AssertTest.cpp`, `ResultTest.cpp` e `VersionTest.cpp`. O assert falso roda num programa próprio, conferido pelo script `CheckAssertFailure.cmake` (teste do CTest `nexum_core_assert_failure_tests`), porque o assert encerra o programa inteiro.
+Em `Engine/Core/Tests/` (`nexum_core_tests`): `HandlePoolTest.cpp`, `FrameArenaTest.cpp`, `ImageTest.cpp`, `AssertTest.cpp`, `ResultTest.cpp` e `VersionTest.cpp`. O `ParseVersion` tem um alvo de fuzzing (`ParseVersionFuzzTest.cpp`, com as sementes em `FuzzSeeds/ParseVersion`), que roda as sementes como um teste comum nos 3 sistemas e roda de verdade na CI do Linux com Clang. O assert falso roda num programa próprio, conferido pelo script `CheckAssertFailure.cmake` (teste do CTest `nexum_core_assert_failure_tests`), porque o assert encerra o programa inteiro.
 
 ## Itens provisórios
 

@@ -70,6 +70,11 @@ WindowId Window::Id() const noexcept {
     return WindowId{.value = SDL_GetWindowID(m_state->window.get())};
 }
 
+bool Window::IsVisible() const noexcept {
+    constexpr SDL_WindowFlags kUnseen = SDL_WINDOW_MINIMIZED | SDL_WINDOW_HIDDEN | SDL_WINDOW_OCCLUDED;
+    return (SDL_GetWindowFlags(m_state->window.get()) & kUnseen) == 0;
+}
+
 core::Result<void> Window::Resize(std::uint32_t width, std::uint32_t height) {
     if (auto valid = CheckSize(width, height); !valid) {
         return valid;

@@ -19,6 +19,7 @@ Cabeçalhos públicos em `Engine/Debug/Public/Nexum/Debug/`. A regra da opção 
 - **`Logger`** (`Logger.hpp`): recebe a saída (`LogSink`) no construtor. Filtra por nível (trace, debug, info, warning e error), e o nível mínimo pode mudar com o programa rodando. Cada mensagem leva a sua categoria (`LogCategory`), com um nome fixo, como `render` ou `time`. Escrever nunca pede memória.
 - **`LogSink`**: a saída trocável. Os testes usam uma saída em memória (`tests/support/Public/Nexum/TestSupport/MemoryLogSink.hpp`).
 - **`TerminalLogSink`** (`TerminalLogSink.hpp`): uma linha por mensagem na saída de erro, como `[warning] render: the swapchain was rebuilt`, escrita numa chamada só.
+- **`LogLine`** (`LogLine.hpp`): uma linha de log montada no lugar, num espaço de tamanho fixo, com textos e números em decimal ou em hexadecimal. Montar a linha nunca pede memória, então o código do caminho quente pode dizer o que fez, como a tradução e a visão do mundo do MU fazem. O que não cabe é cortado, e o `Cut()` diz isso.
 - **O profiler** (`Profiler.hpp`): as macros `NEXUM_PROFILE_SCOPE("nome")` e `NEXUM_PROFILE_FRAME()`.
   - Desligado, elas não geram código nenhum.
   - Ligado, cada trecho medido se registra uma vez numa tabela fixa de 4.096 lugares (`kMaxProfileSites`), e o Tracy roda no modo sob demanda.
@@ -39,11 +40,11 @@ Não se aplica: o módulo não reproduz nada do original.
 
 - **INV-10:** o Tracy fica atrás de um único módulo.
 - **INV-19:** o build de jogador nunca tem o profiler.
-- **INV-13:** escrever no log não pede memória.
+- **INV-13:** escrever no log e montar uma linha com o `LogLine` não pedem memória.
 
 ## Testes
 
-Em `Engine/Debug/Tests/`: `LoggerTest.cpp` e `ProfilerTest.cpp` (`nexum_debug_tests`), `TerminalLogSinkTest.cpp` (`nexum_debug_terminal_log_tests`, que confere a linha que chega ao terminal) e os 3 testes do CTest `nexum_debug_profiler_*`, que rodam a regra da opção com cada combinação. Na CI, o passo "Build with the profiler" compila tudo com o Tracy e roda estes testes no Linux e no macOS.
+Em `Engine/Debug/Tests/`: `LoggerTest.cpp`, `LogLineTest.cpp` e `ProfilerTest.cpp` (`nexum_debug_tests`), `TerminalLogSinkTest.cpp` (`nexum_debug_terminal_log_tests`, que confere a linha que chega ao terminal) e os 3 testes do CTest `nexum_debug_profiler_*`, que rodam a regra da opção com cada combinação. Na CI, o passo "Build with the profiler" compila tudo com o Tracy e roda estes testes no Linux e no macOS.
 
 ## Itens provisórios
 

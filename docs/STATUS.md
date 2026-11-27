@@ -1,26 +1,23 @@
 ---
 fase: entre-fatias
 spec-atual:
-branch:
-atualizado-em: 2026-11-25
+branch: fatia/0001-rede-ate-o-mundo
+atualizado-em: 2026-11-26
 ---
 
 # Status
 
 ## Agora
 
-**Entre fatias.** A fatia 0 (Fundação, marco M0) está na `main` (PR #5), e a faxina da documentação também (PR #7): ela corrigiu contradições entre os documentos, as skills e as checagens, e criou o [ADR 0033](adr/0033-dono-de-cada-biblioteca-externa.md), que dá um dono a cada biblioteca externa. O ambiente da IA foi enxugado no PR #9 (P-0012).
+**Fatia 1 concluída, esperando o merge do dono: a rede até o mundo** ([spec](../specs/0001-rede-ate-o-mundo/spec.md) e [report](../specs/0001-rede-ate-o-mundo/report.md)), na branch `fatia/0001-rede-ate-o-mundo`. O dono testou, e a retrospectiva foi feita. O `MuClient` entra num OpenMU local sem modificações e fica no mundo. O [PR #11](https://github.com/ecologycrw/nexum/pull/11) está pronto para a aprovação.
 
-A retrospectiva mudou a ordem do roteiro ([ADR 0032](adr/0032-rede-antes-do-importador.md)): a próxima fatia é a **parte 1 do M2, a rede sem mapa**, antes do M1. O que o marco manda investigar antes já está na central: a spec de protocolo do cliente 106.3 e a spec dos atributos de terreno, ambas de 2026-11-22. A cópia da spec de referência foi trocada pela versão nova da central (P-0011). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
+A próxima é a **fatia 2, a gravação `.mucap` e o replay**, que fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). Ela traz também o adaptador de servidor (P-0018), a época nos eventos neutros (TD-0037) e a conferência dos `NOLINT` novos (P-0015). A retrospectiva mudou duas regras: o PR da fatia abre em rascunho logo depois da lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo (P-0020).
+
+A fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10) estão na `main`. A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. `/planejar` da parte 1 do M2, quando o dono pedir, numa branch nova a partir da `main`. Ele lê as specs novas da central e decide com o dono três pontos que a conferência das specs levantou:
-   - a imagem do OpenMU para os testes (`0.10.1`) e a impressão digital dela;
-   - se as capturas reais do laboratório da central entram no repositório como vetores;
-   - o número de série próprio no login, sem usar o do MuMain.
-
-   Ele também decide o item 2 da [P-0014](PROPOSALS.md): se o TD-0015 (o laço sem pausa com a janela minimizada) entra nesta fatia.
+1. O dono lê o resumo de segurança e faz o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11). Depois, `/planejar` da fatia 2, a partir da `main`.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -54,3 +51,11 @@ Nenhum.
 | 2026-11-25 | O dono fez o squash merge do PR #7 (a faxina da documentação) |
 | 2026-11-25 | Consolidação do ambiente da IA (P-0012): a saída curta do `verify`, o `tasks.md` com tarefas curtas, as specs longas lidas por seção, cada regra com um único dono e ADR novo só para decisões próprias e desvios da spec. O dono fez o squash merge do PR #9 |
 | 2026-11-25 | Consolidação dos achados de uma auditoria externa trazida pelo dono (P-0013): o clang-tidy passou a recusar variáveis globais que podem mudar, a retrospectiva e a consolidação revisam os destinos quando a ordem dos marcos muda, o dono lê o resumo de segurança antes de cada merge e entrou o TD-0025. A P-0014 ficou aberta para a parte 1 do M2 |
+| 2026-11-25 | O dono fez o squash merge do PR #10 (P-0013) |
+| 2026-11-25 | Spec da fatia 1 (A rede até o mundo, M2 parte 1) aprovada pelo dono, com a parte 1 do M2 em duas fatias, o OpenMU 0.10.1 fixado pela impressão digital, só os vetores escritos nos documentos da central, o número de série `NEXUM-CLIENT-001`, o TD-0015 dentro da fatia, o Asio e o ADR 0034 (o `packetgen` em Python) |
+| 2026-11-26 | Fatia 1: tarefas T01 a T10 feitas. O PR #11 foi aberto em rascunho, a pedido do dono, para a CI rodar no Linux e no macOS. A primeira CI achou uma conversão de sinal num teste de fuzzing e a análise estática sem os cabeçalhos gerados (o `tidy` do `scripts/dev.py` passou a compilar antes, com o "sim" do dono). Depois das duas correções, os 10 checks passaram |
+| 2026-11-26 | Fatia 1: as 18 tarefas feitas. O `MuClient` entrou no OpenMU 0.10.1 local, sem modificações, ficou 3 minutos no mundo com 9 pings e recusou a senha errada, sem nenhum erro no log do servidor. A documentação da fatia foi atualizada, e o TD-0015, o TD-0020 e o TD-0023 saíram |
+| 2026-11-26 | Revisão independente da fatia 1: nenhum achado crítico, 1 importante e 12 menores. O importante (o teste do checksum) e cinco menores foram corrigidos; quatro menores entraram no TD-0028 e no TD-0032 ou viraram o TD-0036 e o TD-0037; três ficam para o `/fechar`. As correções vão até o commit `18b8420` |
+| 2026-11-26 | Fatia 1 fechada: report com a prova dos 15 critérios, a contagem dos vetores (100% em cada grupo), a checklist de sala limpa e a medição de 30 minutos no mundo com a janela minimizada. O PR #11 saiu do rascunho para o teste do dono |
+| 2026-11-26 | Teste do dono da fatia 1: tudo passou, e a CI ficou verde nos 10 checks |
+| 2026-11-26 | Retrospectiva da fatia 1: a próxima é a fatia 2 (a gravação `.mucap` e o replay). A escada de erros trouxe a P-0019 (o PR em rascunho desde a lista de tarefas) e a P-0020 (o teste de recusa confere o motivo, e os testes de risco são sabotados), aplicadas. A P-0015 e a P-0018 foram aceitas para a fatia 2, e a P-0017 para o M7. A P-0014 fechou com a medição do custo da fatia |

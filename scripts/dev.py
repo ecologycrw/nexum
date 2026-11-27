@@ -242,7 +242,9 @@ class Builder:
 
     def tidy(self) -> None:
         environment = build_environment()
-        self.configure_once("dev")
+        # clang-tidy reads the headers that the build generates (the packets, cmake/NexumPacketGen.cmake), so the
+        # analysis builds first. After "Build and tests" in verify, there is nothing left to build.
+        self.build("dev")
         tool = find_llvm_tool("clang-tidy", environment)
         build_folder = ROOT / "build" / self.preset("dev")
         files = [path for path in cpp_files(TIDY_FOLDERS, sources_only=True) if "/Tests/" not in path]

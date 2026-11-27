@@ -54,6 +54,10 @@ public:
 
     [[nodiscard]] WindowId Id() const noexcept;
 
+    // Whether the window shows its drawing on the screen: false while it is minimized, hidden or covered by
+    // other windows, as the system last told SDL. Not every system says when a window is covered.
+    [[nodiscard]] bool IsVisible() const noexcept;
+
     // Asks for a new size of the drawing area, in points, with the limits of Open. The window may take a few
     // frames to change; the program learns the new size from the WindowResized event
     // (Nexum/Platform/Application.hpp).

@@ -8,7 +8,9 @@ nexum_add_library(nexum_platform
         Private/PlatformInfo.cpp
         Private/Png.cpp
         Private/SdlLogRoute.cpp
+        Private/Terminal.cpp
         Private/VideoSystem.cpp
+        Private/Wait.cpp
         Private/Window.cpp
     PUBLIC_DEPS Nexum::Core Nexum::Debug
     PRIVATE_DEPS SDL3::SDL3)
@@ -17,10 +19,10 @@ nexum_add_library(nexum_platform
 # the main function is the program's own (Nexum/Platform/Application.hpp).
 set_source_files_properties(Private/Application.cpp PROPERTIES COMPILE_DEFINITIONS SDL_MAIN_NOIMPL)
 
-# FailureReports.cpp includes windows.h only for SetErrorMode: the smallest part of it, without the min and max
-# macros, which would break std::min and std::max.
+# FailureReports.cpp includes windows.h for SetErrorMode, and Terminal.cpp for the console: the smallest part of
+# it, without the min and max macros, which would break std::min and std::max.
 if(WIN32)
-    set_source_files_properties(Private/FailureReports.cpp PROPERTIES COMPILE_DEFINITIONS
+    set_source_files_properties(Private/FailureReports.cpp Private/Terminal.cpp PROPERTIES COMPILE_DEFINITIONS
         "WIN32_LEAN_AND_MEAN;NOMINMAX")
 endif()
 

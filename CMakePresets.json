@@ -81,6 +81,12 @@
       "cacheVariables": { "NEXUM_SANITIZE": "ON" }
     },
     {
+      "name": "linux-fuzz",
+      "displayName": "Linux (Clang) with libFuzzer",
+      "inherits": "linux-base",
+      "cacheVariables": { "NEXUM_FUZZING": "ON" }
+    },
+    {
       "name": "linux-release",
       "displayName": "Linux (Clang), player build",
       "inherits": ["player", "linux-base"]
@@ -99,6 +105,7 @@
     { "name": "linux-dev", "configurePreset": "linux-dev" },
     { "name": "linux-gcc-dev", "configurePreset": "linux-gcc-dev" },
     { "name": "linux-asan", "configurePreset": "linux-asan" },
+    { "name": "linux-fuzz", "configurePreset": "linux-fuzz" },
     { "name": "linux-release", "configurePreset": "linux-release" },
     { "name": "macos-dev", "configurePreset": "macos-dev" },
     { "name": "macos-release", "configurePreset": "macos-release" }
@@ -117,6 +124,7 @@
     { "name": "linux-dev", "inherits": "base", "configurePreset": "linux-dev" },
     { "name": "linux-gcc-dev", "inherits": "base", "configurePreset": "linux-gcc-dev" },
     { "name": "linux-asan", "inherits": "base", "configurePreset": "linux-asan" },
+    { "name": "linux-fuzz", "inherits": "base", "configurePreset": "linux-fuzz" },
     { "name": "linux-release", "inherits": "base", "configurePreset": "linux-release" },
     { "name": "macos-dev", "inherits": "base", "configurePreset": "macos-dev" },
     { "name": "macos-release", "inherits": "base", "configurePreset": "macos-release" }
