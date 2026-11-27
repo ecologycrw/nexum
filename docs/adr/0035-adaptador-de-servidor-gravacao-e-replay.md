@@ -47,7 +47,7 @@ O dono aprovou esta decisão junto com a spec da [fatia 2](../../specs/0002-grav
 ## Consequências
 
 - **Melhor:** o replay passa pelas mesmas peças da sessão ao vivo a partir da tradução. Um erro na tradução dos pacotes aparece num teste, sem servidor, que é o nível "Replay" da [V.1](../referencia/especificacao-engine-propria-caminho-b.md#v1-pirâmide-de-testes).
-- **Melhor:** a troca de mapa (M4) e a reconexão (M7) só precisam mudar a época dentro do `LiveServer`. O tick já descarta os eventos velhos, e a gravação já guarda as mudanças de época.
+- **Melhor:** a troca de mapa (M4) e a reconexão (M7) só precisam mudar a época dentro do `LiveServer`. O tick já descarta os eventos velhos, e a gravação já guarda as mudanças de época que acontecem no passo 2 do quadro, as únicas de hoje. Uma mudança em outro passo pede que o gravador saiba da época também antes de cada tick ([TD-0040](../TECH_DEBT.md)).
 - **Melhor:** um servidor diferente do OpenMU seria só outra implementação do contrato. Isso continua fora do produto ([VISÃO](../VISION.md)), mas a porta fica aberta.
 - **Pior:** há uma camada a mais entre o cliente online e a sessão. Os testes do cliente online da fatia 1 passam a montar o `LiveServer`, sem perder nenhuma conferência.
 - **Pior:** o código de `Mu/Recording` e do `ReplayServer` é compilado no módulo MU também no build de jogador. Só a ligação com o `MuClient` fica fora dele, e nada no build de jogador chama esse código.
