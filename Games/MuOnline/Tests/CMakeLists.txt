@@ -20,6 +20,7 @@ nexum_add_tests(muonline_tests
         PingTest.cpp
         RecordingTest.cpp
         SessionTest.cpp
+        StateDigestTest.cpp
         TickReportTextTest.cpp
         TranslatorTest.cpp
         WorldViewTest.cpp
