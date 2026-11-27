@@ -68,6 +68,7 @@ Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o 
 - **2026-11-26, na sessão nova, antes do `/revisar`:** "Sim, comece aqui". O `/revisar` foi feito nesta sessão, e o aviso automático da CI (Auto-fix) do PR #11 foi ligado de novo.
 - **2026-11-26, depois do `/revisar`:** "Em outra sessão". O `/fechar` começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI (Auto-fix) do PR #11 precisa ser ligado de novo.
 - **2026-11-26, na sessão nova, antes do `/fechar`:** "Sim, comece aqui". O `/fechar` foi feito nesta sessão, e o aviso automático da CI (Auto-fix) do PR #11 foi ligado de novo.
+- **2026-11-26, depois do teste do dono:** "Em outra sessão (eu abro)". A `/retrospectiva` começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI (Auto-fix) do PR #11 precisa ser ligado de novo.
 
 ## Bloqueios
 
