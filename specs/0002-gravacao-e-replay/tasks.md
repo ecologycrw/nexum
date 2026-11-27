@@ -12,7 +12,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
   - A `cpp-rules` recusa o `NOLINT` sem cada regra (ou com `*`) e sem o motivo na linha de cima; o resumo lista cada linha nova com `NOLINT` fora dos `.md`; os 3 de hoje passam; 8 testes novos, com a sabotagem. Commit: este.
 - [x] T03: O FNV-1a de 64 bits (`Engine/Core`), com os valores de teste publicados do algoritmo (CA-06). Verificação: `verify`.
   - `Nexum/Core/Fnv1a.hpp` (`Fnv1a64`, só no cabeçalho e `constexpr`): bytes, texto e números em little-endian; os 3 valores do documento do IETF passam; 5 casos novos. Commit: este.
-- [ ] T04: `ReadFileBytes`, com o limite conferido antes de ler, e `WriteFileBytes` (`Engine/Platform`, pelo SDL) (CA-03, CA-04). Verificação: `verify`.
+- [x] T04: `ReadFileBytes`, com o limite conferido antes de ler, e `WriteFileBytes` (`Engine/Platform`, pelo SDL) (CA-03, CA-04). Verificação: `verify`.
+  - `Nexum/Platform/FileBytes.hpp`: o arquivo acima do limite é recusado sem pedir memória para o conteúdo (programa de teste próprio, com o contador de memória); o `ToUtf8` e o `Stream` do PNG foram para `Private/SdlFile.hpp`; 10 casos novos, com 3 sabotagens. Commit: este.
 - [ ] T05: O adaptador de servidor (`Mu/Online/ServerAdapter.hpp`), o `LiveServer` com as peças de hoje e o `OnlineClient` só pelo contrato; os testes da fatia 1 montam o `LiveServer`, e um adaptador de teste prova a ordem (CA-01). Verificação: `verify`.
 - [ ] T06: A época nos eventos (TD-0037): a fila guarda a época, a tradução recebe a da mensagem, e o tick descarta e conta os velhos, com a sabotagem (CA-02). Verificação: `verify`.
 - [ ] T07: O formato `.mucap` (`Mu/Recording/Recording.hpp`): a escrita num espaço reservado e a leitura com cada recusa e o motivo exato, os bytes fixos de uma gravação pequena e a sabotagem do tamanho e da ordem (CA-03). Verificação: `verify`.
@@ -44,6 +45,7 @@ Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o 
 - **2026-11-26, antes da T02:** "Nesta sessão". A T02 foi feita nesta sessão. A trava `scripts/checks/` mudou pela decisão 6 da spec, aprovada pelo dono.
 - **2026-11-27, antes da T03:** "Nesta sessão". A T03 foi feita nesta sessão.
 - **2026-11-27, entre a T03 e a T04:** "Em outra sessão (eu abro)". A T04 começa numa sessão nova, aberta pelo dono; lá, o aviso automático da CI (Auto-fix) do PR #12 precisa ser ligado de novo.
+- **2026-11-27, na sessão nova, antes da T04:** "Sim, com Auto-fix". A T04 começou nesta sessão, e o aviso automático da CI (Auto-fix) do PR #12 foi ligado de novo aqui.
 
 ## Bloqueios
 
@@ -63,8 +65,9 @@ Contexto que a próxima sessão precisa saber e que não está em outro lugar.
 
 Os desvios do plano e as travas alteradas não ficam aqui: vão direto para o report.
 
-- **Onde parou (2026-11-27):** a T01, a T02 e a T03 estão feitas e enviadas, com o `verify` verde em cada uma. A próxima é a **T04**, numa sessão nova aberta pelo dono: no começo dela, pergunte se a T04 começa ali e ofereça ligar o Auto-fix do PR #12 de novo.
-- **Desenho da T04, para quem começa:** o plano pede `ReadFileBytes(caminho, limite)` e `WriteFileBytes(caminho, bytes)` em `Nexum/Platform/FileBytes.hpp`, as duas pelo SDL. O `Engine/Platform/Private/Png.cpp` já abre arquivos pelo SDL (`SDL_IOFromFile`, com o caminho em UTF-8 pelo `ToUtf8` e o `Stream`, um `unique_ptr` que fecha com `SDL_CloseIO`), os dois no espaço sem nome do arquivo: a T04 pode levá-los para um cabeçalho de `Private/` e usar dos dois lados. A leitura confere o tamanho (`SDL_GetIOSize`) antes de ler e recusa acima do limite sem ler nada (o CA-03 pede 64 MiB para o `.mucap`). Os testes de recusa conferem o motivo exato, e a conferência do limite leva a sabotagem (é um leitor de dados de fora). A escrita é usada pelo `MuClient` fora do laço dos quadros (INV-06).
+- **Onde parou (2026-11-27):** a T01 a T04 estão feitas e enviadas, com o `verify` verde em cada uma. A próxima é a **T05** (o adaptador de servidor). O Auto-fix do PR #12 foi ligado nesta sessão; numa sessão nova, ofereça ligar de novo.
+- **A leitura do arquivo (T04), para a T07:** `ReadFileBytes(caminho, limite)` recusa com a mensagem exata "the file <caminho> has <N> bytes, more than the limit of <L>", antes de pedir memória. A recusa dos 64 MiB do CA-03 usa esse limite, e o teste do formato pode conferir essa mensagem. O teste de memória fica em `nexum_platform_file_bytes_allocation_tests`.
+- **Rode os programas de teste pelo `ctest --test-dir build/windows-dev`,** nunca pelo `.exe` a partir da pasta do projeto: os testes gravam as pastas de saída na pasta atual. E compile pelo `py scripts/dev.py build`: o `cmake --build` direto fica sem o ambiente do compilador da Microsoft.
 - **PR em rascunho:** o [PR #12](https://github.com/ecologycrw/nexum/pull/12) foi aberto em 2026-11-26, logo depois da lista de tarefas (P-0019). O aviso automático da CI (Auto-fix) vale só para a sessão que o ligou: numa sessão nova, ofereça ligar de novo. O `/fechar` atualiza a descrição e tira do rascunho; nunca abra um segundo PR.
 - **As regras da retrospectiva da fatia 1 valem aqui:** o PR fica em rascunho desde a lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo, registrada no corpo do commit (P-0020, `docs/CONVENTIONS.md`, "Testes").
 - **O resumo de segurança do PR #12** lista 42 linhas novas com `NOLINT` (conferido com `py scripts/checks/run.py pr-summary --base origin/main` depois da T02): todas são do código e dos testes da própria checagem, e nenhuma é uma exceção nova no C++. O report do `/fechar` diz isso.
