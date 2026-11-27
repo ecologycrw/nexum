@@ -9,15 +9,13 @@ atualizado-em: 2026-11-27
 
 ## Agora
 
-**Fatia 2 em andamento: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [plano](../specs/0002-gravacao-e-replay/plan.md)), na branch `fatia/0002-gravacao-e-replay`. O `MuClient` vai gravar a sessão no mundo num arquivo `.mucap` e reproduzi-la sem servidor, conferindo o estado do mundo nos pontos de controle. A fatia fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)).
-
-O dono aprovou a spec em 2026-11-26, com as 6 decisões: o adaptador de servidor (P-0018, que vira o ADR 0035), o formato `.mucap` versão 1, a gravação e o replay só no build de desenvolvimento e dentro do módulo MU, a gravação na memória até o fim (16 MiB), a gravação de referência do OpenMU local e a trava dos `NOLINT` (P-0015). Valem as duas regras da retrospectiva da fatia 1: o PR da fatia abre em rascunho logo depois da lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo (P-0020).
+**Fatia 2 fechada, esperando o teste do dono: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [report](../specs/0002-gravacao-e-replay/report.md)), na branch `fatia/0002-gravacao-e-replay`. O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. Uma gravação de 20 s do OpenMU local está no repositório, e a CI a reproduz nos 3 sistemas. A fatia fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O [PR #12](https://github.com/ecologycrw/nexum/pull/12) saiu do rascunho e está pronto para o teste.
 
 A fatia 1 (a rede até o mundo) está na `main` desde o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11), assim como a fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. `/fechar` da fatia 2, numa sessão nova aberta pelo dono: as 16 tarefas do [`tasks.md`](../specs/0002-gravacao-e-replay/tasks.md) e a revisão independente estão feitas, com o [PR #12](https://github.com/ecologycrw/nexum/pull/12) em rascunho desde a lista de tarefas.
+1. O dono testa a fatia 2 pelo "O que você deve testar" do [report](../specs/0002-gravacao-e-replay/report.md), com o OpenMU de teste no Docker, e conta o resultado. Depois, a `/retrospectiva` roda na mesma branch, antes da aprovação e do merge do [PR #12](https://github.com/ecologycrw/nexum/pull/12).
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -63,3 +61,4 @@ Nenhum.
 | 2026-11-26 | Spec da fatia 2 (A gravação e o replay, M2 parte 1) aprovada pelo dono, com o adaptador de servidor (P-0018, ADR 0035), o formato `.mucap` versão 1, a gravação e o replay só no build de desenvolvimento e no módulo MU, a gravação na memória até o fim (16 MiB), a gravação de referência do OpenMU local e a trava dos `NOLINT` (P-0015) |
 | 2026-11-27 | Fatia 2: as 16 tarefas feitas. O `MuClient` gravou 60 s no OpenMU 0.10.1 local, com a `test1Dk` entrando na visão e saindo, e o replay da gravação, com o servidor desligado, conferiu cada tick e ponto de controle e mostrou as mesmas linhas do mundo. A gravação de referência de 20 s está no repositório e é reproduzida nos 3 sistemas. Saiu o TD-0037; entraram o TD-0038 e o TD-0039 |
 | 2026-11-27 | Revisão independente da fatia 2: nenhum achado crítico ou importante, e 11 menores. Cinco foram corrigidos (o replay interrompido passa a terminar com erro, os textos do cabeçalho da gravação são conferidos, um teste confere o motivo exato, e a página e a licença da gravação de referência); um virou o TD-0040, um virou a P-0022, três ficam para o report e um espera o "sim" do dono no `/fechar`. As correções vão até o commit `a97dc54` |
+| 2026-11-27 | Fatia 2 fechada: report com a prova dos 13 critérios, a medição de 60 s e a checklist de sala limpa. O teste que grava e reproduz passou de novo no OpenMU local, com o código final. O ROADMAP deixou de citar o TD-0037, com o "sim" do dono, e o PR #12 saiu do rascunho para o teste do dono |

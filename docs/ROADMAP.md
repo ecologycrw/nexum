@@ -18,7 +18,7 @@
 
 ## Agora
 
-- **Fatia 2, a gravação e o replay** (M2, parte 1): [spec](../specs/0002-gravacao-e-replay/spec.md). O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo nos pontos de controle. Ela traz também o adaptador de servidor ([P-0018](PROPOSALS.md)), a época nos eventos neutros ([TD-0037](TECH_DEBT.md)) e a conferência dos `NOLINT` novos ([P-0015](PROPOSALS.md)). É a segunda e última fatia da parte 1 do M2.
+- **Fatia 2, a gravação e o replay** (M2, parte 1): [spec](../specs/0002-gravacao-e-replay/spec.md) e [report](../specs/0002-gravacao-e-replay/report.md). O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo nos pontos de controle. Ela traz também o adaptador de servidor ([P-0018](PROPOSALS.md)), a época nos eventos neutros (o TD-0037, resolvido na fatia) e a conferência dos `NOLINT` novos ([P-0015](PROPOSALS.md)). É a segunda e última fatia da parte 1 do M2. Fechada em 2026-11-27, espera o teste do dono.
 
 ## Próximas
 
@@ -26,7 +26,7 @@
 
 A ordem segue o [ADR 0032](adr/0032-rede-antes-do-importador.md): a rede do M2 vem antes do M1, e o M2 fica dividido em duas partes. Só a segunda parte depende do ImGui e do importador do M1.
 
-A parte 1 do M2 tem duas fatias. A fatia 1, a rede até o mundo, está feita. A próxima é a **fatia 2, a gravação `.mucap` e o replay**, recomendada na retrospectiva da fatia 1 e escolhida pelo dono. Ela traz também o adaptador de servidor ([P-0018](PROPOSALS.md)), a época nos eventos neutros ([TD-0037](TECH_DEBT.md)) e a conferência dos `NOLINT` novos ([P-0015](PROPOSALS.md)). O formato `.mucap` é do Nexum (V.2.2 da spec de referência), então não há nada a investigar na central; a spec da fatia pede o "sim" do dono para o formato.
+A parte 1 do M2 tem duas fatias. A fatia 1, a rede até o mundo, está feita. A fatia 2, a gravação `.mucap` e o replay, está em "Agora" e espera o teste do dono. A próxima fatia sai da retrospectiva dela.
 
 | Marco | Tamanho | O que entrega, do ponto de vista de quem testa | Investigar antes (central) |
 |---|---|---|---|

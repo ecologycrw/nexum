@@ -2,7 +2,7 @@
 
 > Documento vivo: descreve como o Nexum é **agora** e para onde vai. É atualizado no mesmo PR do código que muda o que ele descreve. A fonte é a Parte III da [especificação de referência](referencia/especificacao-engine-propria-caminho-b.md#parte-iii--arquitetura).
 
-**Como é agora (fatia 1, a rede até o mundo):** a engine tem estas peças:
+**Como é agora (fatia 2, a gravação e o replay):** a engine tem estas peças:
 
 - a base (`nexum_core`);
 - o tempo e o laço de ticks (`nexum_time`);
@@ -11,7 +11,7 @@
 - a placa de vídeo pelo SDL GPU (`nexum_render`);
 - as conexões TCP (`nexum_net`).
 
-O kit (`nexum_gridrpg`) ainda é mínimo. O módulo MU fala o protocolo do cliente 106.3, com o código dos pacotes gerado pelo `packetgen` a partir dos XML do OpenMU. Com `--connect`, o `MuClient` entra num OpenMU sem modificações, fica no mundo e conta no log o que vê. A janela continua com o cartão de teste da fatia 0, e o build de desenvolvimento tem a prova visual (`--capture` e `visualproof`). Cada módulo que já existe tem a sua página em [docs/modules](modules/README.md). Todo o resto desta página é o destino.
+O kit (`nexum_gridrpg`) ainda é mínimo. O módulo MU fala o protocolo do cliente 106.3, com o código dos pacotes gerado pelo `packetgen` a partir dos XML do OpenMU. Com `--connect`, o `MuClient` entra num OpenMU sem modificações, fica no mundo e conta no log o que vê. No build de desenvolvimento, com `--record`, ele grava a sessão no mundo num arquivo `.mucap`, e com `--replay` a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. A janela continua com o cartão de teste da fatia 0, e o build de desenvolvimento tem a prova visual (`--capture` e `visualproof`). Cada módulo que já existe tem a sua página em [docs/modules](modules/README.md). Todo o resto desta página é o destino.
 
 ## Visão geral
 

@@ -131,6 +131,8 @@ A IA imita o código que já existe. Por isso, os melhores exemplos de cada padr
 | uma máquina de estados alimentada por mensagens e pelo tempo, testada sem rede | `Games/MuOnline/Public/Mu/Session/Session.hpp` e `Games/MuOnline/Tests/SessionTest.cpp` |
 | testar com os vetores da central, cada um com a fonte | `Games/MuOnline/Tests/CipherTest.cpp` |
 | um alvo de fuzzing cujas sementes rodam nos testes comuns | `cmake/NexumFuzzing.cmake` e `Games/MuOnline/Tests/FrameReaderFuzzTest.cpp` |
+| pôr uma fronteira atrás de um contrato com duas implementações, e provar com uma terceira, de teste, que quem usa não sabe qual é | `Games/MuOnline/Public/Mu/Online/ServerAdapter.hpp`, com o `LiveServer.hpp` e o `ReplayServer.hpp`, e o adaptador de teste em `Games/MuOnline/Tests/OnlineClientTest.cpp` |
+| um formato binário próprio, com versão desde o primeiro byte, escrito num espaço reservado e lido com cada recusa e o motivo exato | `Games/MuOnline/Private/Recording/Recording.cpp`, com os bytes fixos e as recusas em `Games/MuOnline/Tests/RecordingTest.cpp` |
 
 ## Testes
 
