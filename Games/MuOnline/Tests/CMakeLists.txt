@@ -27,6 +27,9 @@ nexum_add_tests(muonline_tests
         TranslatorTest.cpp
         WorldViewTest.cpp
     DEPS MuOnline nexum_test_log Nexum::NetTestServer)
+# CA-07 of slice 2: the reference recording of the local OpenMU 0.10.1, which the replay tests read.
+target_compile_definitions(muonline_tests PRIVATE
+    NEXUM_REFERENCE_RECORDING="${CMAKE_CURRENT_SOURCE_DIR}/Recordings/openmu-two-players.mucap")
 
 # CA-03: for each packet of the OpenMU XML files, a test generated with the code of the packet (Tools/PacketGen):
 # the fixed bytes, the length and the refusal of a shorter packet. The tests come in files of a few dozen packets,

@@ -9,6 +9,8 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -143,11 +145,11 @@ struct Replay {
     // The start of a tick.
     void Tick(double now) { client.ApplyEvents(Seconds{now}); }
 
-    // The lines of the log of the replay, at one level.
-    [[nodiscard]] std::vector<std::string> Lines(LogLevel level) const {
+    // The lines of the log of the replay, or of another category, at one level.
+    [[nodiscard]] std::vector<std::string> Lines(LogLevel level, std::string_view category = "replay") const {
         std::vector<std::string> lines;
         for (const auto& entry : sink.Entries()) {
-            if (entry.category == "replay" && entry.level == level) {
+            if (entry.category == category && entry.level == level) {
                 lines.push_back(entry.message);
             }
         }
@@ -310,6 +312,8 @@ struct Outcome {
     std::size_t objects = 0;
     std::uint64_t dropped = 0;
     std::vector<std::string> lines;
+    // What the view of the world said in the log.
+    std::vector<std::string> world;
 
     friend bool operator==(const Outcome&, const Outcome&) = default;
 };
@@ -334,7 +338,32 @@ struct Outcome {
             .digest = recording::StateDigestOf(replay.client.View()),
             .objects = replay.client.View().Objects().size(),
             .dropped = replay.client.DroppedEvents(),
-            .lines = replay.Lines(LogLevel::Info)};
+            .lines = replay.Lines(LogLevel::Info),
+            .world = replay.Lines(LogLevel::Info, "world")};
+}
+
+// The bytes of a file, as they are on the disk.
+[[nodiscard]] Bytes FileBytes(const char* path) {
+    std::ifstream input(path, std::ios::binary);
+    REQUIRE_MESSAGE(input.good(), "could not open ", path);
+    const std::string text{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+    Bytes bytes;
+    bytes.reserve(text.size());
+    for (const char letter : text) {
+        bytes.push_back(static_cast<std::byte>(letter));
+    }
+    return bytes;
+}
+
+// Each place where `text` is in `bytes`.
+[[nodiscard]] std::vector<std::size_t> PlacesOf(const Bytes& bytes, std::string_view text) {
+    std::vector<std::size_t> places;
+    const auto matches = [](std::byte byte, char letter) { return byte == static_cast<std::byte>(letter); };
+    for (auto at = bytes.begin();
+         (at = std::search(at, bytes.end(), text.begin(), text.end(), matches)) != bytes.end(); ++at) {
+        places.push_back(static_cast<std::size_t>(at - bytes.begin()));
+    }
+    return places;
 }
 
 } // namespace
@@ -677,6 +706,52 @@ TEST_CASE("[0002-CA-05] a session recorded live is replayed without a server to 
     CHECK(ReplayAtPace(live.recorded, 1000.0, kOneTick) == steady);
     // Two replays of the same recording give the same result.
     CHECK(ReplayAtPace(live.recorded, 0.02, kEveryOtherFrame) == steady);
+}
+
+// The reference recording (Recordings/openmu-two-players.mucap): about 20 s in the world of the local OpenMU
+// 0.10.1 with test0Dk, the character of the account test0, while test1Dk, of the account test1, appears in
+// view and leaves it. To make it again, see docs/setup/DEV.md.
+TEST_CASE("[0002-CA-07] the reference recording of the local OpenMU replays to its end at any pace, and has "
+          "neither an account nor a password") {
+    auto read = recording::ReadRecording(NEXUM_REFERENCE_RECORDING);
+    REQUIRE_MESSAGE(read.has_value(), (read ? "" : read.error().message));
+    const recording::Recording& recorded = *read;
+    CHECK(recorded.Header().dialectVersion == "20404");
+    CHECK(recorded.Header().server == "OpenMU 0.10.1");
+    CHECK(recorded.Messages() == 23);
+    CHECK(recorded.Ticks() == 6);
+    CHECK(recorded.Checkpoints() == 2);
+    CHECK(recorded.End() == EndReason::Closed);
+
+    // At 50 frames per second with a tick in every other frame, at 10 frames per second with 2 or 3 ticks,
+    // and with a clock that jumps 1000 s at each frame: every tick and checkpoint matches, with the same
+    // result.
+    constexpr std::array kEveryOtherFrame{1, 0};
+    constexpr std::array kSeveralTicks{2, 3};
+    constexpr std::array kOneTick{1};
+    const Outcome steady = ReplayAtPace(recorded, 0.02, kEveryOtherFrame);
+    CHECK(steady.status == OnlineStatus::ServerEnded);
+    CHECK(steady.summary == "the replay checked 23 messages, 6 ticks and 2 checkpoints");
+    CHECK(steady.objects == 6);
+    CHECK(steady.dropped == 0);
+    CHECK(steady.lines.back() == "the replay reached the end of the recording, where the client ended it: "
+                                 "every tick and checkpoint matched");
+    const auto said = [&steady](std::string_view line) {
+        return std::ranges::find(steady.world, line) != steady.world.end();
+    };
+    CHECK(said("the player test1Dk (0x033E) appeared at (135, 125)"));
+    CHECK(said("the player test1Dk (0x033E) left the view"));
+    CHECK(ReplayAtPace(recorded, 0.1, kSeveralTicks) == steady);
+    CHECK(ReplayAtPace(recorded, 1000.0, kOneTick) == steady);
+
+    // The account and the password of a test account are both its name. In the file it is only the start of
+    // the name of its character, in the notices of the server and in the objects in view.
+    const Bytes file = FileBytes(NEXUM_REFERENCE_RECORDING);
+    for (const std::string_view account : {"test0", "test1"}) {
+        const std::vector<std::size_t> places = PlacesOf(file, account);
+        CHECK_FALSE(places.empty());
+        CHECK(places == PlacesOf(file, std::string(account) + "Dk"));
+    }
 }
 
 TEST_CASE("[0002-CA-09] a clock past the largest time a recording holds replays it to the end") {

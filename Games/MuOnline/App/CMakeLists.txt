@@ -135,8 +135,8 @@ endif()
 # CA-04, CA-05 and CA-08 of slice 2: the recording and the replay, only in the development build. A session that
 # never reaches the world, against the closed port of the tests above, is recorded with its header and its end,
 # and then replayed. The recordings of the fuzz target (Tests/FuzzSeeds/Recording) are replayed at their pace: one
-# to its end, and one whose second tick differs. The client refuses a file it cannot write before the password,
-# and a file that is not a recording before the window opens.
+# to its end, and one whose second tick differs; and so is the reference recording (CA-07). The client refuses a
+# file it cannot write before the password, and a file that is not a recording before the window opens.
 if(NEXUM_AUTHORING)
     set(record_test_dir "${CMAKE_CURRENT_BINARY_DIR}/record_test")
     file(MAKE_DIRECTORY "${record_test_dir}")
@@ -173,6 +173,18 @@ if(NEXUM_AUTHORING)
         "client: the session ends: [0-9]+ s in the world, the replay checked 3 messages, 1 tick and 0 checkpoints")
     muclient_add_run_test(muclient_reports_the_difference_of_a_replay
         "--replay;${recordings}/tick-difference.bin" 1 "${difference_patterns}")
+
+    # CA-07: the reference recording of the local OpenMU 0.10.1 (Tests/Recordings), at its recorded pace of about 20
+    # seconds: test1Dk appears in view and leaves it, and every tick and checkpoint matches.
+    set(reference_patterns
+        "replay: replaying 23 messages, 6 ticks and 2 checkpoints, recorded by the Nexum 0\\.0\\.0 with the server OpenMU 0\\.10\\.1"
+        "world: the player test1Dk \\(0x033E\\) appeared at \\(135, 125\\)"
+        "world: the player test1Dk \\(0x033E\\) left the view"
+        "replay: the replay reached the end of the recording, where the client ended it: every tick and checkpoint matched"
+        "client: the session ends: [0-9]+ s in the world, the replay checked 23 messages, 6 ticks and 2 checkpoints, objects in view: 6")
+    muclient_add_run_test(muclient_replays_the_reference_recording
+        "--replay;${CMAKE_CURRENT_SOURCE_DIR}/../Tests/Recordings/openmu-two-players.mucap" 0 "${reference_patterns}"
+        ABSENT "[error]")
 
     muclient_add_run_test(muclient_refuses_a_recording_it_cannot_write
         "${online_arguments};--record;${record_test_dir}/missing/session.mucap" 1
