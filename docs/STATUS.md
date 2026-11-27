@@ -9,13 +9,13 @@ atualizado-em: 2026-11-27
 
 ## Agora
 
-**Fatia 2 fechada, esperando o teste do dono: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [report](../specs/0002-gravacao-e-replay/report.md)), na branch `fatia/0002-gravacao-e-replay`. O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. Uma gravação de 20 s do OpenMU local está no repositório, e a CI a reproduz nos 3 sistemas. A fatia fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O [PR #12](https://github.com/ecologycrw/nexum/pull/12) saiu do rascunho e está pronto para o teste.
+**Fatia 2 fechada e testada pelo dono, esperando a retrospectiva: a gravação e o replay** ([spec](../specs/0002-gravacao-e-replay/spec.md) e [report](../specs/0002-gravacao-e-replay/report.md)), na branch `fatia/0002-gravacao-e-replay`. O `MuClient` grava a sessão no mundo num arquivo `.mucap` e a reproduz sem servidor, conferindo o estado do mundo a cada tick e ponto de controle. Uma gravação de 20 s do OpenMU local está no repositório, e a CI a reproduz nos 3 sistemas. A fatia fecha a parte 1 do M2 ([ADR 0032](adr/0032-rede-antes-do-importador.md)). O [PR #12](https://github.com/ecologycrw/nexum/pull/12) saiu do rascunho, e o dono testou: tudo passou, com os 10 checks verdes.
 
 A fatia 1 (a rede até o mundo) está na `main` desde o squash merge do [PR #11](https://github.com/ecologycrw/nexum/pull/11), assim como a fatia 0 (Fundação, marco M0) e as três faxinas da documentação (PRs #7, #9 e #10). A conta de máquina é, por enquanto, a `lemuria-ci-dev` ([TD-0009](TECH_DEBT.md)).
 
 ## Próxima ação
 
-1. O dono testa a fatia 2 pelo "O que você deve testar" do [report](../specs/0002-gravacao-e-replay/report.md), com o OpenMU de teste no Docker, e conta o resultado. Depois, a `/retrospectiva` roda na mesma branch, antes da aprovação e do merge do [PR #12](https://github.com/ecologycrw/nexum/pull/12).
+1. `/retrospectiva` da fatia 2, na mesma branch, antes da aprovação e do merge do [PR #12](https://github.com/ecologycrw/nexum/pull/12). O dono já testou, e tudo passou.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 
@@ -62,3 +62,4 @@ Nenhum.
 | 2026-11-27 | Fatia 2: as 16 tarefas feitas. O `MuClient` gravou 60 s no OpenMU 0.10.1 local, com a `test1Dk` entrando na visão e saindo, e o replay da gravação, com o servidor desligado, conferiu cada tick e ponto de controle e mostrou as mesmas linhas do mundo. A gravação de referência de 20 s está no repositório e é reproduzida nos 3 sistemas. Saiu o TD-0037; entraram o TD-0038 e o TD-0039 |
 | 2026-11-27 | Revisão independente da fatia 2: nenhum achado crítico ou importante, e 11 menores. Cinco foram corrigidos (o replay interrompido passa a terminar com erro, os textos do cabeçalho da gravação são conferidos, um teste confere o motivo exato, e a página e a licença da gravação de referência); um virou o TD-0040, um virou a P-0022, três ficam para o report e um espera o "sim" do dono no `/fechar`. As correções vão até o commit `a97dc54` |
 | 2026-11-27 | Fatia 2 fechada: report com a prova dos 13 critérios, a medição de 60 s e a checklist de sala limpa. O teste que grava e reproduz passou de novo no OpenMU local, com o código final. O ROADMAP deixou de citar o TD-0037, com o "sim" do dono, e o PR #12 saiu do rascunho para o teste do dono |
+| 2026-11-27 | Teste do dono da fatia 2: tudo passou, os passos do report e a CI verde nos 10 checks |
