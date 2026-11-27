@@ -17,7 +17,7 @@ A fatia 1 (a rede até o mundo) está na `main` desde o squash merge do [PR #11]
 
 ## Próxima ação
 
-1. `/implementar` da fatia 2: a lista de tarefas, o PR em rascunho logo depois dela e a primeira tarefa, o ADR 0035.
+1. `/implementar` da fatia 2: as 16 tarefas do [`tasks.md`](../specs/0002-gravacao-e-replay/tasks.md), com o [PR #12](https://github.com/ecologycrw/nexum/pull/12) em rascunho desde a lista de tarefas.
 2. Em paralelo, sem pressa: levar à central o bloco 3 (as pontas soltas da IV.12 e do Apêndice G, e a data do front matter da spec, que ficou em 2026-11-20).
 3. Em paralelo, o dono pede ao suporte do GitHub a revisão da conta `nexum-ci-dev`. Quando ela for liberada, a conta provisória sai e o PR #1, escondido junto com a conta, é fechado sem merge.
 

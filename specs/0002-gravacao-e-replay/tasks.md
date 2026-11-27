@@ -6,7 +6,8 @@ Legenda: `[ ]` pendente · `[~]` em andamento · `[x]` concluída · `[!]` bloqu
 
 Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da sessão lê, e no máximo 2 linhas depois dela: o resultado em uma frase e o commit.
 
-- [ ] T01: O ADR 0035: o contrato do adaptador de servidor, as duas implementações, a época nos eventos, os comandos na parte 2 do M2, e a gravação e o replay no módulo MU, só no build de desenvolvimento (CA-01, CA-13). Verificação: checagem `docs` no `verify`.
+- [x] T01: O ADR 0035: o contrato do adaptador de servidor, as duas implementações, a época nos eventos, os comandos na parte 2 do M2, e a gravação e o replay no módulo MU, só no build de desenvolvimento (CA-01, CA-13). Verificação: checagem `docs` no `verify`.
+  - `docs/adr/0035-adaptador-de-servidor-gravacao-e-replay.md`, aceito, com os 7 pontos e os dois desvios (as credenciais fora do contrato e o lugar fora de `Tools/`); o índice dos ADRs atualizado. Commit: este.
 - [ ] T02: Os `NOLINT` (P-0015, trava `scripts/checks/`): a `cpp-rules` exige a regra e o motivo na linha de cima, o `pr_summary.py` lista cada `NOLINT` novo, e o profiler ganha a linha de motivo (CA-11). Verificação: testes das checagens e a `cpp-rules` no `verify`.
 - [ ] T03: O FNV-1a de 64 bits (`Engine/Core`), com os valores de teste publicados do algoritmo (CA-06). Verificação: `verify`.
 - [ ] T04: `ReadFileBytes`, com o limite conferido antes de ler, e `WriteFileBytes` (`Engine/Platform`, pelo SDL) (CA-03, CA-04). Verificação: `verify`.
@@ -37,6 +38,7 @@ Depois das tarefas, cada etapa do ciclo marca a sua linha quando termina, com a 
 Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o que mudou e por quê. Nenhuma decisão do dono fica só no meio do texto de uma tarefa.
 
 - **2026-11-26, antes da lista de tarefas:** "Nesta sessão". O `/implementar` começou na mesma sessão do `/situacao`.
+- **2026-11-26, antes da T01:** "Nesta sessão" e "Sim, ligue". A T01 foi feita nesta sessão, e o aviso automático da CI (Auto-fix) do PR #12 foi ligado nesta sessão.
 
 ## Bloqueios
 
@@ -56,6 +58,7 @@ Contexto que a próxima sessão precisa saber e que não está em outro lugar.
 
 Os desvios do plano e as travas alteradas não ficam aqui: vão direto para o report.
 
+- **PR em rascunho:** o [PR #12](https://github.com/ecologycrw/nexum/pull/12) foi aberto em 2026-11-26, logo depois da lista de tarefas (P-0019). O aviso automático da CI (Auto-fix) vale só para a sessão que o ligou: numa sessão nova, ofereça ligar de novo. O `/fechar` atualiza a descrição e tira do rascunho; nunca abra um segundo PR.
 - **As regras da retrospectiva da fatia 1 valem aqui:** o PR fica em rascunho desde a lista de tarefas (P-0019), e todo teste de recusa confere o motivo exato, com a sabotagem onde há risco real de falso positivo, registrada no corpo do commit (P-0020, `docs/CONVENTIONS.md`, "Testes").
 - **A T02 muda uma trava** (`scripts/checks/`): além do "sim" da spec, a edição pede a confirmação na hora.
 - **Armadilhas desta máquina,** herdadas da fatia 1 ([tasks da fatia 1](../0001-rede-ate-o-mundo/tasks.md#notas-para-a-próxima-sessão)): o `ColumnLimit` é 110, então rode `py scripts/dev.py format --fix` antes do build; o `guard-bash` bloqueia um comando que cita uma trava e também grava um arquivo; o MSVC não acusa as conversões de sinal que o Clang e o GCC acusam; o `file(WRITE)` do CMake grava `\r\n` no Windows; não rode um build enquanto o `verify` roda em segundo plano.
