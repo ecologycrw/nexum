@@ -4,7 +4,7 @@
 
 ## Responsabilidade
 
-A gravação de uma sessão no mundo num arquivo `.mucap` e o que o replay usa para conferir que chegou ao mesmo lugar: o formato (a escrita e a leitura com todas as conferências), a impressão do estado da visão do mundo e o gravador. O replay em si é uma implementação do adaptador de servidor e fica no [MU: Online](mu-online.md). Esta área não abre arquivo: os bytes vão e vêm pelo `MuClient`, com o [Platform](platform.md). O `.mucap` é um formato do Nexum ([V.2.2 da spec de referência](../referencia/especificacao-engine-propria-caminho-b.md#v22-gravação-e-replay)), e só o build de desenvolvimento grava e reproduz ([ADR 0035](../adr/0035-adaptador-de-servidor-gravacao-e-replay.md)).
+A gravação de uma sessão no mundo num arquivo `.mucap` e o que o replay usa para conferir que chegou ao mesmo lugar: o formato (a escrita e a leitura com todas as conferências), a impressão do estado da visão do mundo e o gravador. O replay em si é uma implementação do adaptador de servidor e fica no [MU: Online](mu-online.md). Esta área só abre um arquivo no `ReadRecording`, pelo `ReadFileBytes` do [Platform](platform.md); o `MuClient` escreve o arquivo da gravação, também pelo Platform. O `.mucap` é um formato do Nexum ([V.2.2 da spec de referência](../referencia/especificacao-engine-propria-caminho-b.md#v22-gravação-e-replay)), e só o build de desenvolvimento grava e reproduz ([ADR 0035](../adr/0035-adaptador-de-servidor-gravacao-e-replay.md)).
 
 ## Onde fica
 
