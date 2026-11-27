@@ -323,6 +323,69 @@ TEST_CASE("[0002-CA-03] a text of 64 bytes is the longest the header takes") {
     CHECK(read->Header().server == header.server);
 }
 
+TEST_CASE("[0002-CA-03] the texts of the header are UTF-8 without control characters, or the reading refuses "
+          "them") {
+    // The server comes after the two versions: its size at byte 24, its text from byte 25.
+    const auto withServer = [](std::initializer_list<std::uint8_t> text) {
+        Bytes bytes = HeaderFirst(24);
+        bytes.push_back(std::byte{static_cast<std::uint8_t>(text.size())});
+        Append(bytes, Make(text));
+        return bytes;
+    };
+    const std::string control = "the server in the header has a control character at byte ";
+    // The escape that starts the sequence clearing a terminal, a byte 0, DEL, and U+009B, a control of C1.
+    CHECK(Refusal(withServer({'a', 0x1B, '[', '2', 'J'})) == control + "26");
+    CHECK(Refusal(withServer({0x00})) == control + "25");
+    CHECK(Refusal(withServer({'a', 'b', 0x7F})) == control + "27");
+    CHECK(Refusal(withServer({'a', 0xC2, 0x9B})) == control + "26");
+    // A new line in the Nexum version, whose text starts at byte 13.
+    Bytes newLine = HeaderFirst(12);
+    Append(newLine, Make({0x02, '0', 0x0A}));
+    CHECK(Refusal(newLine) == "the Nexum version in the header has a control character at byte 14");
+
+    const std::string notUtf8 = "the server in the header is not UTF-8 at byte ";
+    // A byte that only follows another, a byte UTF-8 never has, and the longer form of "/".
+    CHECK(Refusal(withServer({0x80})) == notUtf8 + "25");
+    CHECK(Refusal(withServer({'a', 0xFF})) == notUtf8 + "26");
+    CHECK(Refusal(withServer({'a', 0xC0, 0xAF})) == notUtf8 + "26");
+    // A surrogate (U+D800), a character past U+10FFFF, and a second and a third byte that do not follow.
+    CHECK(Refusal(withServer({0xED, 0xA0, 0x80})) == notUtf8 + "25");
+    CHECK(Refusal(withServer({0xF4, 0x90, 0x80, 0x80})) == notUtf8 + "25");
+    CHECK(Refusal(withServer({0xE2, 0x28, 0xA1})) == notUtf8 + "25");
+    CHECK(Refusal(withServer({'a', 0xE2, 0x82, 0x28})) == notUtf8 + "26");
+    // The "€" cut by the end of the text, though the bytes after it would complete it.
+    Bytes cut = withServer({'a', 'b', 0xE2, 0x82});
+    cut.push_back(std::byte{0xAC});
+    CHECK(Refusal(cut) == notUtf8 + "27");
+}
+
+TEST_CASE("[0002-CA-03] the writer refuses a text of the header that the reading would refuse, and takes any "
+          "other character") {
+    RecordingHeader header = TestHeader();
+    header.server = "a\x1b[2J";
+    const auto escape = RecordingWriter::Create(header, 1024);
+    REQUIRE_FALSE(escape.has_value());
+    CHECK(escape.error().message == "the server in the header has a control character at byte 26");
+    header = TestHeader();
+    header.dialectVersion = "20\xFF"
+                            "04";
+    const auto notUtf8 = RecordingWriter::Create(header, 1024);
+    REQUIRE_FALSE(notUtf8.has_value());
+    CHECK(notUtf8.error().message == "the dialect version in the header is not UTF-8 at byte 21");
+
+    // U+00A0, the first after the controls of C1, "ç", the last before the surrogates and the first after
+    // them, "€", an emoji and U+10FFFF, the last character.
+    header = TestHeader();
+    header.server =
+        "\xC2\xA0 \xC3\xA7 \xED\x9F\xBF \xEE\x80\x80 \xE2\x82\xAC \xF0\x9F\x98\x80 \xF4\x8F\xBF\xBF";
+    auto writer = RecordingWriter::Create(header, 1024);
+    REQUIRE_MESSAGE(writer.has_value(), (writer ? "" : writer.error().message));
+    CHECK(writer->Write(RecordingEnd{.time = 0, .reason = EndReason::Closed}));
+    const auto read = recording::ParseRecording(Copy(writer->Bytes()));
+    REQUIRE_MESSAGE(read.has_value(), (read ? "" : read.error().message));
+    CHECK(read->Header().server == header.server);
+}
+
 TEST_CASE("[0002-CA-03] the reading refuses a record that is cut, of an unknown type or of a wrong size") {
     // Fewer than the 5 bytes of the type and the size.
     Bytes shortFrame = HeaderBytes();

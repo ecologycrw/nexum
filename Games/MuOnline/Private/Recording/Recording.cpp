@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -102,6 +103,87 @@ constexpr std::array kHeaderTexts{
 [[nodiscard]] nexum::core::Error TextTooLong(std::string_view name, std::size_t size) {
     return {"the " + std::string(name) + " in the header has " + std::to_string(size) + " bytes, more than " +
             std::to_string(kLongestText)};
+}
+
+// The texts of the header are UTF-8 without control characters, because the replay shows them in its first
+// line, and a control character there would reach the terminal (INV-12).
+//
+// RFC 3629, section 4: the first byte of a character of 2 to 4 bytes, and the range of its second byte, which
+// keeps out the longer forms of a shorter character, the surrogates and what is past U+10FFFF. Every other
+// byte after the first is from 80 to BF.
+struct Utf8Lead {
+    std::uint8_t first;
+    std::uint8_t last;
+    std::size_t length;
+    std::uint8_t lowestSecond;
+    std::uint8_t highestSecond;
+};
+
+constexpr std::array kUtf8Leads{
+    Utf8Lead{0xC2, 0xDF, 2, 0x80, 0xBF}, Utf8Lead{0xE0, 0xE0, 3, 0xA0, 0xBF},
+    Utf8Lead{0xE1, 0xEC, 3, 0x80, 0xBF}, Utf8Lead{0xED, 0xED, 3, 0x80, 0x9F},
+    Utf8Lead{0xEE, 0xEF, 3, 0x80, 0xBF}, Utf8Lead{0xF0, 0xF0, 4, 0x90, 0xBF},
+    Utf8Lead{0xF1, 0xF3, 4, 0x80, 0xBF}, Utf8Lead{0xF4, 0xF4, 4, 0x80, 0x8F},
+};
+constexpr std::uint8_t kLowestNext = 0x80;
+constexpr std::uint8_t kHighestNext = 0xBF;
+// The control characters: C0 (00 to 1F) and DEL (7F), of one byte, and C1 (U+0080 to U+009F), C2 80 to C2 9F.
+constexpr std::uint8_t kFirstShown = 0x20;
+constexpr std::uint8_t kDelete = 0x7F;
+constexpr std::uint8_t kC1Lead = 0xC2;
+constexpr std::uint8_t kLastC1Second = 0x9F;
+
+// Where a text stops being UTF-8 without control characters, and why.
+struct TextFault {
+    std::size_t at = 0;
+    bool control = false;
+};
+
+[[nodiscard]] bool IsNext(std::byte unit) noexcept {
+    const auto value = std::to_integer<std::uint8_t>(unit);
+    return value >= kLowestNext && value <= kHighestNext;
+}
+
+[[nodiscard]] std::optional<TextFault> FaultOf(std::span<const std::byte> text) noexcept {
+    for (std::size_t at = 0; at < text.size();) {
+        const auto first = std::to_integer<std::uint8_t>(text[at]);
+        if (first < kFirstShown || first == kDelete) {
+            return TextFault{.at = at, .control = true};
+        }
+        if (first < kDelete) {
+            ++at;
+            continue;
+        }
+        const auto lead = std::ranges::find_if(
+            kUtf8Leads, [first](const Utf8Lead& one) { return first >= one.first && first <= one.last; });
+        if (lead == kUtf8Leads.end() || lead->length > text.size() - at) {
+            return TextFault{.at = at, .control = false};
+        }
+        const auto second = std::to_integer<std::uint8_t>(text[at + 1]);
+        if (second < lead->lowestSecond || second > lead->highestSecond ||
+            !std::all_of(text.begin() + static_cast<std::ptrdiff_t>(at + 2),
+                         text.begin() + static_cast<std::ptrdiff_t>(at + lead->length), IsNext)) {
+            return TextFault{.at = at, .control = false};
+        }
+        if (first == kC1Lead && second <= kLastC1Second) {
+            return TextFault{.at = at, .control = true};
+        }
+        at += lead->length;
+    }
+    return std::nullopt;
+}
+
+// A text of the header that starts at the byte `start` of the recording; the reason says at which byte of
+// the recording it went wrong, for the writer as for the reading.
+[[nodiscard]] Result<void> CheckText(std::string_view name, std::span<const std::byte> text,
+                                     std::size_t start) {
+    const auto fault = FaultOf(text);
+    if (!fault) {
+        return {};
+    }
+    return MakeError("the " + std::string(name) + " in the header " +
+                     (fault->control ? "has a control character" : "is not UTF-8") + " at byte " +
+                     std::to_string(start + fault->at));
 }
 
 // Writing.
@@ -216,6 +298,9 @@ struct Encoded {
         return MakeError("the header is cut");
     }
     const auto text = bytes.subspan(offset + 1, size);
+    if (auto shown = CheckText(name, text, offset + 1); !shown) {
+        return tl::unexpected(shown.error());
+    }
     offset += 1 + size;
     std::string read(size, '\0');
     std::ranges::transform(text, read.begin(), [](std::byte unit) { return static_cast<char>(unit); });
@@ -399,9 +484,13 @@ RecordingWriter::RecordingWriter(std::size_t room) : m_room(room) {
 Result<RecordingWriter> RecordingWriter::Create(const RecordingHeader& header, std::size_t room) {
     std::size_t headerSize = kVersionsEnd;
     for (const HeaderText& text : kHeaderTexts) {
-        const std::size_t size = (header.*text.field).size();
+        const std::string& value = header.*text.field;
+        const std::size_t size = value.size();
         if (size > kLongestText) {
             return tl::unexpected(TextTooLong(text.name, size));
+        }
+        if (auto shown = CheckText(text.name, std::as_bytes(std::span(value)), headerSize + 1); !shown) {
+            return tl::unexpected(shown.error());
         }
         headerSize += 1 + size;
     }

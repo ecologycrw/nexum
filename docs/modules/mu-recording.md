@@ -27,7 +27,7 @@ Cabeçalhos públicos em `Games/MuOnline/Public/Mu/Recording/`.
 
 ## O formato `.mucap`, versão 1
 
-Tudo em little-endian. Um **texto** é 1 byte com o tamanho, de 0 a 64, seguido de tantos bytes em UTF-8.
+Tudo em little-endian. Um **texto** é 1 byte com o tamanho, de 0 a 64, seguido de tantos bytes em UTF-8 ([RFC 3629](https://www.rfc-editor.org/rfc/rfc3629)), sem caracteres de controle (de `00` a `1F`, o `7F` e os de U+0080 a U+009F). O replay mostra os textos na primeira linha dele, e um caractere de controle chegaria ao terminal. O escritor recusa um texto assim com o mesmo motivo da leitura.
 
 **O cabeçalho**
 
@@ -60,7 +60,7 @@ Uma sessão que falhou antes do mundo grava só o cabeçalho e o fim. A gravaç�
 A leitura confere, nesta ordem, e recusa com o motivo exato:
 
 1. o tamanho do arquivo, até 64 MiB, antes de ler ("the file ... has N bytes, more than the limit of L");
-2. a marca ("the recording does not start with the mark of a .mucap"), as duas versões ("the format version 2 is unknown: this Nexum reads the version 1") e cada texto do cabeçalho, inteiro e com até 64 bytes;
+2. a marca ("the recording does not start with the mark of a .mucap"), as duas versões ("the format version 2 is unknown: this Nexum reads the version 1") e cada texto do cabeçalho, inteiro, com até 64 bytes e em UTF-8 sem caracteres de controle ("the server in the header has a control character at byte 26", "is not UTF-8 at byte 25");
 3. cada registro inteiro dentro do arquivo ("the record at byte N is cut"), com o tipo conhecido ("has the unknown type 9") e o tamanho exato do tipo ("has 13 bytes of content, not 14"), e o fim com um motivo conhecido;
 4. o tempo que nunca volta ("goes back in time");
 5. no máximo uma entrada no mundo, antes de qualquer mensagem, mudança de época ou tick ("comes before the entry in the world", "is the second one");
