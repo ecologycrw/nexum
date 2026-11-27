@@ -1,4 +1,5 @@
-"""Writes the safety summary of a pull request: protected files that changed and tests that were removed.
+"""Writes the safety summary of a pull request: protected files that changed, tests that were removed and each new
+NOLINT, which turns off a check of the static analysis (P-0015).
 
 The text is in Portuguese because the owner of the product reads it in the PR.
 It never fails the build; it only makes these changes impossible to miss.
@@ -7,6 +8,7 @@ It never fails the build; it only makes these changes impossible to miss.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path, PurePosixPath
 
@@ -22,6 +24,10 @@ _DESCRIPTIONS = {"A": "criado", "D": "apagado", "R": "renomeado"}
 # doctest: TEST_CASE, TEST_CASE_FIXTURE, TEST_CASE_TEMPLATE, SCENARIO and SUBCASE; Python: unittest methods.
 _TEST_MARKERS = ("TEST_CASE(", "TEST_CASE_FIXTURE(", "TEST_CASE_TEMPLATE(", "SCENARIO(", "SUBCASE(", "def test_")
 TEST_PATHSPECS = ("tests/", "scripts/checks/tests/", ":(glob)**/Tests/**")
+# Every file but the documents, the Python of Tools/ included (the template of packetgen writes C++).
+CODE_PATHSPECS = (".", ":(exclude)*.md")
+_HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(?P<start>\d+)(?:,\d+)? @@")
+_LONGEST_QUOTED_LINE = 160
 
 
 def is_protected(path: str) -> bool:
@@ -67,7 +73,33 @@ def _is_test_file(path: str) -> bool:
     return is_in_tests and PurePosixPath(path).suffix in (".cpp", ".py", ".ps1")
 
 
-def build(changes: list[tuple[str, str]], test_diff: str) -> str:
+def find_new_nolints(diff: str) -> list[tuple[str, int, str]]:
+    """Each added line with NOLINT outside the documents, from a diff with no context: the file, the line, the text."""
+    found: list[tuple[str, int, str]] = []
+    current = ""
+    line_number = 0
+    in_header = False
+    for line in diff.splitlines():
+        if line.startswith("diff --git "):
+            current, in_header = "", True
+            continue
+        hunk = _HUNK.match(line)
+        if hunk:
+            line_number, in_header = int(hunk.group("start")), False
+            continue
+        if in_header:
+            if line.startswith("+++ "):
+                current = line[6:] if line.startswith("+++ b/") else ""
+            continue
+        if not line.startswith("+"):
+            continue
+        if current and not current.endswith(".md") and "NOLINT" in line:
+            found.append((current, line_number, line[1:].strip().replace("`", "'")[:_LONGEST_QUOTED_LINE]))
+        line_number += 1
+    return found
+
+
+def build(changes: list[tuple[str, str]], test_diff: str, code_diff: str = "") -> str:
     protected = [change for change in changes if is_protected(change[1])]
     deleted_tests = [path for status, path in changes if status == "D" and _is_test_file(path)]
     added, removed = _count_tests(test_diff)
@@ -89,6 +121,15 @@ def build(changes: list[tuple[str, str]], test_diff: str) -> str:
     if powershell_removed:
         lines += ["", "> **Atenção:** linhas saíram dos testes em PowerShell. Confira se algum caso de teste foi removido "
                       "ou enfraquecido; se foi, o report precisa explicar o motivo."]
+
+    nolints = find_new_nolints(code_diff)
+    lines += ["", f"### `NOLINT` novos ({len(nolints)})", ""]
+    if nolints:
+        lines += [f"- `{path}`, linha {number}: `{text}`" for path, number, text in nolints]
+        lines += ["", "> **Atenção:** cada `NOLINT` novo desliga uma conferência da análise estática. Confira se o "
+                      "motivo, no comentário da linha de cima, justifica a exceção."]
+    else:
+        lines.append("Nenhum.")
     return "\n".join(lines) + "\n"
 
 
@@ -103,10 +144,11 @@ def run(root: Path, base_ref: str) -> int:
     revision_range = f"{base_ref}...HEAD"
     name_status = _git(root, "diff", "--name-status", revision_range)
     test_diff = _git(root, "diff", "-U0", revision_range, "--", *TEST_PATHSPECS)
-    if name_status is None or test_diff is None:
+    code_diff = _git(root, "diff", "-U0", revision_range, "--", *CODE_PATHSPECS)
+    if name_status is None or test_diff is None or code_diff is None:
         print(f"git diff failed for '{revision_range}'.")
         return 1
-    summary = build(parse_name_status(name_status), test_diff)
+    summary = build(parse_name_status(name_status), test_diff, code_diff)
     print(summary, end="")
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_file:

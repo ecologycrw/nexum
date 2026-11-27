@@ -145,7 +145,7 @@ O `scripts/checks` confere o que o compilador não confere:
 | `docs` | links quebrados, specs incompletas, critério de aceitação sem prova, seções "Prova visual", "Fontes da central usadas", "Suficiência das descrições" e "Sala limpa" ausentes, plano aprovado com perguntas abertas para a central, ADRs fora de sequência, item provisório sem destino |
 | `structure` | arquivos obrigatórios faltando, módulos fora do padrão, nomes de arquivo errados, biblioteca sem licença registrada, arquivos originais do jogo no repositório |
 | `architecture` | dependência proibida entre camadas, e bibliotecas externas ou o sistema operacional fora do módulo dono |
-| `cpp-rules` | `new` e `delete` soltos (o `#include <new>` é aceito), funções perigosas de C, `rand`, relógios do sistema fora de `Engine/Time/Private` e de `Tools/`, `reinterpret_cast` fora de `Engine/Platform/Private`, `throw` no runtime. A troca do `operator new` global só é aceita no contador de `tests/architecture/frame_allocations/` |
+| `cpp-rules` | `new` e `delete` soltos (o `#include <new>` é aceito), funções perigosas de C, `rand`, relógios do sistema fora de `Engine/Time/Private` e de `Tools/`, `reinterpret_cast` fora de `Engine/Platform/Private`, `throw` no runtime. A troca do `operator new` global só é aceita no contador de `tests/architecture/frame_allocations/`. Em todo o código, inclusive nos testes e em `Tools/`, um `NOLINT`, `NOLINTNEXTLINE` ou `NOLINTBEGIN` que não diga entre parênteses cada regra que desliga, sem `*`, ou que não tenha um comentário com o motivo na linha de cima |
 | `terms` | a linha vermelha: nomes do MU em `Engine/` e `Kit/`, e nomes dos formatos originais fora de `Tools/` |
 
 ## Central de conhecimento

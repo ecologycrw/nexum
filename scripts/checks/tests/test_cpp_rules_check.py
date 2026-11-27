@@ -124,6 +124,57 @@ class CppRulesTests(TempRepositoryTest):
             with self.subTest(code=code):
                 self.assert_refused(self.findings_for(code, f"{ALLOCATION_COUNTER}/AllocationCounter.cpp"), expected)
 
+    def messages_for(self, code: str, path: str = "Engine/Core/Private/A.cpp") -> list[str]:
+        return [str(finding) for finding in self.findings_for(code, path)]
+
+    def test_a_nolint_that_names_the_check_and_has_the_reason_above_is_allowed(self) -> None:
+        code = (
+            "// SDL calls the first function with no data of its own.\n"
+            "// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)\n"
+            "Launch* current = nullptr;\n"
+            "/* The table follows the spec,\n"
+            "   in its order. */\n"
+            "// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-avoid-magic-numbers)\n"
+            "constexpr int kTable[] = {7, 9};\n"
+            "// NOLINTEND(readability-magic-numbers, cppcoreguidelines-avoid-magic-numbers)\n"
+            "// The library calls back with this signature.\n"
+            "void f(int* p); // NOLINT(readability-non-const-parameter)\n"
+        )
+        self.assertEqual(self.findings_for(code), [])
+
+    def test_a_nolint_that_does_not_name_each_check_is_refused(self) -> None:
+        expected = ("[cpp-rules] Engine/Core/Private/A.cpp: line 2: a NOLINT must name in parentheses each check "
+                    "it turns off, without '*'")
+        for marker in ("NOLINT", "NOLINTNEXTLINE", "NOLINTBEGIN", "NOLINT()", "NOLINTNEXTLINE( )",
+                       "NOLINTBEGIN(*)", "NOLINT(google-*)", "NOLINT(misc-a,)"):
+            with self.subTest(marker=marker):
+                self.assertEqual(self.messages_for(f"// The reason.\n// {marker}\nint a = 1;\n"), [expected])
+
+    def test_a_nolint_without_a_reason_on_the_line_above_is_refused(self) -> None:
+        cases = (
+            ("int a = 1;\n// NOLINTNEXTLINE(misc-check)\nint b = 2;\n", 2),
+            ("\n// NOLINTNEXTLINE(misc-check)\nint b = 2;\n", 2),
+            ("//\n// NOLINTNEXTLINE(misc-check)\nint b = 2;\n", 2),
+            ("// NOLINTNEXTLINE(misc-check)\nint b = 2;\n", 1),
+            ("int a = 1;\nint b = 2; // NOLINT(misc-check)\n", 2),
+            ("*pointer = 1;\n// NOLINTNEXTLINE(misc-check)\nint b = 2;\n", 2),
+            ("// The reason.\n// NOLINTNEXTLINE(misc-a)\n// NOLINTNEXTLINE(misc-b)\nint b = 2;\n", 3),
+        )
+        for code, line in cases:
+            with self.subTest(code=code):
+                self.assertEqual(self.messages_for(code), [
+                    f"[cpp-rules] Engine/Core/Private/A.cpp: line {line}: a NOLINT needs a comment with the "
+                    "reason on the line above"])
+
+    def test_the_end_of_a_nolint_block_needs_no_reason(self) -> None:
+        self.assertEqual(self.findings_for("int a = 1;\n// NOLINTEND(misc-check)\n"), [])
+
+    def test_the_nolint_rule_applies_in_every_scanned_folder(self) -> None:
+        for path in ("Kit/GridRpg/Private/A.cpp", "Games/MuOnline/Tests/ATest.cpp", "Tools/PacketGen/Tests/A.hpp",
+                     "tests/architecture/ATest.cpp", f"{ALLOCATION_COUNTER}/AllocationCounter.cpp"):
+            with self.subTest(path=path):
+                self.assert_refused(self.findings_for("int a = 1; // NOLINT\n", path), "line 1: a NOLINT must name")
+
 
 if __name__ == "__main__":
     unittest.main()

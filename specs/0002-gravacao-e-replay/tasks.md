@@ -8,7 +8,8 @@ Cada tarefa tem a primeira linha no formato abaixo, que o hook do início da ses
 
 - [x] T01: O ADR 0035: o contrato do adaptador de servidor, as duas implementações, a época nos eventos, os comandos na parte 2 do M2, e a gravação e o replay no módulo MU, só no build de desenvolvimento (CA-01, CA-13). Verificação: checagem `docs` no `verify`.
   - `docs/adr/0035-adaptador-de-servidor-gravacao-e-replay.md`, aceito, com os 7 pontos e os dois desvios (as credenciais fora do contrato e o lugar fora de `Tools/`); o índice dos ADRs atualizado. Commit: este.
-- [ ] T02: Os `NOLINT` (P-0015, trava `scripts/checks/`): a `cpp-rules` exige a regra e o motivo na linha de cima, o `pr_summary.py` lista cada `NOLINT` novo, e o profiler ganha a linha de motivo (CA-11). Verificação: testes das checagens e a `cpp-rules` no `verify`.
+- [x] T02: Os `NOLINT` (P-0015, trava `scripts/checks/`): a `cpp-rules` exige a regra e o motivo na linha de cima, o `pr_summary.py` lista cada `NOLINT` novo, e o profiler ganha a linha de motivo (CA-11). Verificação: testes das checagens e a `cpp-rules` no `verify`.
+  - A `cpp-rules` recusa o `NOLINT` sem cada regra (ou com `*`) e sem o motivo na linha de cima; o resumo lista cada linha nova com `NOLINT` fora dos `.md`; os 3 de hoje passam; 8 testes novos, com a sabotagem. Commit: este.
 - [ ] T03: O FNV-1a de 64 bits (`Engine/Core`), com os valores de teste publicados do algoritmo (CA-06). Verificação: `verify`.
 - [ ] T04: `ReadFileBytes`, com o limite conferido antes de ler, e `WriteFileBytes` (`Engine/Platform`, pelo SDL) (CA-03, CA-04). Verificação: `verify`.
 - [ ] T05: O adaptador de servidor (`Mu/Online/ServerAdapter.hpp`), o `LiveServer` com as peças de hoje e o `OnlineClient` só pelo contrato; os testes da fatia 1 montam o `LiveServer`, e um adaptador de teste prova a ordem (CA-01). Verificação: `verify`.
@@ -39,6 +40,7 @@ Cada escolha que o dono fez durante a fatia, com as palavras dele e a tarefa: o 
 
 - **2026-11-26, antes da lista de tarefas:** "Nesta sessão". O `/implementar` começou na mesma sessão do `/situacao`.
 - **2026-11-26, antes da T01:** "Nesta sessão" e "Sim, ligue". A T01 foi feita nesta sessão, e o aviso automático da CI (Auto-fix) do PR #12 foi ligado nesta sessão.
+- **2026-11-26, antes da T02:** "Nesta sessão". A T02 foi feita nesta sessão. A trava `scripts/checks/` mudou pela decisão 6 da spec, aprovada pelo dono.
 
 ## Bloqueios
 

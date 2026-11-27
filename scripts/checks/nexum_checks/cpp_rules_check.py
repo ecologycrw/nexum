@@ -1,6 +1,8 @@
 """Refuses dangerous C++ that the compiler accepts (INV-05, INV-07, INV-11, INV-12 and INV-14, docs/CONVENTIONS.md).
 
 Each rule lists the only folders where the construct is allowed. An empty list means it is forbidden everywhere.
+Every NOLINT, NOLINTNEXTLINE and NOLINTBEGIN must name each check it turns off and have the reason in a comment
+on the line above, so that no exception to the static analysis comes in silently (P-0015).
 """
 
 from __future__ import annotations
@@ -75,6 +77,13 @@ _CODE_PARTS = re.compile(
 )
 
 
+# clang-tidy reads these words anywhere in the line, even inside a string, so they are searched in the whole text.
+# NOLINTEND only closes a block, and the reason stays with its NOLINTBEGIN.
+_NOLINT = re.compile(r"\bNOLINT(?:NEXTLINE|BEGIN)?\b(?:\((?P<checks>[^)\n]*)\))?")
+_COMMENT_START = re.compile(r"^(?://|/\*|\*(?:\s|/|$))")
+_COMMENT_MARKERS = re.compile(r"^(?:/+|/\*+|\*+)|\*+/$")
+
+
 def strip_comments_and_strings(text: str) -> str:
     """Blanks comments and string contents, keeping the line numbers."""
 
@@ -102,6 +111,36 @@ def _without_include_new(code: str) -> str:
     return _INCLUDE_NEW.sub(lambda match: " " * len(match.group(0)), code)
 
 
+def _names_each_check(checks: str | None) -> bool:
+    if checks is None:
+        return False
+    names = [name.strip() for name in checks.split(",")]
+    return all(name and "*" not in name for name in names)
+
+
+def _is_reason(line: str) -> bool:
+    """A comment with words of its own, and not another NOLINT."""
+    stripped = line.strip()
+    is_comment = bool(_COMMENT_START.match(stripped)) or stripped.endswith("*/")
+    words = _COMMENT_MARKERS.sub("", stripped)
+    return is_comment and "NOLINT" not in words and any(character.isalpha() for character in words)
+
+
+def _nolint_findings(where: str, text: str) -> list[Finding]:
+    lines = text.split("\n")
+    findings: list[Finding] = []
+    for match in _NOLINT.finditer(text):
+        line = _line_of(text, match.start())
+        if not _names_each_check(match.group("checks")):
+            message = "a NOLINT must name in parentheses each check it turns off, without '*'"
+        elif line == 1 or not _is_reason(lines[line - 2]):
+            message = "a NOLINT needs a comment with the reason on the line above"
+        else:
+            continue
+        findings.append(Finding(NAME, where, f"line {line}: {message}"))
+    return findings
+
+
 def check_file(where: str, text: str) -> list[Finding]:
     code = _without_include_new(strip_comments_and_strings(text))
     findings = [
@@ -109,6 +148,7 @@ def check_file(where: str, text: str) -> list[Finding]:
         for rule in _rules_for(where)
         for match in rule.pattern.finditer(code)
     ]
+    findings += _nolint_findings(where, text)
     if where.startswith(_ALLOCATION_COUNTER_FOLDER):
         return findings
     findings += [
