@@ -28,6 +28,7 @@
 #include "Mu/World/WorldView.hpp"
 #include "Nexum/Debug/Logger.hpp"
 #include "Nexum/TestSupport/MemoryLogSink.hpp"
+#include "ScriptedTransport.hpp"
 #include "SessionMessages.hpp"
 
 namespace {
@@ -35,62 +36,11 @@ namespace {
 using mu::online::OnlineClient;
 using mu::online::OnlineStatus;
 using mu::online::ServerState;
-using mu::session::Endpoint;
-using mu::session::Session;
 using mu::session::SessionEpoch;
 using mu::session::SessionState;
-using nexum::net::EventKind;
 using nexum::time::Seconds;
+using test_transport::ScriptedTransport;
 using namespace session_messages;
-
-// A transport with the events in memory: the test queues them, each with the epoch of the connection open
-// when it was queued, and the next Deliver hands them over.
-class ScriptedTransport final : public mu::online::Transport {
-public:
-    void Open(const Endpoint& endpoint) override {
-        opened.push_back(endpoint);
-        m_epoch = endpoint.epoch;
-    }
-
-    nexum::core::Result<void> Send(std::span<const std::byte> message) override {
-        sent.emplace_back(message.begin(), message.end());
-        return {};
-    }
-
-    void Close() override { ++closes; }
-
-    std::size_t Deliver(Session& session, Seconds now) override {
-        std::vector<Queued> queued = std::exchange(m_queued, {});
-        for (const Queued& event : queued) {
-            session.Handle(event.epoch,
-                           {.kind = event.kind, .message = event.message, .reason = event.reason}, now);
-        }
-        ++deliveries;
-        return queued.size();
-    }
-
-    void Connected() { m_queued.push_back({m_epoch, EventKind::Connected, {}, {}}); }
-    void Message(Bytes message) { m_queued.push_back({m_epoch, EventKind::Message, std::move(message), {}}); }
-    void Closed(std::string reason) {
-        m_queued.push_back({m_epoch, EventKind::Closed, {}, std::move(reason)});
-    }
-
-    std::vector<Endpoint> opened;
-    std::vector<Bytes> sent;
-    int closes = 0;
-    int deliveries = 0;
-
-private:
-    struct Queued {
-        SessionEpoch epoch;
-        EventKind kind = EventKind::Closed;
-        Bytes message;
-        std::string reason;
-    };
-
-    std::vector<Queued> m_queued;
-    SessionEpoch m_epoch;
-};
 
 [[nodiscard]] mu::session::SessionOptions TestOptions() {
     mu::session::SessionOptions options;

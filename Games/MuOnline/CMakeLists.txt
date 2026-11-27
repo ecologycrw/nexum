@@ -21,6 +21,7 @@ nexum_add_library(MuOnline
         Private/Protocol/LoginMessage.cpp
         Private/Protocol/PacketFields.cpp
         Private/Protocol/PacketLog.cpp
+        Private/Recording/Recorder.cpp
         Private/Recording/Recording.cpp
         Private/Recording/StateDigest.cpp
         Private/Session/MessageQueue.cpp

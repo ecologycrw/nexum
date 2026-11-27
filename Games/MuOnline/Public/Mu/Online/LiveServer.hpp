@@ -2,7 +2,9 @@
 
 // The OpenMU 106.3 live, behind the contract of the server (ADR 0035): the transport, the session
 // (Mu/Session) and the translation of the messages of the world into neutral events (Mu/Translate), as slice
-// 1 made them. The account and the password come in the options and stay inside the session.
+// 1 made them. The account and the password come in the options and stay inside the session. With a
+// recorder (Mu/Recording/Recorder.hpp), the server tells it of the entry in the world, of each message of the
+// world before the translation, of each change of epoch and of each tick.
 
 #include <cstddef>
 #include <optional>
@@ -10,6 +12,7 @@
 
 #include "Mu/Online/ServerAdapter.hpp"
 #include "Mu/Online/Transport.hpp"
+#include "Mu/Recording/Recorder.hpp"
 #include "Mu/Session/MessageQueue.hpp"
 #include "Mu/Session/Session.hpp"
 #include "Mu/Translate/Translator.hpp"
@@ -22,8 +25,9 @@ namespace mu::online {
 
 class LiveServer final : public ServerAdapter {
 public:
-    // `transport` and `log` must outlive the server.
-    LiveServer(session::SessionOptions options, Transport& transport, nexum::debug::Logger& log);
+    // `transport`, `log` and the recorder, when there is one, must outlive the server.
+    LiveServer(session::SessionOptions options, Transport& transport, nexum::debug::Logger& log,
+               recording::Recorder* recorder = nullptr);
 
     // Opens the Connect Server.
     void Start(nexum::time::Seconds now) override;
@@ -35,7 +39,7 @@ public:
     // The deadlines of the session and the ping.
     void AdvanceClock(nexum::time::Seconds now) override;
 
-    // Nothing to do yet: the recorder of slice 2 (Mu/Recording) will take the marks of the ticks from here.
+    // Gives the recorder the mark of the tick, with its checkpoint when it is due.
     void EventsApplied(const world::WorldView& view, std::size_t count, nexum::time::Seconds now) override;
 
     [[nodiscard]] session::SessionEpoch CurrentEpoch() const noexcept override { return m_session.Epoch(); }
@@ -50,10 +54,11 @@ public:
     [[nodiscard]] session::SessionState State() const noexcept { return m_session.State(); }
 
 private:
-    void EnterWorld();
+    void EnterWorld(nexum::time::Seconds now);
 
     Transport* m_transport;
     nexum::debug::Logger* m_log;
+    recording::Recorder* m_recorder;
     session::Session m_session;
     // Born with the id of the hero, which the Game Server gives (section 6.5 of the protocol spec).
     std::optional<translate::Translator> m_translator;
