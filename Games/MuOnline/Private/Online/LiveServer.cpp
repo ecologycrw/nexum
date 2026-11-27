@@ -56,7 +56,7 @@ ServerStatus LiveServer::Status() const noexcept {
         return ServerStatus{.state = ServerState::Failed, .reason = m_session.Failure()};
     }
     if (m_session.State() == session::SessionState::InWorld) {
-        return ServerStatus{.state = ServerState::InWorld};
+        return ServerStatus{.state = ServerState::InWorld, .reason = {}};
     }
     return ServerStatus{};
 }
