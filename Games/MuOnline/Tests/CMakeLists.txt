@@ -20,6 +20,7 @@ nexum_add_tests(muonline_tests
         PingTest.cpp
         RecorderTest.cpp
         RecordingTest.cpp
+        ReplayServerTest.cpp
         SessionTest.cpp
         StateDigestTest.cpp
         TickReportTextTest.cpp

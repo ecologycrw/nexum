@@ -12,6 +12,7 @@ nexum_add_library(MuOnline
         Private/Online/LiveServer.cpp
         Private/Online/NetworkTransport.cpp
         Private/Online/OnlineClient.cpp
+        Private/Online/ReplayServer.cpp
         Private/Protocol/CharacterInformation.cpp
         Private/Protocol/Cipher.cpp
         Private/Protocol/ClientCodec.cpp
